@@ -47,10 +47,10 @@
   ipre2 = 0
 
 ! Starting time
-  start_year = {{config.start_year}} !int
-  start_month = {{config.start_month}} !int
-  start_day = {{config.start_day}} !int
-  start_hour = {{config.start_hour}} !double
+  start_year = {{runtime.period.start.year}} !int
+  start_month = {{runtime.period.start.month}} !int
+  start_day = {{runtime.period.start.day}} !int
+  start_hour = {{runtime.period.start.hour}} !double
   utc_start = {{config.utc_start}} !double
 
 !-----------------------------------------------------------------------

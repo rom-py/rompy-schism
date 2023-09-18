@@ -4,7 +4,8 @@ from typing import Annotated, Literal, Optional, Union
 
 from pydantic import Field, field_validator, model_validator
 
-from rompy.core import BaseConfig, Coordinate, RompyBaseModel, Spectrum, TimeRange
+from rompy.core import (BaseConfig, Coordinate, RompyBaseModel, Spectrum,
+                        TimeRange)
 
 logger = logging.getLogger(__name__)
 
@@ -18,13 +19,7 @@ class SchismConfig(BaseConfig):
         "schism", description="The model type for SWAN."
     )
     project: str = Field("WAXA", description="TODO")
-    start_year: int = Field(2021, description="TODO")
-    start_month: int = Field(8, description="TODO")
-    start_day: int = Field(1, description="TODO")
-    start_hour: int = Field(0, description="TODO")
     utc_start: int = Field(0, description="TODO")
-    compute_start: str = Field("20210801.000000", description="TODO")
-    compute_stop: str = Field("20211129.000000", description="TODO")
     rnday: int = Field(120, description="TODO")
     time_step: float = Field(120.0, description="TODO")
     msc2: int = Field(36, description="TODO")

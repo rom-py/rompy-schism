@@ -14,10 +14,10 @@
                                      ! If F, maths. convention - 0: to east; 90: going to north
  LMONO_IN       = F                  ! For prescribing monochromatic wave height Hmono as a boundary conditions; incident wave is defined as monochromatic wave height, which is Hmono = sqrt(2) * Hs
  LMONO_OUT      = F                  ! Output wave heights in terms of Lmono
- BEGTC          = '{{config.compute_start}}'  ! Time for start the simulation, ex:yyyymmdd. hhmmss
+ BEGTC          = '{{runtime.period.start.strftime("%Y%m%d.%H%M%S")}}'  ! Time for start the simulation, ex:yyyymmdd. hhmmss
  DELTC          = {{config.deltc}}                ! Time step (MUST match dt*nstep_wwm in SCHISM!)
  UNITC          = 'SEC'              ! Unity of time step
- ENDTC          = '{{config.compute_stop}}'  ! Time for stop the simulation, ex:yyyymmdd. hhmmss
+ ENDTC          = '{{runtime.period.end.strftime("%Y%m%d.%H%M%S")}}'  ! Time for stop the simulation, ex:yyyymmdd. hhmmss
  DMIN           = 0.01              ! Minimum water depth. THis must be same as h0 in SCHISM
 /
 
@@ -67,10 +67,10 @@
  LINHOM         = T                  ! Non-uniform wave b.c. in space
  LBSP1D         = F                  ! 1D (freq. space only) format for FILEWAVE if LBCSP=T and LINHOM=F                    
  LBSP2D         = T                  ! 2D format for FILEWAVE if LBCSP=T and LINHOM=F 
- BEGTC          = '{{config.compute_start}}'  ! Begin time of the wave boundary file (FILEWAVE) 
+ BEGTC          = '{{runtime.period.start.strftime("%Y%m%d.%H%M%S")}}'  ! Begin time of the wave boundary file (FILEWAVE) 
  DELTC          = 1                  ! Time step in FILEWAVE 
  UNITC          = 'HR'               ! Unit can be HR, MIN, SEC 
- ENDTC          = '{{config.compute_stop}}'  ! End time
+ ENDTC          = '{{runtime.period.end.strftime("%Y%m%d.%H%M%S")}}'  ! End time
  FILEBOUND      = '{{config.wwmbnd_file}}'       ! Boundary file defining boundary conditions and Neumann nodes.
                                      ! In this file there is following definition Flag 0: not on boundary; 3: Neumann (0 gradient only for advection part);
                                      ! 2: active bnd (Dirichlet). Bnd flags imported from SCHISM: ! 1: exterior bnd; -1: interior (islands)
@@ -104,10 +104,10 @@
 &WIND
 {{config.windYN}} LWINDFROMWWM          = F
 {{config.windYN}} LSEWD                 = F
-{{config.windYN}} BEGTC                 = '{{config.compute_start}}'
+{{config.windYN}} BEGTC                 = '{{runtime.period.start.strftime("%Y%m%d.%H%M%S")}}'
 {{config.windYN}} DELTC                 =  3600.0
 {{config.windYN}} UNITC                 = 'SEC'
-{{config.windYN}} ENDTC                 = '{{config.compute_stop}}'
+{{config.windYN}} ENDTC                 = '{{runtime.period.end.strftime("%Y%m%d.%H%M%S")}}'
 {{config.windYN}} LINTERWD              = T
 {{config.windYN}} LSTWD                 = T
 {{config.windYN}} LCWIN                 = T
@@ -122,10 +122,10 @@
 
 &CURR !NOT USED WITH SCHISM
 {{config.currYN}} LSECU                = F
-{{config.currYN}} BEGTC                = '{{config.compute_start}}'
+{{config.currYN}} BEGTC                = '{{runtime.period.start.strftime("%Y%m%d.%H%M%S")}}'
 {{config.currYN}} DELTC                =  360
 {{config.currYN}} UNITC                =  'SEC'
-{{config.currYN}} ENDTC                = '{{config.compute_stop}}'
+{{config.currYN}} ENDTC                = '{{runtime.period.end.strftime("%Y%m%d.%H%M%S")}}'
 {{config.currYN}} LINTERCU             = F
 {{config.currYN}} LSTCU                = F
 {{config.currYN}} LCCUR                = F
@@ -139,10 +139,10 @@
 
 &WALV
 {{config.walvYN}} LSEWL                = F
-{{config.walvYN}} BEGTC                = '{{config.compute_start}}'
+{{config.walvYN}} BEGTC                = '{{runtime.period.start.strftime("%Y%m%d.%H%M%S")}}'
 {{config.walvYN}} DELTC                = 1
 {{config.walvYN}} UNITC                = 'HR'
-{{config.walvYN}} ENDTC                = '{{config.compute_stop}}'
+{{config.walvYN}} ENDTC                = '{{runtime.period.end.strftime("%Y%m%d.%H%M%S")}}'
 {{config.walvYN}} LINTERWL             = F
 {{config.walvYN}} LSTWL                = T
 {{config.walvYN}} LCWLV                = T
@@ -370,12 +370,12 @@
 
 ! output of statistical variables over the whole domain at specified times.
 &HISTORY
- BEGTC          = '{{config.compute_start}}'  ! Start output time, yyyymmdd. hhmmss;
+ BEGTC          = '{{runtime.period.start.strftime("%Y%m%d.%H%M%S")}}'  ! Start output time, yyyymmdd. hhmmss;
                                      ! must fit the simulation time otherwise no output.
                                      ! Default is same as PROC%BEGTC
  DELTC          = {{config.deltc_out}}  ! Time step for output; if smaller than simulation time step, the latter is used (output every step for better 1D 2D spectra analysis)
  UNITC          = 'SEC'              ! Unit
- ENDTC          = '{{config.compute_stop}}'  ! Stop time output, yyyymmdd. hhmmss
+ ENDTC          = '{{runtime.period.end.strftime("%Y%m%d.%H%M%S")}}'  ! Stop time output, yyyymmdd. hhmmss
                                      ! Default is same as PROC%ENDC
  DEFINETC       = {{config.definetc}}              ! Time scoop (sec) for history files
                                      ! If unset or set to a negative value
@@ -454,11 +454,11 @@
 /
 
 &STATION
- BEGTC          = '{{config.compute_start}}'  ! Start simulation time, yyyymmdd. hhmmss; must fit the simulation time otherwise no output
+ BEGTC          = '{{runtime.period.start.strftime("%Y%m%d.%H%M%S")}}'  ! Start simulation time, yyyymmdd. hhmmss; must fit the simulation time otherwise no output
                                      ! Default is same as PROC%BEGTC
  DELTC          = {{config.deltc_out}}                ! Time step for output; if smaller than simulation time step, the latter is used (output every step for better 1D 2D spectra analysis)
  UNITC          = 'SEC'              ! Unit
- ENDTC          = '{{config.compute_stop}}'  ! Stop time simulation, yyyymmdd. hhmmss
+ ENDTC          = '{{runtime.period.end.strftime("%Y%m%d.%H%M%S")}}'  ! Stop time simulation, yyyymmdd. hhmmss
                                      ! Default is same as PROC%ENDC
  DEFINETC       = {{config.definetc}}              ! Time for definition of station files
                                      ! If unset or set to a negative value
@@ -546,11 +546,11 @@
 &HOTFILE
  LHOTF          = F                  ! Write hotfile
  FILEHOT_OUT    = 'wwm_hot_out'      !'.nc' suffix will be added 
- BEGTC          = '{{config.compute_start}}'  !Starting time of hotfile writing. With ihot!=0 in SCHISM,
+ BEGTC          = '{{runtime.period.start.strftime("%Y%m%d.%H%M%S")}}'  !Starting time of hotfile writing. With ihot!=0 in SCHISM,
                                      !this will be whatever the new hotstarted time is (even with ihot=2)
  DELTC          = {{config.deltc_out}}.             ! time between hotfile writes
  UNITC          = 'SEC'              ! unit used above
- ENDTC          = '{{config.compute_stop}}'  ! Ending time of hotfile writing (adjust with BEGTC)
+ ENDTC          = '{{runtime.period.end.strftime("%Y%m%d.%H%M%S")}}'  ! Ending time of hotfile writing (adjust with BEGTC)
  LCYCLEHOT      = T                  ! Applies only to netcdf
                                      ! If T then hotfile contains 2 last records.
                                      ! If F then hotfile contains N record if N outputs
