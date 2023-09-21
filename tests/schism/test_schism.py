@@ -4,10 +4,9 @@ from pathlib import Path
 
 from utils import compare_files
 
-from rompy.core import TimeRange
+from rompy.core import DataBlob, TimeRange
 from rompy.model import ModelRun
-from rompy.schism import SchismConfig
-from rompy.schism.config import DEFAULT_TEMPLATE
+from rompy.schism import Inputs, SchismConfig
 
 sys.path.append("../")
 
@@ -20,13 +19,29 @@ here = Path(__file__).parent
 def test_schism_render(tmpdir):
     """Test the swantemplate function."""
     run_id = "test_schism"
-    time = TimeRange(
-        start=datetime(2020, 2, 21, 4), end=datetime(2020, 2, 24, 4), interval="15M"
+    period = TimeRange(
+        start=datetime(2021, 8, 1, 0), end=datetime(2021, 11, 29, 0), interval="15M"
     )
     runtime = ModelRun(
+        period=period,
         run_id=run_id,
         output_dir=str(tmpdir),
-        config=SchismConfig(),
+        config=SchismConfig(
+            inputs=Inputs(
+                hgrid_file=DataBlob(
+                    id="hgrid_file", source=here / "test_data" / "hgrid_WWM.gr3"
+                ),
+                wwmbnd_file=DataBlob(
+                    id="wwmbnd_file", source=here / "test_data" / "wwmbnd.gr3"
+                ),
+                filewave=DataBlob(
+                    id="filewave",
+                    source=here
+                    / "test_data"
+                    / "schism_bnd_spec_SWAN_500m_use_in_schism_2021Aug-Nov.nc",
+                ),
+            )
+        ),
     )
     runtime.generate()
     for fname in ["param.nml", "wwminput.nml"]:

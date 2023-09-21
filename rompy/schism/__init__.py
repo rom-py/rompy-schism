@@ -1,1 +1,1 @@
-from .config import SchismConfig
+from .config import Inputs, SchismConfig
