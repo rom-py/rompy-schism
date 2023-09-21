@@ -1,11 +1,11 @@
 import logging
+import os
 from pathlib import Path
 from typing import Annotated, Literal, Optional, Union
 
 from pydantic import Field, field_validator, model_validator
 
-from rompy.core import (BaseConfig, Coordinate, RompyBaseModel, Spectrum,
-                        TimeRange)
+from rompy.core import BaseConfig, DataBlob, RompyBaseModel, Spectrum, TimeRange
 
 logger = logging.getLogger(__name__)
 
@@ -14,10 +14,33 @@ HERE = Path(__file__).parent
 DEFAULT_TEMPLATE = str(Path(__file__).parent.parent / "templates" / "schism")
 
 
+class Inputs(RompyBaseModel):
+    hgrid_file: DataBlob = Field(description="TODO")
+    wwmbnd_file: DataBlob | None = Field(None, description="TODO")
+    filewave: DataBlob | None = Field(
+        None,
+        description="TODO",
+    )
+
+    def get(self, staging_dir: Path):
+        ret = {}
+        for source in self:
+            ret[source[0]] = source[1].get(staging_dir).name
+        return ret
+
+    def __str__(self):
+        ret = ""
+        for forcing in self:
+            if forcing[1]:
+                ret += f"\t{forcing[0]}: {forcing[1].source}\n"
+        return ret
+
+
 class SchismConfig(BaseConfig):
     model_type: Literal["schism"] = Field(
         "schism", description="The model type for SWAN."
     )
+    inputs: Inputs = Field(description="Model inputs")
     project: str = Field("WAXA", description="TODO")
     utc_start: int = Field(0, description="TODO")
     rnday: int = Field(120, description="TODO")
@@ -45,11 +68,6 @@ class SchismConfig(BaseConfig):
     iwind_form: int = Field(1, description="TODO")
     sav_cdYN: str = Field("!", description="TODO")
     iout_sta: int = Field(0, description="TODO")
-    hgrid_file: str = Field("hgrid_WWM.gr3", description="TODO")
-    wwmbnd_file: str = Field("wwmbnd.gr3", description="TODO")
-    filewave: str = Field(
-        "schism_bnd_spec_SWAN_500m_use_in_schism_2021Aug-Nov.nc", description="TODO"
-    )
     lindsprdeg: str = Field("F", description="TODO")
     wbdm: int = Field(90, description="TODO")
     extrapYN: str = Field("!", description="TODO")
@@ -144,3 +162,8 @@ class SchismConfig(BaseConfig):
         description="The path to the model template",
         default=DEFAULT_TEMPLATE,
     )
+
+    def __call__(self, runtime) -> str:
+        ret = self.model_dump()
+        ret.update(self.inputs.get(runtime.staging_dir))
+        return ret
