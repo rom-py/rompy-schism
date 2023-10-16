@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 HERE = Path(__file__).parent
 
-DEFAULT_TEMPLATE = str(Path(__file__).parent.parent / "templates" / "schism")
+CSIRO_TEMPLATE = str(Path(__file__).parent.parent / "templates" / "schism")
 
 
 class Inputs(RompyBaseModel):
@@ -36,7 +36,7 @@ class Inputs(RompyBaseModel):
         return ret
 
 
-class SchismConfig(BaseConfig):
+class SchismCSIROConfig(BaseConfig):
     model_type: Literal["schism"] = Field(
         "schism", description="The model type for SWAN."
     )
@@ -160,7 +160,7 @@ class SchismConfig(BaseConfig):
     ac: str = Field("T", description="TODO")
     template: Optional[str] = Field(
         description="The path to the model template",
-        default=DEFAULT_TEMPLATE,
+        default=CSIRO_TEMPLATE,
     )
 
     def __call__(self, runtime) -> str:
