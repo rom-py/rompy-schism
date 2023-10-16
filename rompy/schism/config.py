@@ -1,11 +1,12 @@
 import logging
-import os
 from pathlib import Path
 from typing import Annotated, Literal, Optional, Union
 
 from pydantic import Field, field_validator, model_validator
 
 from rompy.core import BaseConfig, DataBlob, RompyBaseModel, Spectrum, TimeRange
+
+from .grid import SCHISMGrid2D
 
 logger = logging.getLogger(__name__)
 
@@ -15,8 +16,6 @@ CSIRO_TEMPLATE = str(Path(__file__).parent.parent / "templates" / "schism")
 
 
 class Inputs(RompyBaseModel):
-    hgrid_file: DataBlob = Field(description="TODO")
-    wwmbnd_file: DataBlob | None = Field(None, description="TODO")
     filewave: DataBlob | None = Field(
         None,
         description="TODO",
@@ -40,6 +39,7 @@ class SchismCSIROConfig(BaseConfig):
     model_type: Literal["schismcsiro"] = Field(
         "schismcsiro", description="The model type for SCHISM."
     )
+    grid: SCHISMGrid2D = Field(description="The model grid")
     inputs: Inputs = Field(description="Model inputs")
     project: str = Field("WAXA", description="TODO")
     utc_start: int = Field(0, description="TODO")
@@ -163,7 +163,40 @@ class SchismCSIROConfig(BaseConfig):
         default=CSIRO_TEMPLATE,
     )
 
+    # validator example - ensure the following
+    # Bottom friction.
+    #           nchi=0: drag coefficients specified in drag.gr3; nchi=-1: Manning's
+    #           formulation (even for 3D prisms) with n specified in manning.gr3.
+    #           nchi=1: bottom roughness (in meters) specified in rough.gr3 (and in this case, negative
+    #           or 0 depths in rough.gr3 indicate time-independent Cd, not roughness!).
+    #           Cd is calculated using the log law, when dzb>=dzb_min; when dzb<dzb_min,
+    #           Cd=Cdmax*exp[dzb_decay*(1-dzb/dzb_min)], where Cdmax=Cd(dzb=dzb_min),
+    #           and dzb_decay (<=0) is a decay const specified below. We recommend dzb_decay=0
+    #           and may remove this constant in the future.
+    #           If iwbl/=0, nchi must =1.
+    #   nchi = -1
+    #   dzb_min = 0.5 !needed if nchi=1; min. bottom boundary layer thickness [m].
+    #   dzb_decay = 0. !needed if nchi=1; a decay const. [-]. should =0
+    #   hmin_man = 1.0 !needed if nchi=-1: min. depth in Manning's formulation [m]
+
+    @model_validator(mode="after")
+    def validate_bottom_friction(cls, v):
+        if v.nchi == 0:
+            if v.grid.drag is None:
+                raise ValueError("drag.gr3 must be specified when nchi=0")
+        elif v.nchi == -1:
+            if v.grid.manning is None:
+                raise ValueError("manning.gr3 must be specified when nchi=-1")
+        elif v.nchi == 1:
+            if v.grid.rough is None:
+                raise ValueError("rough.gr3 must be specified when nchi=1")
+        else:
+            raise ValueError("nchi must be 0, -1, or 1")
+        return v
+
     def __call__(self, runtime) -> str:
+        # Copy grid files
+        self.grid.get(runtime.staging_dir)
         ret = self.model_dump()
         ret.update(self.inputs.get(runtime.staging_dir))
         return ret
