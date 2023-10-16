@@ -49,3 +49,15 @@ def test_schism_render(tmpdir):
             here / "reference_files" / runtime.run_id / fname,
             tmpdir / runtime.run_id / fname,
         )
+        # assert file exists
+        for fname in [
+            "diffmax.gr3",
+            "diffmin.gr3",
+            "hgrid.gr3",
+            "drag.gr3",
+            "manning.gr3",
+            "schism_bnd_spec_SWAN_500m_use_in_schism_2021Aug-Nov",
+            "vgrid.in",
+            "wwmbnd.gr3",
+        ]:
+            assert (tmpdir / runtime.run_id / fname).exists()
