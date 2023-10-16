@@ -6,7 +6,7 @@ from utils import compare_files
 
 from rompy.core import DataBlob, TimeRange
 from rompy.model import ModelRun
-from rompy.schism import Inputs, SchismCSIROConfig
+from rompy.schism import Inputs, SchismCSIROConfig, SCHISMGrid2D, SCHISMGrid3D
 
 sys.path.append("../")
 
@@ -27,20 +27,41 @@ def test_schism_render(tmpdir):
         run_id=run_id,
         output_dir=str(tmpdir),
         config=SchismCSIROConfig(
+            grid=SCHISMGrid3D(
+                hgrid=DataBlob(id="hgrid", source=here /
+                               "test_data" / "hgrid.gr3"),
+                vgrid=DataBlob(id="vgrid", source=here /
+                               "test_data" / "vgrid.in"),
+                diffmin=DataBlob(
+                    id="diffmin", source=here / "test_data" / "diffmin.gr3"
+                ),
+                diffmax=DataBlob(
+                    id="diffmax", source=here / "test_data" / "diffmax.gr3"
+                ),
+                # drag=DataBlob(id="drag", source=here /
+                #               "test_data" / "drag.gr3"),
+                manning=DataBlob(
+                    id="manning", source=here / "test_data" / "manning.gr3"
+                ),
+                # rough=DataBlob(id="rough", source=here /
+                #                "test_data" / "rough.gr3"),
+                # hgridll=DataBlob(
+                #     id="hgridll", source=here / "test_data" / "hgridll.gr3"
+                # ),
+                hgrid_WWM=DataBlob(
+                    id="hgrid_WWM", source=here / "test_data" / "hgrid_WWM.gr3"
+                ),
+                wwmbnd=DataBlob(id="wwmbnd", source=here / \
+                                "test_data" / "wwmbnd.gr3"),
+            ),
             inputs=Inputs(
-                hgrid_file=DataBlob(
-                    id="hgrid_file", source=here / "test_data" / "hgrid_WWM.gr3"
-                ),
-                wwmbnd_file=DataBlob(
-                    id="wwmbnd_file", source=here / "test_data" / "wwmbnd.gr3"
-                ),
                 filewave=DataBlob(
                     id="filewave",
                     source=here
                     / "test_data"
                     / "schism_bnd_spec_SWAN_500m_use_in_schism_2021Aug-Nov.nc",
                 ),
-            )
+            ),
         ),
     )
     runtime.generate()
@@ -54,9 +75,9 @@ def test_schism_render(tmpdir):
             "diffmax.gr3",
             "diffmin.gr3",
             "hgrid.gr3",
-            "drag.gr3",
+            # "drag.gr3",
             "manning.gr3",
-            "schism_bnd_spec_SWAN_500m_use_in_schism_2021Aug-Nov",
+            "schism_bnd_spec_SWAN_500m_use_in_schism_2021Aug-Nov.nc",
             "vgrid.in",
             "wwmbnd.gr3",
         ]:
