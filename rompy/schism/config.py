@@ -37,8 +37,8 @@ class Inputs(RompyBaseModel):
 
 
 class SchismCSIROConfig(BaseConfig):
-    model_type: Literal["schism"] = Field(
-        "schism", description="The model type for SWAN."
+    model_type: Literal["schismcsiro"] = Field(
+        "schismcsiro", description="The model type for SCHISM."
     )
     inputs: Inputs = Field(description="Model inputs")
     project: str = Field("WAXA", description="TODO")
