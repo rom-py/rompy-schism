@@ -1,7 +1,9 @@
-from pydantic import BaseModel, Field
+from pydantic import Field
+
+from rompy.core.types import RompyBaseModel
 
 
-class CORE(BaseModel):
+class CORE(RompyBaseModel):
     ipre: int = Field(
         description="Pre-processing option. Useful for checking grid violations.",
         default=0,
@@ -43,7 +45,7 @@ class CORE(BaseModel):
     )
 
 
-class OPT(BaseModel):
+class OPT(RompyBaseModel):
     ipre2: int = 0
     start_year: int = Field(description="Starting year")
     start_month: int = Field(description="Starting month")
@@ -420,7 +422,7 @@ class OPT(BaseModel):
     )
 
 
-class SCHOUT(BaseModel):
+class SCHOUT(RompyBaseModel):
     nhot: int = Field(
         0,
         description="use 1 to write out hotstart: output *_hotstart every 'hotout_write' steps",
@@ -469,7 +471,7 @@ class SCHOUT(BaseModel):
     )
 
 
-class PARAM(BaseModel):
+class PARAM(RompyBaseModel):
     core: CORE = Field(description="CORE")
     opt: OPT = Field(description="OPT")
     schout: SCHOUT = Field(description="SCHOUT")
