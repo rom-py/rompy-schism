@@ -7,6 +7,7 @@ from pydantic import Field, field_validator, model_validator
 from rompy.core import BaseConfig, DataBlob, RompyBaseModel, Spectrum, TimeRange
 
 from .grid import SCHISMGrid2D
+from .namelists import ICE, PARAM
 
 logger = logging.getLogger(__name__)
 
@@ -200,3 +201,12 @@ class SchismCSIROConfig(BaseConfig):
         ret = self.model_dump()
         ret.update(self.inputs.get(runtime.staging_dir))
         return ret
+
+
+class SCHISMConfig(BaseConfig):
+    model_type: Literal["schism"] = Field(
+        "schism", description="The model type for SCHISM."
+    )
+    param: PARAM = Field(description="Model paramaters")
+    ice: Optional[ICE] = Field(
+        description="Ice model parameters", default=None)
