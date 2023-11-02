@@ -1,9 +1,11 @@
 from typing import List
 
-from pydantic import BaseModel, Field
+from pydantic import Field
+
+from rompy.core.types import RompyBaseModel
 
 
-class SED_CORE(BaseModel):
+class SED_CORE(RompyBaseModel):
     Sd50: List[float] = Field(
         [0.12, 0.18, 0.39, 0.60, 1.2],
         description="D50 MEDIAN SEDIMENT GRAIN DIAMETER (mm) for Ntracers",
@@ -14,7 +16,7 @@ class SED_CORE(BaseModel):
     )
 
 
-class SED_OPT(BaseModel):
+class SED_OPT(RompyBaseModel):
     iSedtype: List[int] = Field(
         [1, 1, 1, 1, 1],
         description="SEDIMENT TYPE (0=MUD, 1=SAND, 2=GRAVEL) for Ntracers",
@@ -107,3 +109,8 @@ class SED_OPT(BaseModel):
         1,
         description="Controls the height at which the current-induced bottom shear stress is derived",
     )
+
+
+class SEDIMENT(RompyBaseModel):
+    sed_core: SED_CORE = Field(default_factory=SED_CORE)
+    sed_opt: SED_OPT = Field(default_factory=SED_OPT)

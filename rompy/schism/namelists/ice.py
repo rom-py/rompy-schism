@@ -3,7 +3,7 @@ from pydantic import Field
 from rompy.core.types import RompyBaseModel
 
 
-class ICE(RompyBaseModel):
+class ICE_IN(RompyBaseModel):
     ice_tests: int = Field(default=0, description="box test flag")
     ice_advection: int = Field(default=1, description="advection on/off")
     ice_therm_on: int = Field(
@@ -78,3 +78,7 @@ class ICE(RompyBaseModel):
     albsnm: float = Field(default=0.75, description="melting snow (<=albsn)")
     albi: float = Field(default=0.75, description="frozen ice (<=albsn)")
     albm: float = Field(default=0.66, description="melting ice (<=albi)")
+
+
+class ICE(RompyBaseModel):
+    ice_in: ICE_IN = Field(description="ice_in")
