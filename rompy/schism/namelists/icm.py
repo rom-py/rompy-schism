@@ -3,63 +3,6 @@ from pydantic import Field
 
 from rompy.core.types import RompyBaseModel
 
-# !-----------------------------------------------------------------------
-# ! ICM model parameter inputs.
-# ! Format rules
-# ! (1) Lines beginning with "!" are comments; blank lines are ignored;
-# ! (2) one line for each parameter in the format: keywords= (value1,value2,...);
-# !     keywords are case sensitive; spaces allowed between keywords and "=" and value;
-# !     comments starting with "!"  allowed after value;
-# ! (3) value is an integer, double, or string (no single quote needed); for double,
-# !     any of the format is acceptable: 40 40. 4.e1; ! Use of decimal point in integers
-# !     is OK but discouraged.
-# ! (4) spatially varying parameters are available for most parameters when value=-999;
-# !     spatial value will be read from "ICM_param.nc"
-# !     dimension=(npt),(npt,d1),or (npt,d1,d2) for scalar/1D/2D param, where npt=ne/np
-# !---------------------------------------------------------------------------------
-# !---------------------------state variables in ICM--------------------------------
-# !---------------------------------------------------------------------------------
-# !Core Module
-# !     1  PB1   :  Diatom                                     g/m^3
-# !     2  PB2   :  Green Algae                                g/m^3
-# !     3  PB3   :  Cyanobacteria                              g/m^3
-# !     4  RPOC  :  Refractory Particulate Organic Carbon      g/m^3
-# !     5  LPOC  :  Labile Particulate Organic Carbon          g/m^3
-# !     6  DOC   :  Dissolved Orgnaic Carbon                   g/m^3
-# !     7  RPON  :  Refractory Particulate Organic Nitrogen    g/m^3
-# !     8  LPON  :  Labile Particulate Organic Nitrogen        g/m^3
-# !     9  DON   :  Dissolved Orgnaic Nitrogen                 g/m^3
-# !     10 NH4   :  Ammonium Nitrogen                          g/m^3
-# !     11 NO3   :  Nitrate Nitrogen                           g/m^3
-# !     12 RPOP  :  Refractory Particulate Organic Phosphorus  g/m^3
-# !     13 LPOP  :  Labile Particulate Organic Phosphorus      g/m^3
-# !     14 DOP   :  Dissolved Orgnaic Phosphorus               g/m^3
-# !     15 PO4   :  Total Phosphate                            g/m^3
-# !     16 COD   :  Chemical Oxygen Demand                     g/m^3
-# !     17 DOX   :  Dissolved Oxygen                           g/m^3
-# !Silica Module
-# !     1  SU    :  Particulate Biogenic Silica                g/m^3
-# !     2  SA    :  Available Silica                           g/m^3
-# !Zooplankton Module
-# !     1  ZB1   :  1st zooplankton                            g/m^3
-# !     2  ZB2   :  2nd zooplankton                            g/m^3
-# !pH Module
-# !     1  TIC   :  Total Inorganic Carbon                     g/m^3
-# !     2  ALK   :  Alkalinity                                 g[CaCO3]/m^3
-# !     3  CA    :  Dissolved Calcium                          g[CaCO3]/m^3
-# !     4  CACO3 :  Calcium Carbonate                          g[CaCO3]/m^3
-# !CBP Module
-# !     1  SRPOC :  Slow Refractory Particulate Organic Carbon g/m^3
-# !     2  SRPON :  Slow Refractory Particulate Organic Nitro. g/m^3
-# !     3  SRPOP :  Slow Refractory Particulate Organic Phosp. g/m^3
-# !     4  PIP   :  Particulate Inorganic Phosphate            g/m^3
-# !SAV Module (no transport variables)
-# !VEG Module (no transport variables)
-# !SFM Module (no transport variables)
-# !BA  Module (no transport variables)
-# !---------------------------------------------------------------------------------
-#
-
 
 class MARCO(RompyBaseModel):
     """
