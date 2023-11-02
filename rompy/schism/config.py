@@ -7,7 +7,7 @@ from pydantic import Field, field_validator, model_validator
 from rompy.core import BaseConfig, DataBlob, RompyBaseModel, Spectrum, TimeRange
 
 from .grid import SCHISMGrid2D
-from .namelists import ICE, PARAM
+from .namelists import ICE, ICM, PARAM, SEDIMENT
 
 logger = logging.getLogger(__name__)
 
@@ -210,3 +210,8 @@ class SCHISMConfig(BaseConfig):
     param: PARAM = Field(description="Model paramaters")
     ice: Optional[ICE] = Field(
         description="Ice model parameters", default=None)
+    icm: Optional[ICM] = Field(
+        description="Ice model parameters", default=None)
+    sediment: Optional[SEDIMENT] = Field(
+        description="Sediment model parameters", default=None
+    )
