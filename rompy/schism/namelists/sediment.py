@@ -112,5 +112,5 @@ class SED_OPT(RompyBaseModel):
 
 
 class SEDIMENT(RompyBaseModel):
-    sed_core: SED_CORE = Field(default_factory=SED_CORE)
-    sed_opt: SED_OPT = Field(default_factory=SED_OPT)
+    sed_core: SED_CORE = Field(description="SED_CORE")
+    sed_opt: SED_OPT = Field(description="SED_OPT")
