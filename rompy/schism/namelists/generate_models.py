@@ -1,6 +1,7 @@
 import datetime
 import os
 import re
+from subprocess import run
 from typing import Any
 
 from pydantic import BaseModel, Field
@@ -70,7 +71,7 @@ def generate_pydantic_models(
             f"from {'.'.join(basemodellist[0:-1])} import {basemodellist[-1]}\n\n"
         )
         for key, value in data.items():
-            model_name = key.capitalize()
+            model_name = key
             if key == "description":
                 continue
             file.write(f"class {model_name}({basemodellist[-1]}):\n")
@@ -105,9 +106,7 @@ def generate_pydantic_models(
                     )
                     file.write(f'    """\n    {indented_text}\n    """\n')
                 else:
-                    file.write(
-                        f"    {key}: {key.capitalize()} = {key.capitalize()}()\n"
-                    )
+                    file.write(f"    {key}: {key} = {key}()\n")
 
 
 def nml_to_models(file_in: str, file_out: str):
@@ -117,13 +116,16 @@ def nml_to_models(file_in: str, file_out: str):
     sections = extract_sections_from_text(input_text)
     nml_dict = {}
     for section, text in sections.items():
-        nml_dict.update({section: extract_variables(text)})
+        if section == "description":
+            nml_dict.update({section: text})
+        else:
+            nml_dict.update({section.upper(): extract_variables(text)})
     blurb = "\n"
     blurb += f"This file was auto generated from a schism namelist file on {datetime.datetime.now().strftime('%Y-%m-%d')}.\n"
     blurb += "The full contents of the namelist file are shown below providing\n"
     blurb += "associated documentation for the objects:\n\n"
     nml_dict["description"] = blurb + input_text
-    master_model_name = os.path.basename(file_in).split(".")[0].capitalize()
+    master_model_name = os.path.basename(file_in).split(".")[0].upper()
     generate_pydantic_models(nml_dict, file_out, master_model_name)
 
 
@@ -133,12 +135,17 @@ def nml_to_models(file_in: str, file_out: str):
 
 
 def main():
-    for file in os.listdir("sample_inputs"):
-        if file.endswith(".nml"):
-            file_in = os.path.join("sample_inputs", file)
-            file_out = file.split(".")[0] + ".py"
-            print(f" Processing {file_in} to {file_out}")
-            nml_to_models(file_in, file_out)
+    with open("__init__.py", "w") as f:
+        for file in os.listdir("sample_inputs"):
+            if file.endswith(".nml"):
+                file_in = os.path.join("sample_inputs", file)
+                # file_out_old = file.split(".")[0] + "_nml" + ".py"
+                file_out = file.split(".")[0] + ".py"
+                # run(f"git mv {file_out_old} {file_out}".split())
+                print(f" Processing {file_in} to {file_out}")
+                nml_to_models(file_in, file_out)
+                classname = file_out.split(".")[0]
+                f.write(f"from .{classname} import {classname.split('_')[0].upper()}\n")
 
 
 if __name__ == "__main__":

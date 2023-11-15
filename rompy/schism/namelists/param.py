@@ -1,7 +1,7 @@
 from pydantic import Field
 from rompy.schism.namelists.basemodel import NamelistBaseModel
 
-class Core(NamelistBaseModel):
+class CORE(NamelistBaseModel):
     ipre: int = Field(0)
     ibc: int = Field(0)
     ibtp: int = Field(1)
@@ -16,7 +16,7 @@ class Core(NamelistBaseModel):
     nspool: int = Field(36)
     ihfskip: int = Field(864)
 
-class Opt(NamelistBaseModel):
+class OPT(NamelistBaseModel):
     ipre2: int = Field(0)
     itransport_only: int = Field(0)
     iloadtide: int = Field(0)
@@ -140,7 +140,7 @@ class Opt(NamelistBaseModel):
     inu_uv: int = Field(0)
     nu_sum_mult: int = Field(1)
 
-class Vertical(NamelistBaseModel):
+class VERTICAL(NamelistBaseModel):
     vnh1: int = Field(400)
     vnf1: float = Field(0.0)
     vnh2: int = Field(500)
@@ -166,7 +166,7 @@ class Vertical(NamelistBaseModel):
     h_massconsv: float = Field(2.0)
     rinflation_icm: str = Field('1.e-3')
 
-class Schout(NamelistBaseModel):
+class SCHOUT(NamelistBaseModel):
     nc_out: int = Field(1)
     iof_ugrid: int = Field(0)
     nhot: int = Field(0)
@@ -174,7 +174,7 @@ class Schout(NamelistBaseModel):
     iout_sta: int = Field(0)
     nspool_sta: int = Field(10)
 
-class Param(NamelistBaseModel):
+class PARAM(NamelistBaseModel):
     """
         
     This file was auto generated from a schism namelist file on 2023-11-15.
@@ -1300,7 +1300,7 @@ class Param(NamelistBaseModel):
     /
     
     """
-    CORE: Core = Core()
-    OPT: Opt = Opt()
-    vertical: Vertical = Vertical()
-    SCHOUT: Schout = Schout()
+    CORE: CORE = CORE()
+    OPT: OPT = OPT()
+    VERTICAL: VERTICAL = VERTICAL()
+    SCHOUT: SCHOUT = SCHOUT()

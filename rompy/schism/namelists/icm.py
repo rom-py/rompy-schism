@@ -1,7 +1,7 @@
 from pydantic import Field
 from rompy.schism.namelists.basemodel import NamelistBaseModel
 
-class Marco(NamelistBaseModel):
+class MARCO(NamelistBaseModel):
     nsub: int = Field(1)
     iKe: int = Field(0)
     Ke0: float = Field(0.26)
@@ -32,7 +32,7 @@ class Marco(NamelistBaseModel):
     iLimit: int = Field(0)
     idry_icm: int = Field(0)
 
-class Core(NamelistBaseModel):
+class CORE(NamelistBaseModel):
     GPM: list = Field([2.5, 2.8, 3.5])
     TGP: list = Field([15.0, 22.0, 27.0])
     KTGP: list = Field([0.005, 0.004, 0.003, 0.008, 0.006, 0.004])
@@ -84,7 +84,7 @@ class Core(NamelistBaseModel):
     PBmin: list = Field([0.01, 0.01, 0.01])
     dz_flux: list = Field([1.0, 1.0])
 
-class Sfm(NamelistBaseModel):
+class SFM(NamelistBaseModel):
     btemp0: float = Field(5.0)
     bstc0: float = Field(0.1)
     bSTR0: float = Field(0.0)
@@ -171,7 +171,7 @@ class Sfm(NamelistBaseModel):
     bFNv: list = Field([0.65, 0.3, 0.05, 0.65, 0.3, 0.05, 0.65, 0.3, 0.05])
     bFPv: list = Field([0.65, 0.255, 0.095, 0.65, 0.255, 0.095, 0.65, 0.255, 0.095])
 
-class Silica(NamelistBaseModel):
+class SILICA(NamelistBaseModel):
     FSP: list = Field([0.9, 0.1])
     FSM: list = Field([0.5, 0.5])
     KS: float = Field(0.03)
@@ -181,7 +181,7 @@ class Silica(NamelistBaseModel):
     s2c: list = Field([0.5, 0.0, 0.0])
     KSAp: float = Field(0.0)
 
-class Zb(NamelistBaseModel):
+class ZB(NamelistBaseModel):
     zGPM: list = Field([0.0, 0.0, 1.75, 1.75, 1.75, 1.75, 1.75, 1.75, 1.0, 0.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0])
     zKhG: list = Field([0.175, 0.175, 0.175, 0.175, 0.175, 0.175, 0.175, 0.175, 0.175, 0.175, 0.175, 0.175, 0.175, 0.175, 0.175, 0.175])
     zTGP: list = Field([25.0, 25.0])
@@ -207,14 +207,14 @@ class Zb(NamelistBaseModel):
     z2pr: list = Field([0.5, 0.5])
     p2pr: float = Field(0.25)
 
-class Ph_icm(NamelistBaseModel):
+class PH_ICM(NamelistBaseModel):
     ppatch0: int = Field(-999)
     pKCACO3: float = Field(60.0)
     pKCA: float = Field(60.0)
     pRea: float = Field(1.0)
     inu_ph: int = Field(0)
 
-class Sav(NamelistBaseModel):
+class SAV(NamelistBaseModel):
     spatch0: int = Field(-999)
     stleaf0: int = Field(-999)
     ststem0: int = Field(-999)
@@ -242,12 +242,12 @@ class Sav(NamelistBaseModel):
     sc2dw: float = Field(0.38)
     s2den: int = Field(10)
 
-class Stem(NamelistBaseModel):
+class STEM(NamelistBaseModel):
     sn2c: float = Field(0.09)
     sp2c: float = Field(0.01)
     so2c: float = Field(2.67)
 
-class Veg(NamelistBaseModel):
+class VEG(NamelistBaseModel):
     vpatch0: int = Field(-999)
     vtleaf0: list = Field([100.0, 100.0, 100.0])
     vtstem0: list = Field([100.0, 100.0, 100.0])
@@ -288,7 +288,7 @@ class Veg(NamelistBaseModel):
     vn2c: list = Field([0.09, 0.09, 0.09])
     vo2c: list = Field([2.67, 2.67, 2.67])
 
-class Bag(NamelistBaseModel):
+class BAG(NamelistBaseModel):
     gpatch0: int = Field(-999)
     BA0: float = Field(5.0)
     gGPM: float = Field(2.25)
@@ -310,10 +310,10 @@ class Bag(NamelistBaseModel):
     gFNP: list = Field([0.5, 0.45, 0.05])
     gFPP: list = Field([0.5, 0.45, 0.05])
 
-class Ero(NamelistBaseModel):
+class ERO(NamelistBaseModel):
     ierosion: int = Field(0)
 
-class Poc(NamelistBaseModel):
+class POC(NamelistBaseModel):
     erosion: int = Field(864)
     etau: str = Field('1.e-6')
     eporo: float = Field(0.8)
@@ -322,7 +322,7 @@ class Poc(NamelistBaseModel):
     dfrac: list = Field([0.02, 0.02])
     dWS_POC: list = Field([3.0, 3.0])
 
-class Icm(NamelistBaseModel):
+class ICM(NamelistBaseModel):
     """
         
     This file was auto generated from a schism namelist file on 2023-11-15.
@@ -905,15 +905,15 @@ class Icm(NamelistBaseModel):
     /
     
     """
-    MARCO: Marco = Marco()
-    CORE: Core = Core()
-    SFM: Sfm = Sfm()
-    Silica: Silica = Silica()
-    ZB: Zb = Zb()
-    PH_ICM: Ph_icm = Ph_icm()
-    SAV: Sav = Sav()
-    stem: Stem = Stem()
-    VEG: Veg = Veg()
-    BAG: Bag = Bag()
-    ERO: Ero = Ero()
-    POC: Poc = Poc()
+    MARCO: MARCO = MARCO()
+    CORE: CORE = CORE()
+    SFM: SFM = SFM()
+    SILICA: SILICA = SILICA()
+    ZB: ZB = ZB()
+    PH_ICM: PH_ICM = PH_ICM()
+    SAV: SAV = SAV()
+    STEM: STEM = STEM()
+    VEG: VEG = VEG()
+    BAG: BAG = BAG()
+    ERO: ERO = ERO()
+    POC: POC = POC()
