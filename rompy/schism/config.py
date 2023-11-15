@@ -2,12 +2,12 @@ import logging
 from pathlib import Path
 from typing import Annotated, Literal, Optional, Union
 
-from pydantic import Field, field_validator, model_validator
+from pydantic import Field, model_validator
 
 from rompy.core import BaseConfig, DataBlob, RompyBaseModel, Spectrum, TimeRange
 
 from .grid import SCHISMGrid2D
-from .namelists import COSINE, ICE, ICM, PARAM, SEDIMENT
+from .namelists import COSINE, ICE, ICM, MICE, PARAM, SEDIMENT
 
 logger = logging.getLogger(__name__)
 
@@ -208,10 +208,9 @@ class SCHISMConfig(BaseConfig):
         "schism", description="The model type for SCHISM."
     )
     param: Optional[PARAM] = Field(description="Model paramaters")
-    ice: Optional[ICE] = Field(
-        description="Ice model parameters", default=None)
-    icm: Optional[ICM] = Field(
-        description="Ice model parameters", default=None)
+    ice: Optional[ICE] = Field(description="Ice model parameters", default=None)
+    icm: Optional[ICM] = Field(description="Ice model parameters", default=None)
+    mice: Optional[ICM] = Field(description="Ice model parameters", default=None)
     sediment: Optional[SEDIMENT] = Field(
         description="Sediment model parameters", default=None
     )

@@ -1,7 +1,7 @@
 from pydantic import Field
 from rompy.schism.namelists.basemodel import NamelistBaseModel
 
-class Ice_in(NamelistBaseModel):
+class ICE_IN(NamelistBaseModel):
     ice_tests: int = Field(0)
     ice_advection: int = Field(1)
     ice_therm_on: int = Field(1)
@@ -35,7 +35,7 @@ class Ice_in(NamelistBaseModel):
     albi: float = Field(0.75)
     albm: float = Field(0.66)
 
-class Ice(NamelistBaseModel):
+class ICE(NamelistBaseModel):
     """
         
     This file was auto generated from a schism namelist file on 2023-11-15.
@@ -100,4 +100,4 @@ class Ice(NamelistBaseModel):
     /
     
     """
-    ice_in: Ice_in = Ice_in()
+    ICE_IN: ICE_IN = ICE_IN()

@@ -1,7 +1,7 @@
 from pydantic import Field
 from rompy.schism.namelists.basemodel import NamelistBaseModel
 
-class Mice_in(NamelistBaseModel):
+class MICE_IN(NamelistBaseModel):
     ice_tests: int = Field(0)
     ihot_mice: int = Field(1)
     ice_advection: int = Field(6)
@@ -23,7 +23,7 @@ class Mice_in(NamelistBaseModel):
     salt_ice: float = Field(5.0)
     salt_water: float = Field(34.0)
 
-class Mice(NamelistBaseModel):
+class MICE(NamelistBaseModel):
     """
         
     This file was auto generated from a schism namelist file on 2023-11-15.
@@ -66,4 +66,4 @@ class Mice(NamelistBaseModel):
     /
     
     """
-    mice_in: Mice_in = Mice_in()
+    MICE_IN: MICE_IN = MICE_IN()
