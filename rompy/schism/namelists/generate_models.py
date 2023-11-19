@@ -41,13 +41,13 @@ def extract_variables(section):
         for item in items:
             try:
                 if "e" in item or "E" in item:
-                    values.append(item)
+                    values.append(item.strip())
                 elif "." in item:
                     values.append(float(item))
                 else:
                     values.append(int(item))
             except Exception:
-                values.append(str(item))
+                values.append(str(item).strip())
         variable_dict[var] = values if len(values) > 1 else values[0]
 
     # Print the extracted variables and their values
@@ -111,22 +111,28 @@ def generate_pydantic_models(
 
 def nml_to_models(file_in: str, file_out: str):
     # Load the input text file and extract sections
+    nml_dict = nml_to_dict(file_in)
+    master_model_name = os.path.basename(file_in).split(".")[0].upper()
+    generate_pydantic_models(nml_dict, file_out, master_model_name)
+
+
+def nml_to_dict(file_in: str):
+    # Load the input text file and extract sections
     with open(file_in, "r") as file:
         input_text = file.read()
     sections = extract_sections_from_text(input_text)
     nml_dict = {}
-    for section, text in sections.items():
-        if section == "description":
-            nml_dict.update({section: text})
-        else:
-            nml_dict.update({section.upper(): extract_variables(text)})
     blurb = "\n"
     blurb += f"This file was auto generated from a schism namelist file on {datetime.datetime.now().strftime('%Y-%m-%d')}.\n"
     blurb += "The full contents of the namelist file are shown below providing\n"
     blurb += "associated documentation for the objects:\n\n"
     nml_dict["description"] = blurb + input_text
-    master_model_name = os.path.basename(file_in).split(".")[0].upper()
-    generate_pydantic_models(nml_dict, file_out, master_model_name)
+    for section, text in sections.items():
+        if section == "description":
+            nml_dict.update({section: text})
+        else:
+            nml_dict.update({section.upper(): extract_variables(text)})
+    return nml_dict
 
 
 # file_in = "example.nml"
