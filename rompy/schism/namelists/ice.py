@@ -38,7 +38,7 @@ class ICE_IN(NamelistBaseModel):
 class ICE(NamelistBaseModel):
     """
         
-    This file was auto generated from a schism namelist file on 2023-11-15.
+    This file was auto generated from a schism namelist file on 2023-11-20.
     The full contents of the namelist file are shown below providing
     associated documentation for the objects:
     
