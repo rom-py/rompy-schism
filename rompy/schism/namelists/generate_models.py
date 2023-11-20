@@ -126,12 +126,12 @@ def nml_to_dict(file_in: str):
     blurb += f"This file was auto generated from a schism namelist file on {datetime.datetime.now().strftime('%Y-%m-%d')}.\n"
     blurb += "The full contents of the namelist file are shown below providing\n"
     blurb += "associated documentation for the objects:\n\n"
-    nml_dict["description"] = blurb + input_text
     for section, text in sections.items():
         if section == "description":
             nml_dict.update({section: text})
         else:
             nml_dict.update({section.upper(): extract_variables(text)})
+    nml_dict["description"] = blurb + input_text
     return nml_dict
 
 
@@ -143,10 +143,16 @@ def nml_to_dict(file_in: str):
 def main():
     with open("__init__.py", "w") as f:
         for file in os.listdir("sample_inputs"):
-            if file.endswith(".nml"):
+            components = file.split(".")
+            if len(components) < 2:
+                continue
+            if components[1] == "nml":
                 file_in = os.path.join("sample_inputs", file)
                 # file_out_old = file.split(".")[0] + "_nml" + ".py"
-                file_out = file.split(".")[0] + ".py"
+                if len(components) > 2:
+                    file_out = components[0] + "_" + components[2] + ".py"
+                else:
+                    file_out = file.split(".")[0] + ".py"
                 # run(f"git mv {file_out_old} {file_out}".split())
                 print(f" Processing {file_in} to {file_out}")
                 nml_to_models(file_in, file_out)
