@@ -20,35 +20,49 @@ def extract_sections_from_text(text):
 
 def extract_variables(section):
     # remove all comments
-    section = re.sub(r"!.*", "", section)
+    # section = re.sub(r"!.*", "", section)
 
     # Define a regular expression pattern to match variables and their values
-    pattern = r"(\w+)\s*=\s*([^!\n]+)"
+    # pattern = r"(\w+)\s*=\s*([^!\n]+)"
 
-    # Use the findall function to extract variables and values
-    matches = re.findall(pattern, section)
+    # # Define a regular expression pattern to match variables and their values. Only match the first instance on each line
+    # pattern = r"(\w+)\s*=\s*([^!\n]+)(?:\s*!.*|$)"
+    #
+    # # Use the findall function to extract variables and values
+    # matches = re.findall(pattern, section)
 
     # Create a dictionary to store the variable-value pairs
     variable_dict = {}
 
     # Iterate through matches and split values into a list if they contain spaces
-    for var, value in matches:
-        values = []
-        if "," in value:
-            items = value.split(",")
+    for line in section.split("\n"):
+        if line.strip() == "":
+            continue
+        if line[0] == "!":
+            continue
+        if "!" in line:
+            pair, description = line.split("!")[0], "!".join(line.split("!")[1:])
         else:
-            items = value.split()
-        for item in items:
-            try:
-                if "e" in item or "E" in item:
-                    values.append(item.strip())
-                elif "." in item:
-                    values.append(float(item))
-                else:
-                    values.append(int(item))
-            except Exception:
-                values.append(str(item).strip())
-        variable_dict[var] = values if len(values) > 1 else values[0]
+            pair = line
+            description = ""
+        if "=" in pair:
+            var, value = pair.split("=")[0], "=".join(pair.split("=")[1:])
+            values = []
+            if "," in value:
+                items = value.split(",")
+            else:
+                items = value.split()
+            for item in items:
+                try:
+                    if "e" in item or "E" in item:
+                        values.append(item.strip())
+                    elif "." in item:
+                        values.append(float(item))
+                    else:
+                        values.append(int(item))
+                except Exception:
+                    values.append(str(item).strip())
+            variable_dict[var.strip()] = values if len(values) > 1 else values[0]
 
     # Print the extracted variables and their values
     ret = {}
