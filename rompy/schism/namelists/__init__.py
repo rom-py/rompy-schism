@@ -1,4 +1,6 @@
+from .wwminput_spectra import WWMINPUT
 from .mice import MICE
+from .wwminput_WW3 import WWMINPUT
 from .ice import ICE
 from .cosine import COSINE
 from .example import EXAMPLE
