@@ -47,6 +47,8 @@ def extract_variables(section):
             description = ""
         if "=" in pair:
             var, value = pair.split("=")[0], "=".join(pair.split("=")[1:])
+            for ii in range(50):
+                var = var.replace(f"({ii})", f"__{ii}")
             values = []
             if "," in value:
                 items = value.split(",")
@@ -62,7 +64,10 @@ def extract_variables(section):
                         values.append(int(item))
                 except Exception:
                     values.append(str(item).strip())
-            variable_dict[var.strip()] = values if len(values) > 1 else values[0]
+            variable_dict[var.strip()] = dict(
+                default=values if len(values) > 1 else values[0],
+                description=description.strip().replace('"', "'"),
+            )
 
     return variable_dict
 
@@ -89,21 +94,27 @@ def generate_pydantic_models(
                 if inner_key == "description":
                     file.write(f'    """\n    {inner_value}\n    """""\n')
                     continue
-                if isinstance(inner_value, list):
-                    if inner_value:  # Checks if the list is not empty
-                        inner_type = type(inner_value[0])
-                        default_value = inner_value
+                default = inner_value["default"]
+                if isinstance(default, list):
+                    if default:  # Checks if the list is not empty
+                        inner_type = type(default[0])
+                        default_value = default
                     else:
                         inner_type = Any
                         default_value = []
                     inner_type = list[inner_type]  # Adjusting to list type
                 else:
-                    inner_type = type(inner_value)
-                    default_value = inner_value
+                    inner_type = type(default)
+                    default_value = default
 
                 # Write the field
                 file.write(
-                    f"    {inner_key}: {inner_type.__name__} = Field({repr(default_value)})\n"
+                    '    {}: {} = Field({}, description="{}")\n'.format(
+                        inner_key,
+                        inner_type.__name__,
+                        repr(default_value),
+                        inner_value["description"],
+                    )
                 )
             file.write("\n")
 
@@ -140,7 +151,9 @@ def nml_to_dict(file_in: str):
         if section == "description":
             nml_dict.update({section: text})
         else:
-            nml_dict.update({section.upper(): extract_variables(text)})
+            input_dict = extract_variables(text)
+            if input_dict:
+                nml_dict.update({section.upper(): extract_variables(text)})
     nml_dict["description"] = blurb + input_text
     return nml_dict
 

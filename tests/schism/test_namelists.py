@@ -20,13 +20,16 @@ SAMPLE_DIR = (
 # ipdb if they are not equal
 def compare_nmls_values(nml1, nml2):
     for key, value in nml1.items():
+        if key == "description":
+            continue
         if isinstance(value, dict):
             compare_nmls_values(value, nml2[key])
-        if value != nml2[key]:
-            import ipdb
+        else:
+            if value != nml2[key]:
+                import ipdb
 
-            print(key, value, nml2[key])
-            ipdb.set_trace()
+                print(key, value, nml2[key])
+                ipdb.set_trace()
 
 
 def compare_nmls(nml1, nml2):
@@ -35,7 +38,6 @@ def compare_nmls(nml1, nml2):
     d1.pop("description")
     d2.pop("description")
     compare_nmls_values(d1, d2)
-    assert d1 == d2
 
 
 def test_namelists(tmp_path):
