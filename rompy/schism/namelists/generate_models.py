@@ -64,11 +64,7 @@ def extract_variables(section):
                     values.append(str(item).strip())
             variable_dict[var.strip()] = values if len(values) > 1 else values[0]
 
-    # Print the extracted variables and their values
-    ret = {}
-    for variable, values in variable_dict.items():
-        ret[variable] = values
-    return ret
+    return variable_dict
 
 
 def generate_pydantic_models(
