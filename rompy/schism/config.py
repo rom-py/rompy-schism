@@ -53,7 +53,7 @@ class SchismCSIROConfig(BaseConfig):
     mdc2: int = Field(description="same as mdc in .nml", default=36)
     ihfskip: float = Field(
         description="stack spool; every ihfskip steps will be put into 1_*, 2_*, etc... use 22320.0 for 31 days; 5040 for 7 days; 21600 for 30 days; 20880 for 29 days",
-        ihfskip=720,
+        default=720,
     )
     icou_elfe_wwm: int = Field(
         1,
@@ -125,58 +125,142 @@ class SchismCSIROConfig(BaseConfig):
     deltc_out: int = Field(3600, description="Output time step (s)")
     definetc: int = Field(-1, description="Definition of output time step (1-3)")
     outstyle: str = Field("NC", description="Output style (NC/WW3)")
-    wwm1: int = Field(1, description="Output of Hs (T/F)")
-    wwm2: int = Field(1, description="Output of Tm01 (T/F)")
-    wwm3: int = Field(0, description="Output of Tm02 (T/F)")
-    wwm4: int = Field(0, description="Output of Dp (T/F)")
-    wwm5: int = Field(0, description="Output of Fp (T/F)")
-    wwm6: int = Field(0, description="Output of Ff (T/F)")
-    wwm7: int = Field(0, description="Output of Fd (T/F)")
-    wwm8: int = Field(1, description="Output of U10 (T/F)")
-    wwm9: int = Field(1, description="Output of V10 (T/F)")
-    wwm10: int = Field(0, description="Output of UBOT (T/F)")
-    wwm11: int = Field(0, description="Output of ORBITAL (T/F)")
-    wwm12: int = Field(0, description="Output of WIND (T/F)")
-    wwm13: int = Field(0, description="Output of WIND10 (T/F)")
-    wwm14: int = Field(0, description="Output of WINDU (T/F)")
-    wwm15: int = Field(0, description="Output of WINDV (T/F)")
-    wwm16: int = Field(1, description="Output of WINDW (T/F)")
-    wwm17: int = Field(1, description="Output of WINDU10 (T/F)")
-    wwm18: int = Field(1, description="Output of WINDV10 (T/F)")
-    wwm19: int = Field(0, description="Output of WINDW10 (T/F)")
-    wwm20: int = Field(0, description="Output of ORBITAL10 (T/F)")
-    wwm21: int = Field(0, description="Output of WINDWU (T/F)")
-    wwm22: int = Field(0, description="Output of WINDWV (T/F)")
-    wwm23: int = Field(0, description="Output of WINDWD (T/F)")
-    wwm24: int = Field(0, description="Output of WINDWS (T/F)")
-    wwm25: int = Field(0, description="Output of WINDWU10 (T/F)")
-    wwm26: int = Field(0, description="Output of WINDWV10 (T/F)")
-    wwm27: int = Field(0, description="Output of WINDWD10 (T/F)")
-    wwm28: int = Field(0, description="Output of WINDWS10 (T/F)")
-    wwm29: int = Field(0, description="Output of WINDWUWV (T/F)")
-    wwm30: int = Field(0, description="Output of WINDWUV10 (T/F)")
-    wwm31YN: str = Field("!", description="Output of WINDWUV10 (T/F)")
-    wwm31: int = Field(0, description="Output of WINDWUV10 (T/F)")
-    wwm32YN: str = Field("!", description="Output of WINDWUV10 (T/F)")
-    wwm32: int = Field(0, description="Output of WINDWUV10 (T/F)")
-    wwm33YN: str = Field("!", description="Output of WINDWUV10 (T/F)")
-    wwm33: int = Field(0, description="Output of WINDWUV10 (T/F)")
-    wwm34YN: str = Field("!", description="Output of WINDWUV10 (T/F)")
-    wwm34: int = Field(0, description="Output of WINDWUV10 (T/F)")
-    wwm35YN: str = Field("!", description="Output of WINDWUV10 (T/F)")
-    wwm35
-    PEAKDSPR: str = Field("T", description="Output of WINDU10 (T/F)")
-    HS: str = Field("T", description="Output of Hs (T/F)")
-    TM01: str = Field("T", description="Output of Tm01 (T/F)")
-    TM02: str = Field("F", description="Output of Tm02 (T/F)")
-    DM: str = Field("T", description="Output of Dm (T/F)")
-    DSPR: str = Field("T", description="Output of U10 (T/F)")
-    TPP: str = Field("T", description="Output of V10 (T/F)")
-    PEAKD: str = Field("T", description="Output of WINDW (T/F)")
-    DPEAK: str = Field("T", description="Output of WINDW (T/F)")
-    TPPD: str = Field("T", description="Output of WINDV10 (T/F)")
-    UBOT: str = Field("F", description="Output of WINDW10 (T/F)")
-    ORBITAL: str = Field("F", description="Output of ORBITAL10 (T/F)")
+    wwm1: int = Field(1, description="sig. height (m) {sigWaveHeight}   2D")
+    wwm2: int = Field(
+        1, description="Mean average period (sec) - TM01 {meanWavePeriod}  2D"
+    )
+    wwm3: int = Field(
+        0,
+        description="Zero down crossing period for comparison with buoy (s) - TM02 {zeroDowncrossPeriod}  2D",
+    )
+    wwm4: int = Field(
+        0, description="Average period of wave runup/overtopping - TM10 {TM10}  2D"
+    )
+    wwm5: int = Field(0, description="Mean wave number (1/m) {meanWaveNumber}  2D")
+    wwm6: int = Field(0, description="Mean wave length (m) {meanWaveLength}  2D")
+    wwm7: int = Field(
+        0,
+        description="Mean average energy transport direction (degr) - MWD in NDBC? {meanWaveDirection}  2D",
+    )
+    wwm8: int = Field(
+        1, description="Mean directional spreading (degr) {meanDirSpreading}  2D"
+    )
+    wwm9: int = Field(1, description="Discrete peak period (sec) - Tp {peakPeriod}  2D")
+    wwm10: int = Field(
+        0,
+        description="Continuous peak period based on higher order moments (sec) {continuousPeakPeriod}  2D",
+    )
+    wwm11: int = Field(0, description="Peak phase vel. (m/s) {peakPhaseVel}  2D")
+    wwm12: int = Field(0, description="Peak n-factor {peakNFactor}   2D")
+    wwm13: int = Field(0, description="Peak group vel. (m/s) {peakGroupVel}   2D")
+    wwm14: int = Field(0, description="Peak wave number {peakWaveNumber}  2D")
+    wwm15: int = Field(0, description="Peak wave length {peakWaveLength}  2D")
+    wwm16: int = Field(
+        1, description="Peak (dominant) direction (degr) {dominantDirection}  2D"
+    )
+    wwm17: int = Field(1, description="Peak directional spreading {peakSpreading}  2D")
+    wwm18: int = Field(
+        1, description="Discrete peak direction (radian?) {discretePeakDirectio}  2D"
+    )
+    wwm19: int = Field(0, description="Orbital vel. (m/s) {orbitalVelocity}  2D")
+    wwm20: int = Field(0, description="RMS Orbital vel. (m/s) {rmsOrbitalVelocity}  2D")
+    wwm21: int = Field(
+        0, description="Bottom excursion period (sec?) {bottomExcursionPerio}  2D"
+    )
+    wwm22: int = Field(0, description="Bottom wave period (sec) {bottomWavePeriod}  2D")
+    wwm23: int = Field(
+        0, description="Uresell number based on peak period {UresellNumber}  2D"
+    )
+    wwm24: int = Field(
+        0, description="Friction velocity (m/s?) {frictionalVelocity}  2D"
+    )
+    wwm25: int = Field(0, description="Charnock coefficient {CharnockCoeff}  2D")
+    wwm26: int = Field(0, description="Rougness length {rougnessLength}  2D")
+    wwm27: int = Field(
+        0, description="Roller energy dissipation rate (W/m²) @nodes {Drol} 2D"
+    )
+    wwm28: int = Field(
+        0,
+        description="Total wave energy dissipation rate by depth-induced breaking (W/m²) @nodes {wave_sbrtot}  2D",
+    )
+    wwm29: int = Field(
+        0,
+        description="Total wave energy dissipation rate by bottom friction (W/m²) @nodes {wave_sbftot} 2D",
+    )
+    wwm30: int = Field(
+        0,
+        description="Total wave energy dissipation rate by whitecapping (W/m²) @nodes {wave_sdstot} 2D",
+    )
+    wwm31: int = Field(
+        0,
+        description="Total wave energy dissipation rate by vegetation (W/m²) @nodes {wave_svegtot} 2D",
+    )
+    wwm32: int = Field(
+        0,
+        description="Total wave energy input rate from atmospheric forcing (W/m²) @nodes {wave_sintot} 2D",
+    )
+    wwm33: int = Field(0, description="WWM_energy vector {waveEnergyDirX,Y}  2D vector")
+    wwm34: int = Field(
+        0,
+        description="Vertical Stokes velocity (m.s-1) @sides and whole levels {stokes_wvel}  3D",
+    )
+    wwm35: int = Field(
+        0,
+        description="Wave force vector (m.s-2) computed by wwm @side centers and whole levels {waveForceX,Y}   3D vector",
+    )
+    wwm36: int = Field(
+        0,
+        description="Horizontal Stokes velocity (m.s-1) @nodes and whole levels {stokes_hvel} 3D vector",
+    )
+    wwm37: int = Field(
+        0,
+        description="Roller contribution to horizontal Stokes velocity (m.s-1) @nodes and whole levels {roller_stokes_hvel} 3D vector",
+    )
+    wwm31YN: str = Field(
+        description="Total wave energy dissipation rate by vegetation (W/m2) @nodes {wave_svegtot} 2D",
+        default="!",
+    )
+    wwm32YN: str = Field(
+        description="Total wave energy input rate from atmospheric forcing (W/m2) @nodes {wave_sintot} 2D",
+        default="!",
+    )
+    wwm33YN: str = Field(
+        description="WWM_energy vector {waveEnergyDirX,Y}  2D vector", default="!"
+    )
+    wwm34YN: str = Field(
+        description="Vertical Stokes velocity (m.s-1) @sides and whole levels {stokes_wvel}  3D",
+        default="!",
+    )
+    wwm35YN: str = Field(
+        description="Wave force vector (m.s-2) computed by wwm @side centers and whole levels {waveForceX,Y}   3D vector",
+        default="!",
+    )
+    wwm36YN: str = Field(
+        description="Horizontal Stokes velocity (m.s-1) @nodes and whole levels {stokes_hvel} 3D vector",
+        default="!",
+    )
+    wwm37YN: str = Field(
+        description="Roller contribution to horizontal Stokes velocity (m.s-1) @nodes and whole levels {roller_stokes_hvel} 3D vector ",
+        default="!",
+    )
+    HS: str = Field("T", description="significant wave height")
+    TM01: str = Field("T", description="mean period")
+    TM02: str = Field("F", description="zero-crossing mean period")
+    DM: str = Field("T", description="mean wave direction")
+    DSPR: str = Field("T", description="directional spreading")
+    TPP: str = Field("T", description="peak period")
+    TPPD: str = Field("T", description="direaction of the peak ... check source code")
+    CPP: str = Field("F", description="peak phase velocity")
+    WNPP: str = Field("F", description="peak wave number")
+    CGPP: str = Field("F", description="peak group speed")
+    KPP: str = Field("F", description="peak wave number")
+    LPP: str = Field("F", description="peak wave length")
+    PEAKD: str = Field("T", description="peak direction")
+    DPEAK: str = Field("T", description="peak direction")
+    PEAKDSPR: str = Field("T", description="peak directional spreading")
+    UBOT: str = Field("F", description="bottom exc. velocity")
+    ORBITAL: str = Field("F", description="bottom orbital velocity")
+    iouts: str = Field(default=15)
     nouts: str = Field(
         "'AWAC_in','AWAC_mid','AWAC_off','SPOT_1002','SPOT_1011','SPOT_1018','SPOT_1026'",
         description="TODO",
