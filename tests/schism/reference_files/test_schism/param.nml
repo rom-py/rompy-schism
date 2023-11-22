@@ -162,8 +162,8 @@
 !-----------------------------------------------------------------------
 ! Reference latitude for beta-plane approximation when ncor=1 (not used if ics=2)
 !-----------------------------------------------------------------------
-  slam0 = 120  !lon - not really used
-  sfea0 = -29 !lat
+  slam0 = 120.0  !lon - not really used
+  sfea0 = -29.0 !lat
 
 !-----------------------------------------------------------------------
 ! Option to deal with under resolution near steep slopes in deeper depths
@@ -178,8 +178,8 @@
 ! (i.e. like terrain-following) if h<=h1_bcc(<h2_bcc) (and linear
 ! transition in between based on local depth)
 !-----------------------------------------------------------------------
-  h1_bcc = 50. ![m]
-  h2_bcc = 100. ![m]; >h1_bcc
+  h1_bcc = 50.0 ![m]
+  h2_bcc = 100.0 ![m]; >h1_bcc
 
 !-----------------------------------------------------------------------
 ! Hannah-Wright-like ratio & depth used to account for under-resolution
@@ -517,7 +517,7 @@
 ! conservative method is used without extrapolation beyond bottom; 
 ! otherwise constant extrapolation below bottom is used.
 !-----------------------------------------------------------------------
-  h_bcc1 = 100. !h_bcc1
+  h_bcc1 = 100.0 !h_bcc1
 
 !-----------------------------------------------------------------------
 ! Dimensioning parameters for inter-subdomain btrack. 

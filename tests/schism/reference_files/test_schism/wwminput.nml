@@ -480,7 +480,7 @@
                                      !    in the netcdf file (default T)
  FILEOUT        = 'wwm_sta.nc'      !not used
  LOUTITER       = F
- IOUTS   =   7
+ IOUTS   =   15
  NOUTS   = 'AWAC_in','AWAC_mid','AWAC_off','SPOT_1002','SPOT_1011','SPOT_1018','SPOT_1026'
  XOUTS  =   115.6208687,115.5941886,115.58077,115.5942931,115.5830497,115.5807825,115.5960683    
  YOUTS   =  -32.611605,-32.611605,-32.613682,-32.6253914,-32.6135870,-32.6294226,-32.6096741  
