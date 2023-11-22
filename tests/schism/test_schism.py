@@ -28,10 +28,8 @@ def test_schism_render(tmpdir):
         output_dir=str(tmpdir),
         config=SchismCSIROConfig(
             grid=SCHISMGrid3D(
-                hgrid=DataBlob(id="hgrid", source=here /
-                               "test_data" / "hgrid.gr3"),
-                vgrid=DataBlob(id="vgrid", source=here /
-                               "test_data" / "vgrid.in"),
+                hgrid=DataBlob(id="hgrid", source=here / "test_data" / "hgrid.gr3"),
+                vgrid=DataBlob(id="vgrid", source=here / "test_data" / "vgrid.in"),
                 diffmin=DataBlob(
                     id="diffmin", source=here / "test_data" / "diffmin.gr3"
                 ),
@@ -51,8 +49,7 @@ def test_schism_render(tmpdir):
                 hgrid_WWM=DataBlob(
                     id="hgrid_WWM", source=here / "test_data" / "hgrid_WWM.gr3"
                 ),
-                wwmbnd=DataBlob(id="wwmbnd", source=here / \
-                                "test_data" / "wwmbnd.gr3"),
+                wwmbnd=DataBlob(id="wwmbnd", source=here / "test_data" / "wwmbnd.gr3"),
             ),
             inputs=Inputs(
                 filewave=DataBlob(
@@ -75,6 +72,7 @@ def test_schism_render(tmpdir):
             "diffmax.gr3",
             "diffmin.gr3",
             "hgrid.gr3",
+            "hgrid_WWM.gr3",
             # "drag.gr3",
             "manning.gr3",
             "schism_bnd_spec_SWAN_500m_use_in_schism_2021Aug-Nov.nc",
