@@ -10,12 +10,11 @@ from pydantic import Field, field_validator, model_validator
 
 from rompy.core import DataGrid
 from rompy.core.time import TimeRange
-from rompy.schism import SCHISMGrid2D, SCHISMGrid3D
 
 logger = logging.getLogger(__name__)
 
 
-class DataAtmos(DataGrid):
+class SCHISMDataAtmos(DataGrid):
     """This class is used to write SCHISM data from a dataset."""
 
     air_1_relative_weight: float = Field(
@@ -66,7 +65,6 @@ class DataAtmos(DataGrid):
     prate_name: str = Field("prate", description="name of precipitation rate variable")
 
     def _set_variables(self):
-        
         for variable in [
             "uwind",
             "vwind",
@@ -74,9 +72,9 @@ class DataAtmos(DataGrid):
             "stmp",
             "spfh",
             "prate",
-        ]
-        if not getattr(self, variable) is None:
-            self.variables.append(variable)
+        ]:
+            if not getattr(self, variable) is None:
+                self.variables.append(variable)
 
     def __str__(self):
         return f"SCHISMAtmos"
