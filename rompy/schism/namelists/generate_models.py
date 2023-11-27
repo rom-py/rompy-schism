@@ -6,6 +6,8 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
+TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), "templates")
+
 
 def extract_sections_from_text(text):
     sections = re.split(r"&(\w+)", text)
