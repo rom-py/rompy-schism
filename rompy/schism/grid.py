@@ -17,8 +17,7 @@ class SCHISMGrid2D(BaseGrid):
         "2D", description="Type of grid (2D=two dimensional, 3D=three dimensional)"
     )
     hgrid: DataBlob = Field(..., description="Path to hgrid.gr3 file")
-    drag: Optional[DataBlob] = Field(
-        default=None, description="Path to drag.gr3 file")
+    drag: Optional[DataBlob] = Field(default=None, description="Path to drag.gr3 file")
     rough: Optional[DataBlob] = Field(
         default=None, description="Path to rough.gr3 file"
     )
