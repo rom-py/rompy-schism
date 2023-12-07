@@ -9,8 +9,7 @@ import xarray as xr
 from pydantic import Field, field_validator, model_validator
 
 from rompy.core import DataGrid
-from rompy.core.boundary import (BoundaryWaveStation, SourceFile,
-                                 SourceWavespectra)
+from rompy.core.boundary import BoundaryWaveStation, SourceFile, SourceWavespectra
 from rompy.core.time import TimeRange
 from rompy.schism.grid import SCHISMGrid2D, SCHISMGrid3D
 
@@ -93,7 +92,8 @@ class SCHISMDataWave(BoundaryWaveStation):
         destdir: str | Path,
         grid: SCHISMGrid2D | SCHISMGrid3D,
         time: Optional[TimeRange] = None,
-    ) -> str: """Write the selected boundary data to a netcdf file.
+    ) -> str:
+        """Write the selected boundary data to a netcdf file.
         Parameters
         ----------
         destdir : str | Path
