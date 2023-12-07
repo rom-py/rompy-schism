@@ -9,7 +9,10 @@ import xarray as xr
 from pydantic import Field, field_validator, model_validator
 
 from rompy.core import DataGrid
+from rompy.core.boundary import (BoundaryWaveStation, SourceFile,
+                                 SourceWavespectra)
 from rompy.core.time import TimeRange
+from rompy.schism.grid import SCHISMGrid2D, SCHISMGrid3D
 
 logger = logging.getLogger(__name__)
 
@@ -76,5 +79,47 @@ class SCHISMDataAtmos(DataGrid):
             if not getattr(self, variable) is None:
                 self.variables.append(variable)
 
+    # def get(self):
+
     def __str__(self):
-        return f"SCHISMAtmos"
+        return f"SCHISMDataAtmos"
+
+
+class SCHISMDataWave(BoundaryWaveStation):
+    """This class is used to write SCHISM data from a dataset."""
+
+    def get(
+        self,
+        destdir: str | Path,
+        grid: SCHISMGrid2D | SCHISMGrid3D,
+        time: Optional[TimeRange] = None,
+    ) -> str: """Write the selected boundary data to a netcdf file.
+        Parameters
+        ----------
+        destdir : str | Path
+            Destination directory for the netcdf file.
+        grid : SCHISMGrid2D | SCHISMGrid3D
+            Grid instance to use for selecting the boundary points.
+        time: TimeRange, optional
+            The times to filter the data to, only used if `self.crop_data` is True.
+
+        Returns
+        -------
+        outfile : Path
+            Path to the netcdf file.
+
+        """
+        if self.crop_data and time is not None:
+            self._filter_time(time)
+        ds = self._sel_boundary(grid)
+        outfile = Path(destdir) / f"{self.id}.nc"
+        ds.spec.to_ww3(outfile)
+        return outfile
+
+    def __str__(self):
+        return f"SCHISMDataWave"
+
+
+class SCHISMDataOcean(DataGrid):
+    def __str__(self):
+        return f"SCHISMDataOcean"
