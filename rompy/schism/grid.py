@@ -91,7 +91,7 @@ class SCHISMGrid2D(BaseGrid):
         default=None, description="Path to manning.gr3 file"
     )
     hgridll: Optional[DataBlob | int] = Field(
-        default=None, description="Path to hgrid.ll file"
+        default=None, description="Path to hgrid.ll file. "
     )
     diffmin: Optional[DataBlob | float] = Field(
         default=1.0e-6,
@@ -168,9 +168,9 @@ class SCHISMGrid2D(BaseGrid):
             "drag",
             "rough",
             "manning",
-            "hgridll",
             "diffmin",
             "diffmax",
+            "hgridll",
             "hgrid_WWM",
             "wwmbnd",
             "albedo",
@@ -178,6 +178,11 @@ class SCHISMGrid2D(BaseGrid):
             "windrot_geo2proj",
         ]:
             source = getattr(self, filetype)
+            if filetype == "hgridll":
+                if source is None:
+                    logger.info(f"Creating symbolic link for hgrid.ll")
+                    os.symlink("./hgrid.gr3", f"{destdir}/hgrid.ll")
+                    continue
             if source is not None:
                 if isinstance(source, DataBlob):
                     logger.info(
