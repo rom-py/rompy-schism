@@ -206,8 +206,77 @@ class SCHISMGrid2D(BaseGrid):
         return polygon
 
     def plot_hgrid(self):
+        from cartopy import crs as ccrs
+        from matplotlib.tri import Triangulation
+
+        fig = plt.figure(figsize=(20, 10))
+        ax = fig.add_subplot(121)
+        ax.set_title("Bathymetry")
+
         hgrid = Hgrid.open(self.hgrid._copied or self.hgrid.source)
-        hgrid.make_plot()
+        hgrid.make_plot(axes=ax)
+
+        # open boundary nodes/info as geopandas df
+        gdf_open_boundary = hgrid.boundaries.open
+
+        # make a pandas dataframe for easier lon/lat referencing during forcing condition generation
+        df_open_boundary = pd.DataFrame(
+            {
+                "schism_index": gdf_open_boundary.index_id[0],
+                "index": gdf_open_boundary.indexes[0],
+                "lon": gdf_open_boundary.get_coordinates().x,
+                "lat": gdf_open_boundary.get_coordinates().y,
+            }
+        ).reset_index(drop=True)
+
+        # create sub-sampled wave boundary
+        # #wave_boundary = redistribute_vertices(gdf_open_boundary.geometry[0], 0.2)
+        #
+        # df_wave_boundary = pd.DataFrame(
+        #     {"lon": wave_boundary.xy[0], "lat": wave_boundary.xy[1]}
+        # ).reset_index(drop=True)
+
+        meshtri = Triangulation(hgrid.x, hgrid.y, hgrid.elements.array)
+        ax = fig.add_subplot(122, projection=ccrs.PlateCarree())
+        ax.triplot(meshtri, color="k", alpha=0.3)
+        gdf_open_boundary.plot(ax=ax, color="b")
+        ax.add_geometries(
+            hgrid.boundaries.land.geometry.values,
+            facecolor="none",
+            edgecolor="g",
+            linewidth=2,
+            crs=ccrs.PlateCarree(),
+        )
+        ax.plot(
+            df_open_boundary["lon"],
+            df_open_boundary["lat"],
+            "+k",
+            transform=ccrs.PlateCarree(),
+            zorder=10,
+        )
+        ax.plot(
+            df_open_boundary["lon"],
+            df_open_boundary["lat"],
+            "xr",
+            transform=ccrs.PlateCarree(),
+            zorder=10,
+        )
+        # ax.plot(
+        #     df_wave_boundary["lon"],
+        #     df_wave_boundary["lat"],
+        #     "+k",
+        #     transform=ccrs.PlateCarree(),
+        #     zorder=10,
+        # )
+        # ax.plot(
+        #     df_wave_boundary["lon"],
+        #     df_wave_boundary["lat"],
+        #     "xr",
+        #     transform=ccrs.PlateCarree(),
+        #     zorder=10,
+        # )
+        ax.coastlines()
+        ax.set_title("Mesh")
 
     def ocean_boundary(self):
         hgrid = Hgrid.open(self.hgrid._copied or self.hgrid.source)
@@ -268,7 +337,7 @@ if __name__ == "__main__":
             id="hgrid",
         )
     )
-    # grid.plot_hgrid()
+    grid.plot_hgrid()
     # plt.figure()
     # grid._set_xy()
     # bnd = grid.boundary()
@@ -276,4 +345,4 @@ if __name__ == "__main__":
     # # plot polygon on cartopy axes
     # ax.add_geometries([bnd], ccrs.PlateCarree(), facecolor="none", edgecolor="red")
     # ax.coastlines()
-    # plt.show()
+    plt.show()
