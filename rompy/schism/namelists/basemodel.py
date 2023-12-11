@@ -16,7 +16,12 @@ class NamelistBaseModel(RompyBaseModel):
                     variable = variable.replace(f"__{ii}", f"({ii})")
                 if isinstance(value, list):
                     value = ", ".join([str(item) for item in value])
+                if isinstance(value, bool):
+                    value = ".true." if value else ".false."
+                if isinstance(value, str):
+                    value = f"'{value}'"
                 ret += [f"{variable} = {value}"]
+            ret += ["/"]
         return "\n".join(ret)
 
     def write_nml(self, workdir: str) -> None:
