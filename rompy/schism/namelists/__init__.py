@@ -4,5 +4,6 @@ from .icm import ICM
 from .mice import MICE
 from .param import PARAM
 from .sediment import SEDIMENT
+from .sflux import Sflux_Inputs
 from .wwminput_spectra import WWMINPUT
 from .wwminput_WW3 import WWMINPUT
