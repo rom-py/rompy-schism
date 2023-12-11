@@ -8,80 +8,141 @@ import pandas as pd
 import xarray as xr
 from pydantic import Field, field_validator, model_validator
 
-from rompy.core import DataGrid
-from rompy.core.boundary import BoundaryWaveStation, SourceFile, SourceWavespectra
+from rompy.core import DataGrid, RompyBaseModel
+from rompy.core.boundary import (BoundaryWaveStation, SourceFile,
+                                 SourceWavespectra)
 from rompy.core.time import TimeRange
 from rompy.schism.grid import SCHISMGrid2D, SCHISMGrid3D
+
+from .namelists import Sflux_Inputs
 
 logger = logging.getLogger(__name__)
 
 
-class SCHISMDataAtmos(DataGrid):
+GRID_TYPES = Union[SCHISMGrid2D, SCHISMGrid3D]
+
+
+class SfluxSource(DataGrid):
+    """This is a single variable source for and sflux input"""
+
+    id: str = Field(..., description="id of the source", choices=["air", "rad", "prc"])
+    relative_weight: float = Field(
+        1.0,
+        description="relative weight of the source file if two files are provided",
+    )
+    max_window_hours: float = Field(
+        120.0,
+        description="maximum number of hours (offset from start time in each file) in each file of set 1",
+    )
+    fail_if_missing: bool = Field(
+        True, description="Fail if the source file is missing"
+    )
+
+    @property
+    def outfile(self) -> str:
+        # TODO - filenumber is. Hardcoded to 1 for now.
+        return f'sflux_{self.id}.{str(1).rjust(4, "0")}.nc'
+
+    @property
+    def namelist(self) -> dict:
+        ret = {}
+        for key, value in self.model_dump().items():
+            if key in ["relative_weight", "max_window_hours", "fail_if_missing"]:
+                ret.update({f"{self.id}_{key}": value})
+        ret.update({f"{self.id}_file": self.outfile})
+        return ret
+
+
+class SfluxAir(SfluxSource):
+    """This is a single variable source for and sflux input"""
+
+    uwind_name: SfluxSource = Field(
+        None,
+        description="name of zonal wind variable in source",
+    )
+    vwind_name: SfluxSource = Field(
+        None,
+        description="name of meridional wind variable in source",
+    )
+    prmsl_name: SfluxSource = Field(
+        None,
+        description="name of mean sea level pressure variable in source",
+    )
+    stmp_name: SfluxSource = Field(
+        None,
+        description="name of surface air temperature variable in source",
+    )
+    spfh_name: SfluxSource = Field(
+        None,
+        description="name of specific humidity variable in source",
+    )
+
+    def _set_variables(self) -> None:
+        for variable in [
+            "uwind_name",
+            "vwind_name",
+            "prmsl_name",
+            "stmp_name",
+            "spfh_name",
+        ]:
+            if getattr(self, variable) is not None:
+                self.variables.append(getattr(self, variable))
+
+
+class SfluxRad(SfluxSource):
+    """This is a single variable source for and sflux input"""
+
+    dlwrf_name: SfluxSource = Field(
+        None,
+        description="name of downward long wave radiation variable in source",
+    )
+    dswrf_name: SfluxSource = Field(
+        None,
+        description="name of downward short wave radiation variable in source",
+    )
+
+    def _set_variables(self) -> None:
+        for variable in ["dlwrf_name", "dswrf_name"]:
+            if getattr(self, variable) is not None:
+                self.variables.append(getattr(self, variable))
+
+
+class SfluxPrc(SfluxSource):
+    """This is a single variable source for and sflux input"""
+
+    prate_name: SfluxSource = Field(
+        None,
+        description="name of precipitation rate variable in source",
+    )
+
+    def _set_variables(self) -> None:
+        self.variables = [self.prate_name]
+
+
+class SCHISMDataSflux(RompyBaseModel):
     """This class is used to write SCHISM data from a dataset."""
 
-    air_1_relative_weight: float = Field(
-        1.0,
-        description="air_[12]_relative_weight set the relative ratio between datasets '1' and '2'",
-    )
-    air_2_relative_weight: float = Field(
-        99.0,
-        description="air_[12]_relative_weight set the relative ratio between datasets '1' and '2'",
-    )
-    air_1_max_window_hours: float = Field(
-        120.0,
-        description="max. # of hours (offset from start time in each file) in each file of set '1'",
-    )
-    air_2_max_window_hours: float = Field(
-        120.0,
-        description="max. # of hours (offset from start time in each file) in each file of set '1'",
-    )
-    air_1_fail_if_missing: bool = Field(True, description="set '1' is mandatory")
-    air_2_fail_if_missing: bool = Field(False, description="set '2' is optional")
-    air_1_file: str = Field("sflux_air_1", description="file name for 1st set of 'air'")
-    air_2_file: str = Field("sflux_air_2", description="file name for 2nd set of 'air'")
-    uwind_name: str = Field("uwind", description="name of u-wind vel.")
-    vwind_name: str = Field("vwind", description="name of v-wind vel.")
-    prmsl_name: str = Field(
-        "prmsl", description="name of air pressure (@MSL) variable in .nc file"
-    )
-    stmp_name: str = Field("stmp", description="name of surface air T")
-    spfh_name: str = Field("spfh", description="name of specific humidity")
-    rad_1_relative_weight: float = Field(1.0)
-    rad_2_relative_weight: float = Field(99.0)
-    rad_1_max_window_hours: float = Field(24.0)
-    rad_2_max_window_hours: float = Field(24.0)
-    rad_1_fail_if_missing: bool = Field(False)
-    rad_2_fail_if_missing: bool = Field(False)
-    rad_1_file: str = Field("sflux_rad_1")
-    rad_2_file: str = Field("sflux_rad_2")
-    dlwrf_name: str = Field("dlwrf")
-    dswrf_name: str = Field("dswrf")
-    prc_1_relative_weight: float = Field(1.0)
-    prc_2_relative_weight: float = Field(99.0)
-    prc_1_max_window_hours: float = Field(24.0)
-    prc_2_max_window_hours: float = Field(24.0)
-    prc_1_fail_if_missing: bool = Field(False)
-    prc_2_fail_if_missing: bool = Field(False)
-    prc_1_file: str = Field("sflux_prc_1")
-    prc_2_file: str = Field("sflux_prc_2")
-    prate_name: str = Field("prate", description="name of precipitation rate variable")
+    air_1: SfluxSource = Field(None, description="sflux air source 1")
+    air_2: SfluxSource = Field(None, description="sflux air source 2")
+    rad_1: SfluxSource = Field(None, description="sflux rad source 1")
+    rad_2: SfluxSource = Field(None, description="sflux rad source 2")
+    prc_1: SfluxSource = Field(None, description="sflux prc source 1")
+    prc_2: SfluxSource = Field(None, description="sflux prc source 2")
 
-    def _set_variables(self):
-        for variable in [
-            "uwind",
-            "vwind",
-            "prmsl",
-            "stmp",
-            "spfh",
-            "prate",
-        ]:
-            if not getattr(self, variable) is None:
-                self.variables.append(variable)
-
-    # def get(self):
-
-    def __str__(self):
-        return f"SCHISMDataAtmos"
+    def get(
+        self,
+        destdir: str | Path,
+        grid: Optional[GRID_TYPES] = None,
+        time: Optional[TimeRange] = None,
+    ) -> Path:
+        namelistargs = {}
+        for variable in ["air_1", "air_2", "rad_1", "rad_2", "prc_1", "prc_2"]:
+            data = getattr(self, variable)
+            if data is None:
+                continue
+            namelistargs.update(data.namelist)
+            data.get(destdir, grid, time)
+        Sflux_Inputs(**namelistargs).write_nml(destdir / "sflux")
 
 
 class SCHISMDataWave(BoundaryWaveStation):
