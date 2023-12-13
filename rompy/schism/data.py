@@ -119,7 +119,17 @@ class SfluxPrc(SfluxSource):
 
 
 class SCHISMDataSflux(RompyBaseModel):
-    """This class is used to write SCHISM sflux data from a dataset."""
+    """This class is used to write SCHISM sflux data from a dataset.
+
+    Arguments:
+        air_1 (SfluxSource): The sflux air source 1.
+        air_2 (SfluxSource): The sflux air source 2.
+        rad_1 (SfluxSource): The sflux rad source 1.
+        rad_2 (SfluxSource): The sflux rad source 2.
+        prc_1 (SfluxSource): The sflux prc source 1.
+        prc_2 (SfluxSource): The sflux prc source 2.
+
+    """
 
     air_1: SfluxSource = Field(None, description="sflux air source 1")
     air_2: SfluxSource = Field(None, description="sflux air source 2")
@@ -134,6 +144,17 @@ class SCHISMDataSflux(RompyBaseModel):
         grid: Optional[GRID_TYPES] = None,
         time: Optional[TimeRange] = None,
     ) -> Path:
+        """Writes SCHISM sflux data from a dataset.
+
+        Args:
+            destdir (str | Path): The destination directory to write the sflux data.
+            grid (Optional[GRID_TYPES], optional): The grid type. Defaults to None.
+            time (Optional[TimeRange], optional): The time range. Defaults to None.
+
+        Returns:
+            Path: The path to the written sflux data.
+
+        """
         namelistargs = {}
         for variable in ["air_1", "air_2", "rad_1", "rad_2", "prc_1", "prc_2"]:
             data = getattr(self, variable)
@@ -143,9 +164,18 @@ class SCHISMDataSflux(RompyBaseModel):
             data.get(destdir, grid, time)
         Sflux_Inputs(**namelistargs).write_nml(destdir / "sflux")
 
-    # check that relative weights for each pair add to 1
     @model_validator(mode="after")
     def check_weights(cls, v):
+        """Check that relative weights for each pair add to 1.
+
+        Args:
+            cls: The class.
+            v: The variable.
+
+        Raises:
+            ValueError: If the relative weights for any variable do not add up to 1.0.
+
+        """
         for variable in ["air", "rad", "prc"]:
             weight = 0
             active = False
