@@ -5,6 +5,7 @@ from typing import Literal, Optional
 import pandas as pd
 from pydantic import Field, field_validator, model_validator
 from pyschism.mesh import Hgrid
+from pyschism.mesh.prop import Tvdflag
 from shapely.geometry import MultiPoint, Polygon
 
 from rompy.core import DataBlob, RompyBaseModel
@@ -124,6 +125,7 @@ class SCHISMGrid2D(BaseGrid):
     wwmbnd: Optional[DataBlob | int] = Field(
         default=None, description="Path to wwmbnd.gr3 file"
     )
+    _pyschism_hgrid: Optional[Hgrid] = None
 
     @model_validator(mode="after")
     def validate_rough_drag_manning(cls, v):
@@ -154,12 +156,19 @@ class SCHISMGrid2D(BaseGrid):
                 )
         return v
 
-    def _set_xy(self):
-        """Set x and y coordinates from hgrid."""
+    @model_validator(mode="after")
+    def set_xy(cls, v):
+        if v.hgrid is not None:
+            v._pyschism_hgrid = Hgrid.open(v.hgrid._copied or v.hgrid.source)
+            v.x = v._pyschism_hgrid.x
+            v.y = v._pyschism_hgrid.y
+        return v
 
-        hgrid = Hgrid.open(self.hgrid._copied or self.hgrid.source)
-        self.x = hgrid.x
-        self.y = hgrid.y
+    @property
+    def pyschism_hgrid(self):
+        if self._pyschism_hgrid is None:
+            self._pyschism_hgrid = Hgrid.open(self.hgrid._copied or self.hgrid.source)
+        return self._pyschism_hgrid
 
     def get(self, destdir: Path) -> dict:
         ret = {}
@@ -197,11 +206,10 @@ class SCHISMGrid2D(BaseGrid):
         return ret
 
     def _get_boundary(self, tolerance=None) -> Polygon:
-        hgrid = Hgrid.open(self.hgrid._copied or self.hgrid.source)
         bnd = pd.concat(
             [
-                hgrid.boundaries.open.get_coordinates(),
-                hgrid.boundaries.land.get_coordinates(),
+                self.pyschism_hgrid.hgrid.boundaries.open.get_coordinates(),
+                self.pyschism_hgrid.hgrid.boundaries.land.get_coordinates(),
             ]
         )
         # convert pandas dataframe to polygon
@@ -211,6 +219,7 @@ class SCHISMGrid2D(BaseGrid):
         return polygon
 
     def plot_hgrid(self):
+        import matplotlib.pyplot as plt
         from cartopy import crs as ccrs
         from matplotlib.tri import Triangulation
 
@@ -219,7 +228,7 @@ class SCHISMGrid2D(BaseGrid):
         ax.set_title("Bathymetry")
 
         hgrid = Hgrid.open(self.hgrid._copied or self.hgrid.source)
-        hgrid.make_plot(axes=ax)
+        self.pyschism_hgrid.make_plot(axes=ax)
 
         # open boundary nodes/info as geopandas df
         gdf_open_boundary = hgrid.boundaries.open
@@ -241,12 +250,16 @@ class SCHISMGrid2D(BaseGrid):
         #     {"lon": wave_boundary.xy[0], "lat": wave_boundary.xy[1]}
         # ).reset_index(drop=True)
 
-        meshtri = Triangulation(hgrid.x, hgrid.y, hgrid.elements.array)
+        meshtri = Triangulation(
+            self.pyschism_hgrid.x,
+            self.pyschism_hgrid.y,
+            self.pyschism_hgrid.elements.array,
+        )
         ax = fig.add_subplot(122, projection=ccrs.PlateCarree())
         ax.triplot(meshtri, color="k", alpha=0.3)
         gdf_open_boundary.plot(ax=ax, color="b")
         ax.add_geometries(
-            hgrid.boundaries.land.geometry.values,
+            self.pyschism_hgrid.boundaries.land.geometry.values,
             facecolor="none",
             edgecolor="g",
             linewidth=2,
@@ -284,30 +297,12 @@ class SCHISMGrid2D(BaseGrid):
         ax.set_title("Mesh")
 
     def ocean_boundary(self):
-        hgrid = Hgrid.open(self.hgrid._copied or self.hgrid.source)
-        bnd = hgrid.boundaries.open.get_coordinates()
+        bnd = self.pyschism_hgrid.boundaries.open.get_coordinates()
         return bnd.x.values, bnd.y.values
 
     def land_boundary(self):
-        from pyschism.mesh import Hgrid
-
-        hgrid = Hgrid.open(self.hgrid._copied or self.hgrid.source)
-        bnd = hgrid.boundaries.land.get_coordinates()
+        bnd = self.pyschism_hgrid.boundaries.land.get_coordinates()
         return bnd.x.values, bnd.y.values
-
-    # def boundary_points(self, tolerance=0.2):
-    #     """
-    #     Convenience function to convert boundary Shapely Polygon
-    #     to arrays of coordinates
-    #
-    #     Parameters
-    #     ----------
-    #     tolerance : float
-    #         Passed to Grid.boundary
-    #         See https://shapely.readthedocs.io/en/stable/manual.html#object.simplify
-    #
-    #     """
-    #     return self.ocean_boundary()
 
 
 class SCHISMGrid3D(SCHISMGrid2D):
