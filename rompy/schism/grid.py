@@ -5,6 +5,7 @@ from typing import Literal, Optional
 import pandas as pd
 from pydantic import Field, field_validator, model_validator
 from pyschism.mesh import Hgrid
+from pyschism.mesh.prop import Tvdflag
 from shapely.geometry import MultiPoint, Polygon
 
 from rompy.core import DataBlob
@@ -52,11 +53,11 @@ class SCHISMGrid2D(BaseGrid):
 
     # Set x and y coordinates from hgrid
     @model_validator(mode="after")
-    def _set_xy(cls, v):
+    def set_xy(cls, v):
         if v.hgrid is not None:
-            hgrid = Hgrid.open(v.hgrid._copied or v.hgrid.source)
-            v.x = hgrid.x
-            v.y = hgrid.y
+            v._pyschism_hgrid = Hgrid.open(v.hgrid._copied or v.hgrid.source)
+            v.x = v._pyschism_hgrid.x
+            v.y = v._pyschism_hgrid.y
         return v
 
     @property
