@@ -9,8 +9,7 @@ import xarray as xr
 from pydantic import Field, field_validator, model_validator
 
 from rompy.core import DataGrid, RompyBaseModel
-from rompy.core.boundary import (BoundaryWaveStation, SourceFile,
-                                 SourceWavespectra)
+from rompy.core.boundary import BoundaryWaveStation, SourceFile, SourceWavespectra
 from rompy.core.time import TimeRange
 from rompy.schism.grid import SCHISMGrid2D, SCHISMGrid3D
 
@@ -120,7 +119,7 @@ class SfluxPrc(SfluxSource):
 
 
 class SCHISMDataSflux(RompyBaseModel):
-    """This class is used to write SCHISM data from a dataset."""
+    """This class is used to write SCHISM sflux data from a dataset."""
 
     air_1: SfluxSource = Field(None, description="sflux air source 1")
     air_2: SfluxSource = Field(None, description="sflux air source 2")
@@ -143,6 +142,25 @@ class SCHISMDataSflux(RompyBaseModel):
             namelistargs.update(data.namelist)
             data.get(destdir, grid, time)
         Sflux_Inputs(**namelistargs).write_nml(destdir / "sflux")
+
+    # check that relative weights for each pair add to 1
+    @model_validator(mode="after")
+    def check_weights(cls, v):
+        for variable in ["air", "rad", "prc"]:
+            weight = 0
+            active = False
+            for i in [1, 2]:
+                data = getattr(v, f"{variable}_{i}")
+                if data is None:
+                    continue
+                if data.fail_if_missing:
+                    continue
+                weight += data.relative_weight
+                active = True
+            if active and weight != 1.0:
+                raise ValueError(
+                    f"Relative weights for {variable} do not add to 1.0: {weight}"
+                )
 
 
 class SCHISMDataWave(BoundaryWaveStation):
