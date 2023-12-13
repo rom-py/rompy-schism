@@ -75,6 +75,10 @@ class GR3Generator(RompyBaseModel):
                     outFile.write(line)
                 return dest
 
+    def get(self, destdir: str | Path) -> Path:
+        """Alias to maintain api compatibility with DataBlob"""
+        return self.generate_gr3(destdir)
+
 
 # TODO - check datatypes for gr3 files (int vs float)
 class SCHISMGrid2D(BaseGrid):
@@ -193,16 +197,7 @@ class SCHISMGrid2D(BaseGrid):
                     os.symlink("./hgrid.gr3", f"{destdir}/hgrid.ll")
                     continue
             if source is not None:
-                if isinstance(source, DataBlob):
-                    logger.info(
-                        f"Copying {source.id}: {source.source} to {destdir}/{source.source}"
-                    )
-                    source.get(destdir)
-                else:
-                    logger.info(
-                        f"Generating {source.id}: {source.gr3_type} with value {source.val}"
-                    )
-                    source.generate_gr3(destdir)
+                source.get(destdir)
         return ret
 
     def _get_boundary(self, tolerance=None) -> Polygon:
