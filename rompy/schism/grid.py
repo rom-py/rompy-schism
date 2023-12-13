@@ -8,12 +8,75 @@ from pyschism.mesh import Hgrid
 from pyschism.mesh.prop import Tvdflag
 from shapely.geometry import MultiPoint, Polygon
 
-from rompy.core import DataBlob
+from rompy.core import DataBlob, RompyBaseModel
 from rompy.core.grid import BaseGrid
 
 logger = logging.getLogger(__name__)
 
 
+import os
+
+from pydantic import BaseModel, field_validator
+
+
+class GR3Generator(RompyBaseModel):
+    hgrid: DataBlob | Path = Field(..., description="Path to hgrid.gr3 file")
+    gr3_type: str = Field(
+        ...,
+        description="Type of gr3 file. Must be one of 'albedo', 'diffmin', 'diffmax', 'watertype', 'windrot_geo2proj'",
+    )
+    val: float = Field(None, description="Constant value to set in gr3 file")
+
+    @field_validator("gr3_type")
+    def gr3_type_validator(cls, v):
+        if v not in [
+            "albedo",
+            "diffmin",
+            "diffmax",
+            "watertype",
+            "windrot_geo2proj",
+        ]:
+            raise ValueError(
+                "gr3_type must be one of 'albedo', 'diffmin', 'diffmax', 'watertype', 'windrot_geo2proj'"
+            )
+        return v
+
+    @property
+    def id(self):
+        return self.gr3_type
+
+    def generate_gr3(self, destdir: str | Path) -> Path:
+        if isinstance(self.hgrid, DataBlob):
+            if not self.hgrid._copied:
+                self.hgrid.get(destdir)
+            ref = self.hgrid._copied
+        else:
+            ref = self.hgrid
+        dest = Path(destdir) / f"{self.gr3_type}.gr3"
+        with open(ref, "r") as inFile:
+            with open(dest, "w") as outFile:
+                # blank line
+                line = inFile.readline()
+                outFile.write(f"{self.val}\n")
+
+                # ne, np
+                line = inFile.readline()
+                outFile.write(line)
+
+                ne, np1 = map(int, line.strip().split())
+
+                for i in range(np1):
+                    line = inFile.readline().strip()
+                    id, x, y, z = map(float, line.split())
+                    outFile.write(f"{id} {x} {y} {self.val}\n")
+
+                for i in range(ne):
+                    line = inFile.readline()
+                    outFile.write(line)
+                return dest
+
+
+# TODO - check datatypes for gr3 files (int vs float)
 class SCHISMGrid2D(BaseGrid):
     """2D SCHISM grid in geographic space."""
 
@@ -25,22 +88,41 @@ class SCHISMGrid2D(BaseGrid):
     rough: Optional[DataBlob] = Field(
         default=None, description="Path to rough.gr3 file"
     )
-    manning: Optional[DataBlob] = Field(
+    manning: Optional[DataBlob | int] = Field(
         default=None, description="Path to manning.gr3 file"
     )
-    hgridll: Optional[DataBlob] = Field(
-        default=None, description="Path to hgrid.ll file"
+    hgridll: Optional[DataBlob | int] = Field(
+        default=None, description="Path to hgrid.ll file. "
     )
-    diffmin: Optional[DataBlob] = Field(
-        default=None, description="Path to diffmax.gr3 file"
+    diffmin: Optional[DataBlob | float] = Field(
+        default=1.0e-6,
+        description="Path to diffmax.gr3 file or constant value",
+        validate_default=True,
     )
-    diffmax: Optional[DataBlob] = Field(
-        default=None, description="Path to diffmax.gr3 file"
+    diffmax: Optional[DataBlob | float] = Field(
+        default=1.0,
+        description="Path to diffmax.gr3 file or constant value",
+        validate_default=True,
     )
-    hgrid_WWM: Optional[DataBlob] = Field(
+    albedo: Optional[DataBlob | float] = Field(
+        default=0.15,
+        description="Path to albedo.gr3 file or constant value",
+        validate_default=True,
+    )
+    watertype: Optional[DataBlob | int] = Field(
+        default=1,
+        description="Path to watertype.gr3 file or constant value",
+        validate_default=True,
+    )
+    windrot_geo2proj: Optional[DataBlob | float] = Field(
+        default=0.0,
+        description="Path to windrot_geo2proj.gr3 file or constant value",
+        validate_default=True,
+    )
+    hgrid_WWM: Optional[DataBlob | int] = Field(
         default=None, description="Path to hgrid_WWM.gr3 file"
     )
-    wwmbnd: Optional[DataBlob] = Field(
+    wwmbnd: Optional[DataBlob | int] = Field(
         default=None, description="Path to wwmbnd.gr3 file"
     )
     _pyschism_hgrid: Optional[Hgrid] = None
@@ -51,7 +133,29 @@ class SCHISMGrid2D(BaseGrid):
             raise ValueError("Only one of rough, drag, manning can be set")
         return v
 
-    # Set x and y coordinates from hgrid
+    # validator that checks for gr3 source and if if not a daba blob or GR3Input, initializes a GR3Generator
+    @field_validator(
+        "drag",
+        "rough",
+        "manning",
+        "hgridll",
+        "diffmin",
+        "diffmax",
+        "albedo",
+        "watertype",
+        "windrot_geo2proj",
+        "hgrid_WWM",
+        "wwmbnd",
+        mode="after",
+    )
+    def gr3_source_validator(cls, v, values):
+        if v is not None:
+            if not isinstance(v, DataBlob):
+                v = GR3Generator(
+                    hgrid=values.data["hgrid"], gr3_type=values.field_name, val=v
+                )
+        return v
+
     @model_validator(mode="after")
     def set_xy(cls, v):
         if v.hgrid is not None:
@@ -66,25 +170,39 @@ class SCHISMGrid2D(BaseGrid):
             self._pyschism_hgrid = Hgrid.open(self.hgrid._copied or self.hgrid.source)
         return self._pyschism_hgrid
 
-    def get(self, staging_dir: Path):
+    def get(self, destdir: Path) -> dict:
         ret = {}
         for filetype in [
             "hgrid",
             "drag",
             "rough",
             "manning",
-            "hgridll",
             "diffmin",
             "diffmax",
+            "hgridll",
             "hgrid_WWM",
             "wwmbnd",
+            "albedo",
+            "watertype",
+            "windrot_geo2proj",
         ]:
             source = getattr(self, filetype)
+            if filetype == "hgridll":
+                if source is None:
+                    logger.info(f"Creating symbolic link for hgrid.ll")
+                    os.symlink("./hgrid.gr3", f"{destdir}/hgrid.ll")
+                    continue
             if source is not None:
-                logger.info(
-                    f"Copying {source.id}: {source.source} to {staging_dir}/{source.source}"
-                )
-                source.get(staging_dir)
+                if isinstance(source, DataBlob):
+                    logger.info(
+                        f"Copying {source.id}: {source.source} to {destdir}/{source.source}"
+                    )
+                    source.get(destdir)
+                else:
+                    logger.info(
+                        f"Generating {source.id}: {source.gr3_type} with value {source.val}"
+                    )
+                    source.generate_gr3(destdir)
         return ret
 
     def _get_boundary(self, tolerance=None) -> Polygon:
@@ -195,17 +313,17 @@ class SCHISMGrid3D(SCHISMGrid2D):
     )
     vgrid: DataBlob = Field(..., description="Path to vgrid.in file")
 
-    def get(self, staging_dir: Path):
-        ret = super().get(staging_dir)
+    def get(self, destdir: Path):
+        ret = super().get(destdir)
         for filetype in [
             "vgrid",
         ]:
             source = getattr(self, filetype)
             if source is not None:
                 logger.info(
-                    f"Copying {source.id}: {source.source} to {staging_dir}/{source.source}"
+                    f"Copying {source.id}: {source.source} to {destdir}/{source.source}"
                 )
-                source.get(staging_dir)
+                source.get(destdir)
         return ret
 
 
