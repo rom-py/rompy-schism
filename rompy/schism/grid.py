@@ -42,6 +42,7 @@ class SCHISMGrid2D(BaseGrid):
     wwmbnd: Optional[DataBlob] = Field(
         default=None, description="Path to wwmbnd.gr3 file"
     )
+    _pyschism_hgrid: Optional[Hgrid] = None
 
     @model_validator(mode="after")
     def validate_rough_drag_manning(cls, v):
@@ -49,12 +50,20 @@ class SCHISMGrid2D(BaseGrid):
             raise ValueError("Only one of rough, drag, manning can be set")
         return v
 
-    def _set_xy(self):
-        """Set x and y coordinates from hgrid."""
+    # Set x and y coordinates from hgrid
+    @model_validator(mode="after")
+    def _set_xy(cls, v):
+        if v.hgrid is not None:
+            hgrid = Hgrid.open(v.hgrid._copied or v.hgrid.source)
+            v.x = hgrid.x
+            v.y = hgrid.y
+        return v
 
-        hgrid = Hgrid.open(self.hgrid._copied or self.hgrid.source)
-        self.x = hgrid.x
-        self.y = hgrid.y
+    @property
+    def pyschism_hgrid(self):
+        if self._pyschism_hgrid is None:
+            self._pyschism_hgrid = Hgrid.open(self.hgrid._copied or self.hgrid.source)
+        return self._pyschism_hgrid
 
     def get(self, staging_dir: Path):
         ret = {}
