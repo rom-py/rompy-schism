@@ -240,9 +240,9 @@ class SCHISMDataBoundary(DataBoundary):
     boundary nodes."""
 
     id: str = Field(
-        ...,
+        "bnd",
         description="SCHISM th id of the source",
-        choices=["elev2D", "uv3D", "TEM_3D", "SAL_3D"],
+        choices=["elev2D", "uv3D", "TEM_3D", "SAL_3D", "bnd"],
     )
     variable: str = Field(..., description="variable name in the dataset")
 
@@ -305,19 +305,50 @@ class SCHISMDataBoundary(DataBoundary):
         schism_ds["time_series"] = schism_ds.time_series.assign_attrs(
             {"long_name": ds[self.variable].attrs["long_name"]}
         )
-        outfile = Path(destdir) / f"{self.id}.nc"
+        outfile = Path(destdir) / f"{self.id}.th.nc"
         schism_ds.to_netcdf(outfile)
         return outfile
 
 
-class SCHISMDataOcean(DataGrid):
+class SCHISMDataOcean(RompyBaseModel):
+    elev2D: Optional[SCHISMDataBoundary] = Field(
+        None,
+        description="elev2D",
+    )
+    uv3D: Optional[SCHISMDataBoundary] = Field(
+        None,
+        description="uv3D",
+    )
+    TEM_3D: Optional[SCHISMDataBoundary] = Field(
+        None,
+        description="TEM_3D",
+    )
+    SAL_3D: Optional[SCHISMDataBoundary] = Field(
+        None,
+        description="SAL_3D",
+    )
+
+    @model_validator(mode="after")
+    def not_yet_implemented(cls, v):
+        for variable in ["uv3D", "TEM_3D", "SAL_3D"]:
+            if getattr(v, variable) is not None:
+                raise NotImplementedError(f"Variable {variable} is not yet implemented")
+        return v
+
+    @model_validator(mode="after")
+    def set_id(cls, v):
+        for variable in ["elev2D", "uv3D", "TEM_3D", "SAL_3D"]:
+            if getattr(v, variable) is not None:
+                getattr(v, variable).id = variable
+        return v
+
     def get(
         self,
         destdir: str | Path,
         grid: SCHISMGrid2D | SCHISMGrid3D,
         time: Optional[TimeRange] = None,
     ) -> str:
-        """Write the selected boundary data to a netcdf file.
+        """Write all inputs to netcdf files.
         Parameters
         ----------
         destdir : str | Path
@@ -333,15 +364,11 @@ class SCHISMDataOcean(DataGrid):
             Path to the netcdf file.
 
         """
-        if self.crop_data and time is not None:
-            self._filter_time(time)
-        aux = interp_region.interp(
-            Time=pd.to_datetime(timeaxis), xt_ocean=lon, yt_ocean=lat, method="linear"
-        ).values
-        ds = self._sel_boundary(grid)
-        outfile = Path(destdir) / f"{self.id}.nc"
-        ds.spec.to_ww3(outfile)
-        return outfile
+        for variable in ["elev2D", "uv3D", "TEM_3D", "SAL_3D"]:
+            data = getattr(self, variable)
+            if data is None:
+                continue
+            data.get(destdir, grid, time)
 
     def __str__(self):
         return f"SCHISMDataOcean"
