@@ -1,7 +1,7 @@
 import logging
 import os
 from pathlib import Path
-from typing import Optional, Union
+from typing import Literal, Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -9,9 +9,15 @@ import xarray as xr
 from pydantic import Field, field_validator, model_validator
 
 from rompy.core import DataGrid, RompyBaseModel
-from rompy.core.boundary import BoundaryWaveStation, SourceFile, SourceWavespectra
+from rompy.core.boundary import (
+    BoundaryWaveStation,
+    DataBoundary,
+    SourceFile,
+    SourceWavespectra,
+)
 from rompy.core.time import TimeRange
 from rompy.schism.grid import SCHISMGrid2D, SCHISMGrid3D
+from rompy.utils import total_seconds
 
 from .namelists import Sflux_Inputs
 
@@ -229,6 +235,113 @@ class SCHISMDataWave(BoundaryWaveStation):
         return f"SCHISMDataWave"
 
 
+class SCHISMDataBoundary(DataBoundary):
+    """This class is used to extract ocean boundary data  griddd dataset at all open
+    boundary nodes."""
+
+    id: str = Field(
+        ...,
+        description="SCHISM th id of the source",
+        choices=["elev2D", "uv3D", "TEM_3D", "SAL_3D"],
+    )
+    variable: str = Field(..., description="variable name in the dataset")
+
+    @model_validator(mode="after")
+    def _set_variables(cls, v):
+        v.variables = [v.variable]
+        return v
+
+    def get(
+        self,
+        destdir: str | Path,
+        grid: SCHISMGrid2D | SCHISMGrid3D,
+        time: Optional[TimeRange] = None,
+    ) -> str:
+        """Write the selected boundary data to a netcdf file.
+        Parameters
+        ----------
+        destdir : str | Path
+            Destination directory for the netcdf file.
+        grid : SCHISMGrid2D | SCHISMGrid3D
+            Grid instance to use for selecting the boundary points.
+        time: TimeRange, optional
+            The times to filter the data to, only used if `self.crop_data` is True.
+
+        Returns
+        -------
+        outfile : Path
+            Path to the netcdf file.
+
+        """
+        # prepare xarray.Dataset and save forcing netCDF file
+        if self.crop_data and time is not None:
+            self._filter_time(time)
+        ds = self._sel_boundary(grid)
+        dt = total_seconds((ds.time[1] - ds.time[0]).values)
+        times = np.arange(0, ds.time.size) * dt
+        time_series = np.expand_dims(ds[self.variable].values, axis=(2, 3))
+
+        schism_ds = xr.Dataset(
+            coords={
+                "time": times,
+                "nOpenBndNodes": np.arange(0, ds.xlon.size),
+                "nComponents": np.array([1]),
+                "one": np.array([1]),
+            },
+            data_vars={
+                "time_step": (("one"), np.array([dt])),
+                "time_series": (
+                    ("time", "nOpenBndNodes", "nLevels", "nComponents"),
+                    time_series,
+                ),
+            },
+        )
+        schism_ds["time_step"] = schism_ds.time_step.assign_attrs(
+            {"long_name": "time_step"}
+        )
+        schism_ds["time"] = schism_ds.time.assign_attrs(
+            {"long_name": "simulation_time"}
+        )
+        schism_ds["time_series"] = schism_ds.time_series.assign_attrs(
+            {"long_name": ds[self.variable].attrs["long_name"]}
+        )
+        outfile = Path(destdir) / f"{self.id}.nc"
+        schism_ds.to_netcdf(outfile)
+        return outfile
+
+
 class SCHISMDataOcean(DataGrid):
+    def get(
+        self,
+        destdir: str | Path,
+        grid: SCHISMGrid2D | SCHISMGrid3D,
+        time: Optional[TimeRange] = None,
+    ) -> str:
+        """Write the selected boundary data to a netcdf file.
+        Parameters
+        ----------
+        destdir : str | Path
+            Destination directory for the netcdf file.
+        grid : SCHISMGrid2D | SCHISMGrid3D
+            Grid instance to use for selecting the boundary points.
+        time: TimeRange, optional
+            The times to filter the data to, only used if `self.crop_data` is True.
+
+        Returns
+        -------
+        outfile : Path
+            Path to the netcdf file.
+
+        """
+        if self.crop_data and time is not None:
+            self._filter_time(time)
+        aux = interp_region.interp(
+            Time=pd.to_datetime(timeaxis), xt_ocean=lon, yt_ocean=lat, method="linear"
+        ).values
+        ds = self._sel_boundary(grid)
+        outfile = Path(destdir) / f"{self.id}.nc"
+        ds.spec.to_ww3(outfile)
+        return outfile
+
     def __str__(self):
         return f"SCHISMDataOcean"
