@@ -9,7 +9,12 @@ import xarray as xr
 from rompy.core import BaseGrid, DataBlob, DataGrid, TimeRange
 from rompy.core.data import SourceDatamesh, SourceDataset, SourceFile, SourceIntake
 from rompy.schism import SCHISMGrid2D, SCHISMGrid3D
-from rompy.schism.data import SCHISMDataBoundary, SCHISMDataSflux, SfluxAir
+from rompy.schism.data import (
+    SCHISMDataBoundary,
+    SCHISMDataOcean,
+    SCHISMDataSflux,
+    SfluxAir,
+)
 from rompy.schism.namelists import Sflux_Inputs
 
 HERE = Path(__file__).parent
@@ -26,6 +31,18 @@ def grid_atmos_source():
     return SourceIntake(
         dataset_id="era5",
         catalog_uri=HERE / ".." / "data" / "catalog.yaml",
+    )
+
+
+@pytest.fixture
+def hycom_bnd():
+    return SCHISMDataBoundary(
+        id="hycom",
+        source=SourceFile(
+            uri=HERE / ".." / "data" / "hycom.nc",
+        ),
+        variable="surf_el",
+        coords={"t": "time", "y": "ylat", "x": "xlon", "z": "depth"},
     )
 
 
@@ -47,15 +64,10 @@ def test_atmos(tmp_path, grid_atmos_source):
     data.get(tmp_path)
 
 
-def test_oceansource(tmp_path, grid=grid2d):
-    data = SCHISMDataBoundary(
-        id="hycom",
-        source=SourceFile(
-            id="ocean_1",
-            uri=HERE / ".." / "data" / "hycom.nc",
-        ),
-        variable="surf_el",
-        coords={"t": "time", "y": "ylat", "x": "xlon", "z": "depth"},
-    )
-    grid = SCHISMGrid2D(hgrid=DataBlob(source="test_data/hgrid.gr3"))
-    data.get(tmp_path, grid)
+def test_oceandataboundary(tmp_path, grid2d, hycom_bnd):
+    hycom_bnd.get(tmp_path, grid2d)
+
+
+def test_oceandata(tmp_path, grid2d, hycom_bnd):
+    oceandata = SCHISMDataOcean(elev2D=hycom_bnd)
+    oceandata.get(tmp_path, grid2d)
