@@ -2,10 +2,12 @@ import logging
 from pathlib import Path
 from typing import Literal, Optional
 
+import numpy as np
 import pandas as pd
 from pydantic import Field, field_validator, model_validator
 from pyschism.mesh import Hgrid
 from pyschism.mesh.prop import Tvdflag
+from pyschism.mesh.vgrid import Vgrid
 from shapely.geometry import MultiPoint, Polygon
 
 from rompy.core import DataBlob, RompyBaseModel
@@ -92,7 +94,7 @@ class SCHISMGrid2D(BaseGrid):
     rough: Optional[DataBlob] = Field(
         default=None, description="Path to rough.gr3 file"
     )
-    manning: Optional[DataBlob | int] = Field(
+    manning: Optional[DataBlob | float] = Field(
         default=None, description="Path to manning.gr3 file"
     )
     hgridll: Optional[DataBlob | int] = Field(
@@ -130,6 +132,7 @@ class SCHISMGrid2D(BaseGrid):
         default=None, description="Path to wwmbnd.gr3 file"
     )
     _pyschism_hgrid: Optional[Hgrid] = None
+    _pyschism_vgrid: Optional[Vgrid] = None
 
     @model_validator(mode="after")
     def validate_rough_drag_manning(cls, v):
@@ -174,6 +177,12 @@ class SCHISMGrid2D(BaseGrid):
             self._pyschism_hgrid = Hgrid.open(self.hgrid._copied or self.hgrid.source)
         return self._pyschism_hgrid
 
+    @property
+    def pyschism_vgrid(self):
+        if self._pyschism_vgrid is None:
+            self._pyschism_vgrid = Vgrid.open(self.vgrid._copied or self.vgrid.source)
+        return self._pyschism_vgrid
+
     def get(self, destdir: Path) -> dict:
         ret = {}
         for filetype in [
@@ -198,7 +207,25 @@ class SCHISMGrid2D(BaseGrid):
                     continue
             if source is not None:
                 source.get(destdir)
+        self.generate_tvprop(destdir)
         return ret
+
+    def generate_tvprop(self, destdir: Path) -> Path:
+        """Generate tvprop.in file
+
+        Args:
+            destdir (Path): Destination directory
+
+        Returns:
+            Path: Path to tvprop.in file
+        """
+        # TODO - should this be handled in the same way as the gr3 files? i.e. would you
+        # ever want to provide a file path to tvprop.in?
+        tvdflag = Tvdflag(
+            self.pyschism_hgrid, np.array([1] * len(self.pyschism_hgrid.elements))
+        )
+        tvdflag.write(destdir / "tvprop.in")
+        return destdir / "tvprop.in"
 
     def _get_boundary(self, tolerance=None) -> Polygon:
         bnd = pd.concat(
