@@ -9,12 +9,15 @@ import pandas as pd
 import xarray as xr
 from cloudpathlib import AnyPath
 from pydantic import Field, field_validator, model_validator
-from pyschism.forcing.bctides import (Bctides, iettype, ifltype, isatype,
-                                      itetype)
+from pyschism.forcing.bctides import Bctides, iettype, ifltype, isatype, itetype
 
 from rompy.core import DataGrid, RompyBaseModel
-from rompy.core.boundary import (BoundaryWaveStation, DataBoundary, SourceFile,
-                                 SourceWavespectra)
+from rompy.core.boundary import (
+    BoundaryWaveStation,
+    DataBoundary,
+    SourceFile,
+    SourceWavespectra,
+)
 from rompy.core.data import DATA_SOURCE_TYPES, DataBlob
 from rompy.core.time import TimeRange
 from rompy.schism.grid import SCHISMGrid
