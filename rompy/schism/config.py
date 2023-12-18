@@ -4,9 +4,9 @@ from typing import Annotated, Literal, Optional, Union
 
 from pydantic import Field, model_validator
 
-from rompy.core import (BaseConfig, DataBlob, RompyBaseModel, Spectrum,
-                        TimeRange)
+from rompy.core import BaseConfig, DataBlob, RompyBaseModel, Spectrum, TimeRange
 
+from .data import SCHISMData
 from .grid import SCHISMGrid
 from .namelists import COSINE, ICE, ICM, MICE, PARAM, SEDIMENT
 
@@ -42,7 +42,7 @@ class SchismCSIROConfig(BaseConfig):
         "schismcsiro", description="The model type for SCHISM."
     )
     grid: SCHISMGrid = Field(description="The model grid")
-    inputs: Inputs = Field(description="Model inputs")
+    data: SCHISMData = Field(description="Model inputs")
     project: str = Field("WAXA", description="TODO")
     utc_start: int = Field(0, description="TODO")
     rnday: int = Field(120, description="TODO")
