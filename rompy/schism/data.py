@@ -31,6 +31,10 @@ logger = logging.getLogger(__name__)
 class SfluxSource(DataGrid):
     """This is a single variable source for and sflux input"""
 
+    model_type: Literal["data_sflux"] = Field(
+        default="data_sflux",
+        description="Model type discriminator",
+    )
     id: str = Field(..., description="id of the source", choices=["air", "rad", "prc"])
     relative_weight: float = Field(
         1.0,
