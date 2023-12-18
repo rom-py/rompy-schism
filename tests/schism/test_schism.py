@@ -6,7 +6,7 @@ from utils import compare_files
 
 from rompy.core import DataBlob, TimeRange
 from rompy.model import ModelRun
-from rompy.schism import Inputs, SchismCSIROConfig, SCHISMGrid2D, SCHISMGrid3D
+from rompy.schism import Inputs, SchismCSIROConfig, SCHISMGrid
 
 sys.path.append("../")
 
@@ -27,7 +27,7 @@ def test_schism_render(tmpdir):
         run_id=run_id,
         output_dir=str(tmpdir),
         config=SchismCSIROConfig(
-            grid=SCHISMGrid3D(
+            grid=SCHISMGrid(
                 hgrid=DataBlob(id="hgrid", source=here / "test_data" / "hgrid.gr3"),
                 vgrid=DataBlob(id="vgrid", source=here / "test_data" / "vgrid.in"),
                 diffmin=DataBlob(
