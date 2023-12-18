@@ -4,9 +4,10 @@ from typing import Annotated, Literal, Optional, Union
 
 from pydantic import Field, model_validator
 
-from rompy.core import BaseConfig, DataBlob, RompyBaseModel, Spectrum, TimeRange
+from rompy.core import (BaseConfig, DataBlob, RompyBaseModel, Spectrum,
+                        TimeRange)
 
-from .grid import SCHISMGrid2D
+from .grid import SCHISMGrid
 from .namelists import COSINE, ICE, ICM, MICE, PARAM, SEDIMENT
 
 logger = logging.getLogger(__name__)
@@ -40,7 +41,7 @@ class SchismCSIROConfig(BaseConfig):
     model_type: Literal["schismcsiro"] = Field(
         "schismcsiro", description="The model type for SCHISM."
     )
-    grid: SCHISMGrid2D = Field(description="The model grid")
+    grid: SCHISMGrid = Field(description="The model grid")
     inputs: Inputs = Field(description="Model inputs")
     project: str = Field("WAXA", description="TODO")
     utc_start: int = Field(0, description="TODO")
