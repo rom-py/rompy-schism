@@ -132,6 +132,7 @@ class SCHISMGrid(BaseGrid):
     wwmbnd: Optional[DataBlob | int] = Field(
         default=None, description="Path to wwmbnd.gr3 file"
     )
+    crs: str = Field("epsg:4326", description="Coordinate reference system")
     _pyschism_hgrid: Optional[Hgrid] = None
     _pyschism_vgrid: Optional[Vgrid] = None
 
@@ -167,7 +168,7 @@ class SCHISMGrid(BaseGrid):
     @model_validator(mode="after")
     def set_xy(cls, v):
         if v.hgrid is not None:
-            v._pyschism_hgrid = Hgrid.open(v.hgrid._copied or v.hgrid.source)
+            v._pyschism_hgrid = Hgrid.open(v.hgrid._copied or v.hgrid.source, crs=v.crs)
             v.x = v._pyschism_hgrid.x
             v.y = v._pyschism_hgrid.y
         return v
@@ -175,7 +176,9 @@ class SCHISMGrid(BaseGrid):
     @property
     def pyschism_hgrid(self):
         if self._pyschism_hgrid is None:
-            self._pyschism_hgrid = Hgrid.open(self.hgrid._copied or self.hgrid.source)
+            self._pyschism_hgrid = Hgrid.open(
+                self.hgrid._copied or self.hgrid.source, crs=self.crs
+            )
         return self._pyschism_hgrid
 
     @property
