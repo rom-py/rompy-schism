@@ -75,7 +75,8 @@ class GR3Generator(RompyBaseModel):
                 for i in range(ne):
                     line = inFile.readline()
                     outFile.write(line)
-                return dest
+        logger.info(f"Generated {self.gr3_type} with constant value of {self.val}")
+        return dest
 
     def get(self, destdir: str | Path) -> Path:
         """Alias to maintain api compatibility with DataBlob"""
@@ -86,9 +87,7 @@ class GR3Generator(RompyBaseModel):
 class SCHISMGrid(BaseGrid):
     """2D SCHISM grid in geographic space."""
 
-    grid_type: Literal["schism_grid", "3D"] = Field(
-        "2D", description="Type of grid (2D=two dimensional, 3D=three dimensional)"
-    )
+    grid_type: Literal["schism"] = Field("schism", description="Model descriminator")
     hgrid: DataBlob = Field(..., description="Path to hgrid.gr3 file")
     vgrid: Optional[DataBlob] = Field(default=None, description="Path to vgrid.in file")
     drag: Optional[DataBlob] = Field(default=None, description="Path to drag.gr3 file")
@@ -254,20 +253,26 @@ class SCHISMGrid(BaseGrid):
             polygon = polygon.simplify(tolerance=tolerance)
         return polygon
 
-    def plot_hgrid(self):
+    def plot(self, ax=None, **kwargs):
         import matplotlib.pyplot as plt
         from cartopy import crs as ccrs
         from matplotlib.tri import Triangulation
 
-        fig = plt.figure(figsize=(20, 10))
-        ax = fig.add_subplot(121)
-        ax.set_title("Bathymetry")
+        if ax is None:
+            fig = plt.figure(figsize=(20, 10))
+            ax = fig.add_subplot(111, projection=ccrs.PlateCarree())
+        else:
+            fig = plt.gcf()
 
-        hgrid = Hgrid.open(self.hgrid._copied or self.hgrid.source)
-        self.pyschism_hgrid.make_plot(axes=ax)
+        meshtri = Triangulation(
+            self.pyschism_hgrid.x,
+            self.pyschism_hgrid.y,
+            self.pyschism_hgrid.elements.array,
+        )
+        ax.triplot(meshtri, color="k", alpha=0.3)
 
         # open boundary nodes/info as geopandas df
-        gdf_open_boundary = hgrid.boundaries.open
+        gdf_open_boundary = self.pyschism_hgrid.boundaries.open
 
         # make a pandas dataframe for easier lon/lat referencing during forcing condition generation
         df_open_boundary = pd.DataFrame(
@@ -285,14 +290,6 @@ class SCHISMGrid(BaseGrid):
         # df_wave_boundary = pd.DataFrame(
         #     {"lon": wave_boundary.xy[0], "lat": wave_boundary.xy[1]}
         # ).reset_index(drop=True)
-
-        meshtri = Triangulation(
-            self.pyschism_hgrid.x,
-            self.pyschism_hgrid.y,
-            self.pyschism_hgrid.elements.array,
-        )
-        ax = fig.add_subplot(122, projection=ccrs.PlateCarree())
-        ax.triplot(meshtri, color="k", alpha=0.3)
         gdf_open_boundary.plot(ax=ax, color="b")
         ax.add_geometries(
             self.pyschism_hgrid.boundaries.land.geometry.values,
@@ -330,6 +327,22 @@ class SCHISMGrid(BaseGrid):
         #     zorder=10,
         # )
         ax.coastlines()
+        return fig, ax
+
+    def plot_hgrid(self):
+        import matplotlib.pyplot as plt
+        from cartopy import crs as ccrs
+        from matplotlib.tri import Triangulation
+
+        fig = plt.figure(figsize=(20, 10))
+        ax = fig.add_subplot(121)
+        ax.set_title("Bathymetry")
+
+        hgrid = Hgrid.open(self.hgrid._copied or self.hgrid.source)
+        self.pyschism_hgrid.make_plot(axes=ax)
+
+        ax = fig.add_subplot(122, projection=ccrs.PlateCarree())
+        self.plot(ax=ax)
         ax.set_title("Mesh")
 
     def ocean_boundary(self):
