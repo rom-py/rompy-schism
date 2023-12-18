@@ -83,13 +83,14 @@ class GR3Generator(RompyBaseModel):
 
 
 # TODO - check datatypes for gr3 files (int vs float)
-class SCHISMGrid2D(BaseGrid):
+class SCHISMGrid(BaseGrid):
     """2D SCHISM grid in geographic space."""
 
-    grid_type: Literal["2D", "3D"] = Field(
+    grid_type: Literal["schism_grid", "3D"] = Field(
         "2D", description="Type of grid (2D=two dimensional, 3D=three dimensional)"
     )
     hgrid: DataBlob = Field(..., description="Path to hgrid.gr3 file")
+    vgrid: Optional[DataBlob] = Field(default=None, description="Path to vgrid.in file")
     drag: Optional[DataBlob] = Field(default=None, description="Path to drag.gr3 file")
     rough: Optional[DataBlob] = Field(
         default=None, description="Path to rough.gr3 file"
@@ -183,10 +184,18 @@ class SCHISMGrid2D(BaseGrid):
             self._pyschism_vgrid = Vgrid.open(self.vgrid._copied or self.vgrid.source)
         return self._pyschism_vgrid
 
+    @property
+    def is_3d(self):
+        if self.vgrid is not None:
+            return True
+        else:
+            return False
+
     def get(self, destdir: Path) -> dict:
         ret = {}
         for filetype in [
             "hgrid",
+            "vgrid",
             "drag",
             "rough",
             "manning",
@@ -325,28 +334,6 @@ class SCHISMGrid2D(BaseGrid):
     def land_boundary(self):
         bnd = self.pyschism_hgrid.boundaries.land.get_coordinates()
         return bnd.x.values, bnd.y.values
-
-
-class SCHISMGrid3D(SCHISMGrid2D):
-    """3D SCHISM grid in geographic space."""
-
-    grid_type: Literal["2D", "3D"] = Field(
-        "3D", description="Type of grid (2D=two dimensional, 3D=three dimensional)"
-    )
-    vgrid: DataBlob = Field(..., description="Path to vgrid.in file")
-
-    def get(self, destdir: Path):
-        ret = super().get(destdir)
-        for filetype in [
-            "vgrid",
-        ]:
-            source = getattr(self, filetype)
-            if source is not None:
-                logger.info(
-                    f"Copying {source.id}: {source.source} to {destdir}/{source.source}"
-                )
-                source.get(destdir)
-        return ret
 
 
 if __name__ == "__main__":

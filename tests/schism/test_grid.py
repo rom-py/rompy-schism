@@ -4,7 +4,7 @@ import pytest
 
 from rompy.core import DataBlob
 from rompy.core.grid import BaseGrid
-from rompy.schism import SCHISMGrid2D, SCHISMGrid3D
+from rompy.schism import SCHISMGrid
 
 
 def test_SCHISMGrid2D(tmpdir):
@@ -18,7 +18,7 @@ def test_SCHISMGrid2D(tmpdir):
     hgrid_WWM = DataBlob(source="test_data/hgrid_WWM.gr3")
     wwmbnd = DataBlob(source="test_data/wwmbnd.gr3")
 
-    grid = SCHISMGrid2D(
+    grid = SCHISMGrid(
         hgrid=hgrid,
         # drag=drag,
         # rough=rough,
@@ -30,7 +30,7 @@ def test_SCHISMGrid2D(tmpdir):
         # wwmbnd=wwmbnd,
     )
 
-    assert grid.grid_type == "2D"
+    assert grid.is_3d == False
     # # assert grid.drag == drag
     # # assert grid.rough == rough
     # assert grid.manning == manning
