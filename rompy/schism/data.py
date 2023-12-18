@@ -3,28 +3,26 @@ import os
 from pathlib import Path
 from typing import Literal, Optional, Union
 
+import appdirs
 import numpy as np
 import pandas as pd
 import xarray as xr
+from cloudpathlib import AnyPath
 from pydantic import Field, field_validator, model_validator
+from pyschism.forcing.bctides import (Bctides, iettype, ifltype, isatype,
+                                      itetype)
 
 from rompy.core import DataGrid, RompyBaseModel
-from rompy.core.boundary import (
-    BoundaryWaveStation,
-    DataBoundary,
-    SourceFile,
-    SourceWavespectra,
-)
+from rompy.core.boundary import (BoundaryWaveStation, DataBoundary, SourceFile,
+                                 SourceWavespectra)
+from rompy.core.data import DATA_SOURCE_TYPES, DataBlob
 from rompy.core.time import TimeRange
-from rompy.schism.grid import SCHISMGrid2D, SCHISMGrid3D
+from rompy.schism.grid import SCHISMGrid
 from rompy.utils import total_seconds
 
 from .namelists import Sflux_Inputs
 
 logger = logging.getLogger(__name__)
-
-
-GRID_TYPES = Union[SCHISMGrid2D, SCHISMGrid3D]
 
 
 class SfluxSource(DataGrid):
@@ -147,14 +145,14 @@ class SCHISMDataSflux(RompyBaseModel):
     def get(
         self,
         destdir: str | Path,
-        grid: Optional[GRID_TYPES] = None,
+        grid: Optional[SCHISMGrid] = None,
         time: Optional[TimeRange] = None,
     ) -> Path:
         """Writes SCHISM sflux data from a dataset.
 
         Args:
             destdir (str | Path): The destination directory to write the sflux data.
-            grid (Optional[GRID_TYPES], optional): The grid type. Defaults to None.
+            grid (Optional[SCHISMGrid], optional): The grid type. Defaults to None.
             time (Optional[TimeRange], optional): The time range. Defaults to None.
 
         Returns:
@@ -205,7 +203,7 @@ class SCHISMDataWave(BoundaryWaveStation):
     def get(
         self,
         destdir: str | Path,
-        grid: SCHISMGrid2D | SCHISMGrid3D,
+        grid: SCHISMGrid,
         time: Optional[TimeRange] = None,
     ) -> str:
         """Write the selected boundary data to a netcdf file.
@@ -213,7 +211,7 @@ class SCHISMDataWave(BoundaryWaveStation):
         ----------
         destdir : str | Path
             Destination directory for the netcdf file.
-        grid : SCHISMGrid2D | SCHISMGrid3D
+        grid : SCHISMGrid
             Grid instance to use for selecting the boundary points.
         time: TimeRange, optional
             The times to filter the data to, only used if `self.crop_data` is True.
@@ -254,7 +252,7 @@ class SCHISMDataBoundary(DataBoundary):
     def get(
         self,
         destdir: str | Path,
-        grid: SCHISMGrid2D | SCHISMGrid3D,
+        grid: SCHISMGrid,
         time: Optional[TimeRange] = None,
     ) -> str:
         """Write the selected boundary data to a netcdf file.
@@ -262,7 +260,7 @@ class SCHISMDataBoundary(DataBoundary):
         ----------
         destdir : str | Path
             Destination directory for the netcdf file.
-        grid : SCHISMGrid2D | SCHISMGrid3D
+        grid : SCHISMGrid
             Grid instance to use for selecting the boundary points.
         time: TimeRange, optional
             The times to filter the data to, only used if `self.crop_data` is True.
@@ -345,7 +343,7 @@ class SCHISMDataOcean(RompyBaseModel):
     def get(
         self,
         destdir: str | Path,
-        grid: SCHISMGrid2D | SCHISMGrid3D,
+        grid: SCHISMGrid,
         time: Optional[TimeRange] = None,
     ) -> str:
         """Write all inputs to netcdf files.
@@ -353,7 +351,7 @@ class SCHISMDataOcean(RompyBaseModel):
         ----------
         destdir : str | Path
             Destination directory for the netcdf file.
-        grid : SCHISMGrid2D | SCHISMGrid3D
+        grid : SCHISMGrid,
             Grid instance to use for selecting the boundary points.
         time: TimeRange, optional
             The times to filter the data to, only used if `self.crop_data` is True.
@@ -372,3 +370,96 @@ class SCHISMDataOcean(RompyBaseModel):
 
     def __str__(self):
         return f"SCHISMDataOcean"
+
+
+def setup_bctides():
+    # Taken from example at https://schism-dev.github.io/schism/master/getting-started/pre-processing-with-pyschism/boundary.html I don't really understand this
+    iet3 = iettype.Iettype3(constituents="major", database="tpxo")
+    iet4 = iettype.Iettype4()
+    iet5 = iettype.Iettype5(iettype3=iet3, iettype4=iet4)
+    ifl3 = ifltype.Ifltype3(constituents="major", database="tpxo")
+    ifl4 = ifltype.Ifltype4()
+    ifl5 = ifltype.Ifltype5(ifltype3=ifl3, ifltype4=ifl4)
+    # isa3 = isatype.Isatype4()
+    # ite3 = itetype.Itetype4()
+    return ifl5, iet5
+
+
+class TidalDataset(RompyBaseModel):
+    elevations: AnyPath = Field(..., description="Path to elevations file")
+    velocities: AnyPath = Field(..., description="Path to currents file")
+
+    def get(self, destdir: str | Path) -> str:
+        """Write all inputs to netcdf files.
+        Parameters
+        ----------
+        destdir : str | Path
+            Destination directory for the netcdf file.
+
+        Returns
+        -------
+        outfile : Path
+            Path to the netcdf file.
+
+        """
+        # TODO need to put some smarts in here for remote files
+        os.environ["TPXO_ELEVATION"] = self.elevations.as_posix()
+        os.environ["TPXO_VELOCITY"] = self.velocities.as_posix()
+
+
+class SCHISMDataTides(RompyBaseModel):
+    tidal_data: TidalDataset = Field(..., description="tidal dataset")
+    cutoff_depth: float = Field(
+        50.0,
+        description="cutoff depth for tides",
+    )
+
+    def get(self, destdir: str | Path, grid: SCHISMGrid, time: TimeRange) -> str:
+        """Write all inputs to netcdf files.
+        Parameters
+        ----------
+        destdir : str | Path
+            Destination directory for the netcdf file.
+        grid : SCHISMGrid
+            Grid instance to use for selecting the boundary points.
+        time: TimeRange, optional
+            The times to filter the data to, only used if `self.crop_data` is True.
+
+        Returns
+        -------
+        outfile : Path
+            Path to the netcdf file.
+
+        """
+
+        # # Unfortunately its not possiblit to pass tidal elevation and current files to bctides.
+        # # Its mostly hardcoded. The name of the files can be passed as environment variablese,
+        # # but the directory is hardcoded to playform dependent user local dir. Here we
+        # # use this same mechanism to get teh user local dir and create a symlink. This is
+        # # not ideal, but maintains compatibility with pyschism bctides, and maintains
+        # # playform independence.
+        self.tidal_data.get(destdir)
+        # tpxodir = appdirs.user_data_dir("tpxo")
+        # if os.path.islink(tpxodir):
+        #     os.unlink(tpxodir)
+        # Path(tpxodir).symlink_to(destdir)
+
+        ifltype, iettype = setup_bctides()
+        bctides = Bctides(
+            hgrid=grid.pyschism_hgrid,
+            vgrid=grid.pyschism_vgrid,
+            cutoff_depth=self.cutoff_depth,
+            iettype=iettype,
+            ifltype=ifltype,
+        )
+        bctides.write(
+            destdir,  # +'/bctides.in',
+            start_date=time.start,
+            end_date=time.end,
+            bctides=True,
+            elev2D=True,  # False,
+            uv3D=False,
+            tem3D=False,
+            sal3D=False,
+            overwrite=True,
+        )
