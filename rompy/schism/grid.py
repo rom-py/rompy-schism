@@ -180,6 +180,8 @@ class SCHISMGrid(BaseGrid):
 
     @property
     def pyschism_vgrid(self):
+        if self.vgrid is None:
+            return None
         if self._pyschism_vgrid is None:
             self._pyschism_vgrid = Vgrid.open(self.vgrid._copied or self.vgrid.source)
         return self._pyschism_vgrid
