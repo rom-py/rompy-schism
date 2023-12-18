@@ -470,3 +470,10 @@ class SCHISMDataTides(RompyBaseModel):
             sal3D=False,
             overwrite=True,
         )
+
+
+class SCHISMData(RompyBaseModel):
+    atmos: SCHISMDataSflux = Field(None, description="atmospheric data")
+    ocean: SCHISMDataOcean = Field(None, description="ocean data")
+    wave: SCHISMDataWave = Field(None, description="wave data")
+    tides: SCHISMDataTides = Field(None, description="tidal data")
