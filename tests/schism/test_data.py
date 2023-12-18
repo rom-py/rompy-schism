@@ -7,14 +7,12 @@ import pytest
 import xarray as xr
 
 from rompy.core import BaseGrid, DataBlob, DataGrid, TimeRange
-from rompy.core.data import SourceDatamesh, SourceDataset, SourceFile, SourceIntake
-from rompy.schism import SCHISMGrid2D, SCHISMGrid3D
-from rompy.schism.data import (
-    SCHISMDataBoundary,
-    SCHISMDataOcean,
-    SCHISMDataSflux,
-    SfluxAir,
-)
+from rompy.core.data import (SourceDatamesh, SourceDataset, SourceFile,
+                             SourceIntake)
+from rompy.schism import SCHISMGrid
+from rompy.schism.data import (SCHISMDataBoundary, SCHISMDataOcean,
+                               SCHISMDataSflux, SCHISMDataTides, SfluxAir,
+                               TidalDataset)
 from rompy.schism.namelists import Sflux_Inputs
 
 HERE = Path(__file__).parent
@@ -23,7 +21,7 @@ DATAMESH_TOKEN = os.environ.get("DATAMESH_TOKEN")
 
 @pytest.fixture
 def grid2d():
-    return SCHISMGrid2D(hgrid=DataBlob(source="test_data/hgrid.gr3"))
+    return SCHISMGrid(hgrid=DataBlob(source="test_data/hgrid.gr3"))
 
 
 @pytest.fixture
@@ -71,3 +69,25 @@ def test_oceandataboundary(tmp_path, grid2d, hycom_bnd):
 def test_oceandata(tmp_path, grid2d, hycom_bnd):
     oceandata = SCHISMDataOcean(elev2D=hycom_bnd)
     oceandata.get(tmp_path, grid2d)
+
+
+def test_tidal_boundary(tmp_path, grid2d):
+    tides = SCHISMDataTides(
+        tidal_data=TidalDataset(
+            elevations=Path(__file__).parent
+            / ".."
+            / "data"
+            / "tides"
+            / "h_m2s2n2k2k1o1p1q1mmmfm4mn4ms42n2s12q1j1l2m3mu2nu2oo1.nc",
+            velocities=Path(__file__).parent
+            / ".."
+            / "data"
+            / "tides"
+            / "u_m2s2n2k2k1o1p1q1mmmfm4mn4ms42n2s12q1j1l2m3mu2nu2oo1.nc",
+        )
+    )
+    tides.get(
+        destdir=tmp_path,
+        grid=grid2d,
+        time=TimeRange(start="2023-01-01", end="2023-01-02", dt=3600),
+    )
