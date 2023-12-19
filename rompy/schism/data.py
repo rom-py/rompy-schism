@@ -9,15 +9,12 @@ import pandas as pd
 import xarray as xr
 from cloudpathlib import AnyPath
 from pydantic import Field, field_validator, model_validator
-from pyschism.forcing.bctides import Bctides, iettype, ifltype, isatype, itetype
+from pyschism.forcing.bctides import (Bctides, iettype, ifltype, isatype,
+                                      itetype)
 
 from rompy.core import DataGrid, RompyBaseModel
-from rompy.core.boundary import (
-    BoundaryWaveStation,
-    DataBoundary,
-    SourceFile,
-    SourceWavespectra,
-)
+from rompy.core.boundary import (BoundaryWaveStation, DataBoundary, SourceFile,
+                                 SourceWavespectra)
 from rompy.core.data import DATA_SOURCE_TYPES, DataBlob
 from rompy.core.time import TimeRange
 from rompy.schism.grid import SCHISMGrid
@@ -171,6 +168,7 @@ class SCHISMDataSflux(RompyBaseModel):
             data = getattr(self, variable)
             if data is None:
                 continue
+            logger.info(f"Fetching {variable}")
             namelistargs.update(data.namelist)
             data.get(destdir, grid, time)
         Sflux_Inputs(**namelistargs).write_nml(destdir / "sflux")
@@ -229,6 +227,7 @@ class SCHISMDataWave(BoundaryWaveStation):
             Path to the netcdf file.
 
         """
+        logger.info(f"Fetching {self.id}")
         if self.crop_data and time is not None:
             self._filter_time(time)
         ds = self._sel_boundary(grid)
@@ -279,6 +278,7 @@ class SCHISMDataBoundary(DataBoundary):
 
         """
         # prepare xarray.Dataset and save forcing netCDF file
+        logger.info(f"Fetching {self.id}")
         if self.crop_data and time is not None:
             self._filter_time(time)
         ds = self._sel_boundary(grid)
@@ -310,7 +310,9 @@ class SCHISMDataBoundary(DataBoundary):
         schism_ds["time_series"] = schism_ds.time_series.assign_attrs(
             {"long_name": ds[self.variable].attrs["long_name"]}
         )
-        outfile = Path(destdir) / f"{self.id}.th.nc"
+        outfile = (
+            Path(destdir) / f"{self.id}.th2.nc"
+        )  # the two is just a temporary fix to stop clash with tides
         schism_ds.to_netcdf(outfile)
         return outfile
 
@@ -381,6 +383,7 @@ class SCHISMDataOcean(RompyBaseModel):
 
 def setup_bctides():
     # Taken from example at https://schism-dev.github.io/schism/master/getting-started/pre-processing-with-pyschism/boundary.html I don't really understand this
+    # Ultimately these will not wanted to be hardcoded.
     iet3 = iettype.Iettype3(constituents="major", database="tpxo")
     iet4 = iettype.Iettype4()
     iet5 = iettype.Iettype5(iettype3=iet3, iettype4=iet4)
@@ -439,19 +442,9 @@ class SCHISMDataTides(RompyBaseModel):
 
         """
 
-        # # Unfortunately its not possiblit to pass tidal elevation and current files to bctides.
-        # # Its mostly hardcoded. The name of the files can be passed as environment variablese,
-        # # but the directory is hardcoded to playform dependent user local dir. Here we
-        # # use this same mechanism to get teh user local dir and create a symlink. This is
-        # # not ideal, but maintains compatibility with pyschism bctides, and maintains
-        # # playform independence.
         self.tidal_data.get(destdir)
-        # tpxodir = appdirs.user_data_dir("tpxo")
-        # if os.path.islink(tpxodir):
-        #     os.unlink(tpxodir)
-        # Path(tpxodir).symlink_to(destdir)
-
         ifltype, iettype = setup_bctides()
+        logger.info(f"Generating tides")
         bctides = Bctides(
             hgrid=grid.pyschism_hgrid,
             vgrid=grid.pyschism_vgrid,
@@ -473,7 +466,26 @@ class SCHISMDataTides(RompyBaseModel):
 
 
 class SCHISMData(RompyBaseModel):
+    """
+    This class is used to gather all required input forcing for SCHISM
+    """
+
     atmos: SCHISMDataSflux = Field(None, description="atmospheric data")
     ocean: SCHISMDataOcean = Field(None, description="ocean data")
     wave: SCHISMDataWave = Field(None, description="wave data")
     tides: SCHISMDataTides = Field(None, description="tidal data")
+
+    def get(
+        self,
+        destdir: str | Path,
+        grid: Optional[SCHISMGrid] = None,
+        time: Optional[TimeRange] = None,
+    ) -> None:
+        ret = {}
+        for datatype in ["atmos", "ocean", "wave", "tides"]:
+            data = getattr(self, datatype)
+            if data is None:
+                continue
+            output = data.get(destdir, grid, time)
+            ret.update({datatype: output})
+        return ret
