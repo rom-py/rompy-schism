@@ -88,14 +88,17 @@ class SCHISMGrid(BaseGrid):
     """2D SCHISM grid in geographic space."""
 
     grid_type: Literal["schism"] = Field("schism", description="Model descriminator")
-    hgrid: DataBlob = Field(..., description="Path to hgrid.gr3 file")
+    hgrid: DataBlob = Field(
+        ..., description="Path to hgrid.gr3 file"
+    )  # TODO always need. Follow up with Vanessa
     vgrid: Optional[DataBlob] = Field(default=None, description="Path to vgrid.in file")
     drag: Optional[DataBlob] = Field(default=None, description="Path to drag.gr3 file")
     rough: Optional[DataBlob] = Field(
         default=None, description="Path to rough.gr3 file"
     )
     manning: Optional[DataBlob | float] = Field(
-        default=None, description="Path to manning.gr3 file"
+        default=None,
+        description="Path to manning.gr3 file",  # TODO treat in the same way as the other gr3 files. Add a warning that this is not advisable
     )
     hgridll: Optional[DataBlob | int] = Field(
         default=None, description="Path to hgrid.ll file. "
@@ -129,7 +132,8 @@ class SCHISMGrid(BaseGrid):
         default=None, description="Path to hgrid_WWM.gr3 file"
     )
     wwmbnd: Optional[DataBlob | int] = Field(
-        default=None, description="Path to wwmbnd.gr3 file"
+        default=None,
+        description="Path to wwmbnd.gr3 file",  # This is generated on the fly. Script sent from Vanessa.
     )
     crs: str = Field("epsg:4326", description="Coordinate reference system")
     _pyschism_hgrid: Optional[Hgrid] = None
