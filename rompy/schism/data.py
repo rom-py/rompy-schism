@@ -211,7 +211,7 @@ class SCHISMDataSflux(RompyBaseModel):
         Sflux_Inputs(**namelistargs).write_nml(destdir / "sflux")
 
     @model_validator(mode="after")
-    def check_weights(cls, v):
+    def check_weights(v):
         """Check that relative weights for each pair add to 1.
 
         Args:
@@ -237,6 +237,7 @@ class SCHISMDataSflux(RompyBaseModel):
                 raise ValueError(
                     f"Relative weights for {variable} do not add to 1.0: {weight}"
                 )
+            return v
 
 
 class SCHISMDataWave(BoundaryWaveStation):
@@ -559,11 +560,6 @@ class SCHISMData(RompyBaseModel):
     ocean: Optional[SCHISMDataOcean] = Field(None, description="ocean data")
     wave: Optional[SCHISMDataWave] = Field(None, description="wave data")
     tides: Optional[SCHISMDataTides] = Field(None, description="tidal data")
-
-    @model_validator(mode="after")
-    def not_yet_implemented(cls, v):
-        __import__("ipdb").set_trace()
-        return v
 
     def get(
         self,
