@@ -12,8 +12,12 @@ from pydantic import Field, field_validator, model_validator
 from pyschism.forcing.bctides import Bctides
 
 from rompy.core import DataGrid, RompyBaseModel
-from rompy.core.boundary import (BoundaryWaveStation, DataBoundary, SourceFile,
-                                 SourceWavespectra)
+from rompy.core.boundary import (
+    BoundaryWaveStation,
+    DataBoundary,
+    SourceFile,
+    SourceWavespectra,
+)
 from rompy.core.data import DATA_SOURCE_TYPES, DataBlob
 from rompy.core.time import TimeRange
 from rompy.schism.grid import SCHISMGrid
@@ -31,7 +35,6 @@ class SfluxSource(DataGrid):
         default="sflux",
         description="Model type discriminator",
     )
-    id: str = Field(..., description="id of the source", choices=["air", "rad", "prc"])
     relative_weight: float = Field(
         1.0,
         description="relative weight of the source file if two files are provided",
@@ -43,6 +46,7 @@ class SfluxSource(DataGrid):
     fail_if_missing: bool = Field(
         True, description="Fail if the source file is missing"
     )
+    id: str = Field(None, description="id of the source", choices=["air", "rad", "prc"])
 
     @property
     def outfile(self) -> str:
@@ -551,10 +555,15 @@ class SCHISMData(RompyBaseModel):
         default="schism",
         description="Model type discriminator",
     )
-    atmos: SCHISMDataSflux = Field(None, description="atmospheric data")
-    ocean: SCHISMDataOcean = Field(None, description="ocean data")
-    wave: SCHISMDataWave = Field(None, description="wave data")
-    tides: SCHISMDataTides = Field(None, description="tidal data")
+    atmos: Optional[SCHISMDataSflux] = Field(None, description="atmospheric data")
+    ocean: Optional[SCHISMDataOcean] = Field(None, description="ocean data")
+    wave: Optional[SCHISMDataWave] = Field(None, description="wave data")
+    tides: Optional[SCHISMDataTides] = Field(None, description="tidal data")
+
+    @model_validator(mode="after")
+    def not_yet_implemented(cls, v):
+        __import__("ipdb").set_trace()
+        return v
 
     def get(
         self,
