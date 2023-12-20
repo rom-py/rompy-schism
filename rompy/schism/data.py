@@ -9,12 +9,15 @@ import pandas as pd
 import xarray as xr
 from cloudpathlib import AnyPath
 from pydantic import Field, field_validator, model_validator
-from pyschism.forcing.bctides import (Bctides, iettype, ifltype, isatype,
-                                      itetype)
+from pyschism.forcing.bctides import Bctides
 
 from rompy.core import DataGrid, RompyBaseModel
-from rompy.core.boundary import (BoundaryWaveStation, DataBoundary, SourceFile,
-                                 SourceWavespectra)
+from rompy.core.boundary import (
+    BoundaryWaveStation,
+    DataBoundary,
+    SourceFile,
+    SourceWavespectra,
+)
 from rompy.core.data import DATA_SOURCE_TYPES, DataBlob
 from rompy.core.time import TimeRange
 from rompy.schism.grid import SCHISMGrid
@@ -28,8 +31,8 @@ logger = logging.getLogger(__name__)
 class SfluxSource(DataGrid):
     """This is a single variable source for and sflux input"""
 
-    model_type: Literal["data_sflux"] = Field(
-        default="data_sflux",
+    data_type: Literal["sflux"] = Field(
+        default="sflux",
         description="Model type discriminator",
     )
     id: str = Field(..., description="id of the source", choices=["air", "rad", "prc"])
@@ -63,6 +66,10 @@ class SfluxSource(DataGrid):
 class SfluxAir(SfluxSource):
     """This is a single variable source for and sflux input"""
 
+    data_type: Literal["sflux_air"] = Field(
+        default="sflux_air",
+        description="Model type discriminator",
+    )
     uwind_name: SfluxSource = Field(
         None,
         description="name of zonal wind variable in source",
@@ -99,6 +106,10 @@ class SfluxAir(SfluxSource):
 class SfluxRad(SfluxSource):
     """This is a single variable source for and sflux input"""
 
+    data_type: Literal["sflux_rad"] = Field(
+        default="sflux_rad",
+        description="Model type discriminator",
+    )
     dlwrf_name: SfluxSource = Field(
         None,
         description="name of downward long wave radiation variable in source",
@@ -117,6 +128,10 @@ class SfluxRad(SfluxSource):
 class SfluxPrc(SfluxSource):
     """This is a single variable source for and sflux input"""
 
+    data_type: Literal["sflux_prc"] = Field(
+        default="sflux_rad",
+        description="Model type discriminator",
+    )
     prate_name: SfluxSource = Field(
         None,
         description="name of precipitation rate variable in source",
@@ -139,6 +154,10 @@ class SCHISMDataSflux(RompyBaseModel):
 
     """
 
+    data_type: Literal["sflux_prc"] = Field(
+        default="sflux_prc",
+        description="Model type discriminator",
+    )
     air_1: SfluxSource = Field(None, description="sflux air source 1")
     air_2: SfluxSource = Field(None, description="sflux air source 2")
     rad_1: SfluxSource = Field(None, description="sflux rad source 1")
@@ -205,6 +224,11 @@ class SCHISMDataSflux(RompyBaseModel):
 class SCHISMDataWave(BoundaryWaveStation):
     """This class is used to write SCHISM data from a dataset."""
 
+    data_type: Literal["wave"] = Field(
+        default="wave",
+        description="Model type discriminator",
+    )
+
     def get(
         self,
         destdir: str | Path,
@@ -243,6 +267,10 @@ class SCHISMDataBoundary(DataBoundary):
     """This class is used to extract ocean boundary data  griddd dataset at all open
     boundary nodes."""
 
+    data_type: Literal["boundary"] = Field(
+        default="boundary",
+        description="Model type discriminator",
+    )
     id: str = Field(
         "bnd",
         description="SCHISM th id of the source",
@@ -318,6 +346,10 @@ class SCHISMDataBoundary(DataBoundary):
 
 
 class SCHISMDataOcean(RompyBaseModel):
+    data_type: Literal["ocean"] = Field(
+        default="ocean",
+        description="Model type discriminator",
+    )
     elev2D: Optional[SCHISMDataBoundary] = Field(
         None,
         description="elev2D",
@@ -381,21 +413,25 @@ class SCHISMDataOcean(RompyBaseModel):
         return f"SCHISMDataOcean"
 
 
-def setup_bctides():
-    # Taken from example at https://schism-dev.github.io/schism/master/getting-started/pre-processing-with-pyschism/boundary.html I don't really understand this
-    # Ultimately these will not wanted to be hardcoded.
-    iet3 = iettype.Iettype3(constituents="major", database="tpxo")
-    iet4 = iettype.Iettype4()
-    iet5 = iettype.Iettype5(iettype3=iet3, iettype4=iet4)
-    ifl3 = ifltype.Ifltype3(constituents="major", database="tpxo")
-    ifl4 = ifltype.Ifltype4()
-    ifl5 = ifltype.Ifltype5(ifltype3=ifl3, ifltype4=ifl4)
-    # isa3 = isatype.Isatype4()
-    # ite3 = itetype.Itetype4()
-    return ifl5, iet5
+# def setup_bctides():
+#     # Taken from example at https://schism-dev.github.io/schism/master/getting-started/pre-processing-with-pyschism/boundary.html I don't really understand this
+#     # Ultimately these will not wanted to be hardcoded.
+#     iet3 = iettype.Iettype3(constituents="major", database="tpxo")
+#     iet4 = iettype.Iettype4()
+#     iet5 = iettype.Iettype5(iettype3=iet3, iettype4=iet4)
+#     ifl3 = ifltype.Ifltype3(constituents="major", database="tpxo")
+#     ifl4 = ifltype.Ifltype4()
+#     ifl5 = ifltype.Ifltype5(ifltype3=ifl3, ifltype4=ifl4)
+#     # isa3 = isatype.Isatype4()
+#     # ite3 = itetype.Itetype4()
+#     return ifl5, iet5
 
 
 class TidalDataset(RompyBaseModel):
+    data_type: Literal["tidal_dataset"] = Field(
+        default="tidal_dataset",
+        description="Model type discriminator",
+    )
     elevations: AnyPath = Field(..., description="Path to elevations file")
     velocities: AnyPath = Field(..., description="Path to currents file")
 
@@ -418,11 +454,26 @@ class TidalDataset(RompyBaseModel):
 
 
 class SCHISMDataTides(RompyBaseModel):
+    data_type: Literal["tides"] = Field(
+        default="tide",
+        description="Model type discriminator",
+    )
     tidal_data: TidalDataset = Field(..., description="tidal dataset")
     cutoff_depth: float = Field(
         50.0,
         description="cutoff depth for tides",
     )
+    flags: Optional[list] = Field([[5, 5, 4, 4]])
+    constituents: Union[str, list] = Field("major")
+    database: str = Field("tpxo")
+    add_earth_tidal: bool = Field(True)
+    ethconst: Optional[list] = Field([])
+    vthconst: Optional[list] = Field([])
+    tthconst: Optional[list] = Field([])
+    sthconst: Optional[list] = Field([])
+    tobc: Optional[list[float]] = Field([1])
+    sobc: Optional[list[float]] = Field([1])
+    relax: Optional[list[float]] = Field([])
 
     def get(self, destdir: str | Path, grid: SCHISMGrid, time: TimeRange) -> str:
         """Write all inputs to netcdf files.
@@ -443,24 +494,26 @@ class SCHISMDataTides(RompyBaseModel):
         """
 
         self.tidal_data.get(destdir)
-        ifltype, iettype = setup_bctides()
         logger.info(f"Generating tides")
         bctides = Bctides(
             hgrid=grid.pyschism_hgrid,
-            vgrid=grid.pyschism_vgrid,
+            flags=self.flags,
+            constituents=self.constituents,
+            database=self.database,
+            add_earth_tidal=self.add_earth_tidal,
             cutoff_depth=self.cutoff_depth,
-            iettype=iettype,
-            ifltype=ifltype,
+            ethconst=self.ethconst,
+            vthconst=self.vthconst,
+            tthconst=self.tthconst,
+            sthconst=self.sthconst,
+            tobc=self.tobc,
+            sobc=self.sobc,
+            relax=self.relax,
         )
         bctides.write(
             destdir,  # +'/bctides.in',
             start_date=time.start,
-            end_date=time.end,
-            bctides=True,
-            elev2D=True,  # False,
-            uv3D=False,
-            tem3D=False,
-            sal3D=False,
+            rnday=time.end - time.start,
             overwrite=True,
         )
 
@@ -470,6 +523,10 @@ class SCHISMData(RompyBaseModel):
     This class is used to gather all required input forcing for SCHISM
     """
 
+    data_type: Literal["schism"] = Field(
+        default="schism",
+        description="Model type discriminator",
+    )
     atmos: SCHISMDataSflux = Field(None, description="atmospheric data")
     ocean: SCHISMDataOcean = Field(None, description="ocean data")
     wave: SCHISMDataWave = Field(None, description="wave data")
