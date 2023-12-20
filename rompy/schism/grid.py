@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 import os
 
 from pydantic import BaseModel, field_validator
+from pyschism.mesh.hgrid import Gr3
 
 
 class GR3Generator(RompyBaseModel):
@@ -27,7 +28,8 @@ class GR3Generator(RompyBaseModel):
         ...,
         description="Type of gr3 file. Must be one of 'albedo', 'diffmin', 'diffmax', 'watertype', 'windrot_geo2proj'",
     )
-    val: float = Field(None, description="Constant value to set in gr3 file")
+    value: float = Field(None, description="Constant value to set in gr3 file")
+    crs: str = Field("epsg:4326", description="Coordinate reference system")
 
     @field_validator("gr3_type")
     def gr3_type_validator(cls, v):
@@ -55,27 +57,12 @@ class GR3Generator(RompyBaseModel):
         else:
             ref = self.hgrid
         dest = Path(destdir) / f"{self.gr3_type}.gr3"
-        with open(ref, "r") as inFile:
-            with open(dest, "w") as outFile:
-                # blank line
-                line = inFile.readline()
-                outFile.write(f"{self.val}\n")
-
-                # ne, np
-                line = inFile.readline()
-                outFile.write(line)
-
-                ne, np1 = map(int, line.strip().split())
-
-                for i in range(np1):
-                    line = inFile.readline().strip()
-                    id, x, y, z = map(float, line.split())
-                    outFile.write(f"{id} {x} {y} {self.val}\n")
-
-                for i in range(ne):
-                    line = inFile.readline()
-                    outFile.write(line)
-        logger.info(f"Generated {self.gr3_type} with constant value of {self.val}")
+        hgrid = Gr3.open(ref, crs=self.crs)
+        grd = hgrid.copy()
+        grd.description = self.gr3_type
+        grd.nodes.values[:] = self.value
+        grd.write(dest, overwrite=True)
+        logger.info(f"Generated {self.gr3_type} with constant value of {self.value}")
         return dest
 
     def get(self, destdir: str | Path) -> Path:
@@ -164,7 +151,7 @@ class SCHISMGrid(BaseGrid):
         if v is not None:
             if not isinstance(v, DataBlob):
                 v = GR3Generator(
-                    hgrid=values.data["hgrid"], gr3_type=values.field_name, val=v
+                    hgrid=values.data["hgrid"], gr3_type=values.field_name, value=v
                 )
         return v
 
