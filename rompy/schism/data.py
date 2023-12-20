@@ -463,17 +463,31 @@ class SCHISMDataTides(RompyBaseModel):
         50.0,
         description="cutoff depth for tides",
     )
-    flags: Optional[list] = Field([[5, 5, 4, 4]])
-    constituents: Union[str, list] = Field("major")
-    database: str = Field("tpxo")
-    add_earth_tidal: bool = Field(True)
-    ethconst: Optional[list] = Field([])
-    vthconst: Optional[list] = Field([])
-    tthconst: Optional[list] = Field([])
-    sthconst: Optional[list] = Field([])
-    tobc: Optional[list[float]] = Field([1])
-    sobc: Optional[list[float]] = Field([1])
-    relax: Optional[list[float]] = Field([])
+    flags: Optional[list] = Field([[5, 5, 4, 4]], description="nested list of bctypes")
+    constituents: Union[str, list] = Field("major", description="constituents")
+    database: str = Field("tpxo", description="database", choices=["tpxo", "fes2014"])
+    add_earth_tidal: bool = Field(True, description="add_earth_tidal")
+    ethconst: Optional[list] = Field(
+        [], description="constant elevation value for each open boundary"
+    )
+    vthconst: Optional[list] = Field(
+        [], description="constant discharge value for each open boundary"
+    )
+    tthconst: Optional[list] = Field(
+        [], description="constant temperature value for each open boundary"
+    )
+    sthconst: Optional[list] = Field(
+        [], description="constant salinity value for each open boundary"
+    )
+    tobc: Optional[list[float]] = Field(
+        [1], description="nuding factor of temperature for each open boundary"
+    )
+    sobc: Optional[list[float]] = Field(
+        [1], description="nuding factor of salinity for each open boundary"
+    )
+    relax: Optional[list[float]] = Field(
+        [], description="relaxation constants for inflow and outflow"
+    )
 
     def get(self, destdir: str | Path, grid: SCHISMGrid, time: TimeRange) -> str:
         """Write all inputs to netcdf files.
