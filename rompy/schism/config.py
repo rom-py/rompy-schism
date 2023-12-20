@@ -312,11 +312,24 @@ class SchismCSIROConfig(BaseConfig):
             raise ValueError("nchi must be 0, -1, or 1")
         return v
 
+    @model_validator(mode="after")
+    def validate_wwminputs(cls, v):
+        if v.grid.hgrid_WWM is None:
+            raise ValueError("hgrid_WWM.gr3 must be specified for csiro template")
+        if v.grid.wwmbnd is None:
+            raise ValueError("wwmbnd.gr3 must be specified for csiro template")
+        return v
+
     def __call__(self, runtime) -> str:
         # Copy grid files
         self.grid.get(runtime.staging_dir)
         ret = self.model_dump()
-        ret.update(self.inputs.get(runtime.staging_dir))
+        # TODO Still need to link up these maybe?
+        ret.update(
+            self.data.get(
+                destdir=runtime.staging_dir, grid=self.grid, time=runtime.period
+            )
+        )
         return ret
 
 
