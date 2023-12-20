@@ -12,12 +12,8 @@ from pydantic import Field, field_validator, model_validator
 from pyschism.forcing.bctides import Bctides
 
 from rompy.core import DataGrid, RompyBaseModel
-from rompy.core.boundary import (
-    BoundaryWaveStation,
-    DataBoundary,
-    SourceFile,
-    SourceWavespectra,
-)
+from rompy.core.boundary import (BoundaryWaveStation, DataBoundary, SourceFile,
+                                 SourceWavespectra)
 from rompy.core.data import DATA_SOURCE_TYPES, DataBlob
 from rompy.core.time import TimeRange
 from rompy.schism.grid import SCHISMGrid
@@ -61,6 +57,36 @@ class SfluxSource(DataGrid):
                 ret.update({f"{self.id}_{key}": value})
         ret.update({f"{self.id}_file": self.outfile})
         return ret
+
+    @property
+    def ds(self):
+        """Return the xarray dataset for this data source."""
+        ds = self.source.open(
+            variables=self.variables, filters=self.filter, coords=self.coords
+        )
+        dt = total_seconds((ds.time[1] - ds.time[0]).values)
+        times = np.arange(0, ds.time.size) * dt
+        ds.time.assign_attrs({"long_name": "simulation_time"})
+        basedate = pd.to_datetime(ds.time.values[0])
+        ds["time"] = times
+        ds.time.attrs = {
+            "long_name": "Time",
+            "standard_name": "time",
+            "base_date": np.int32(
+                np.array(
+                    [
+                        basedate.year,
+                        basedate.month,
+                        basedate.day,
+                        basedate.hour,
+                        basedate.minute,
+                        basedate.second,
+                    ]
+                )
+            ),
+            "units": f"days since {basedate.strftime('%Y-%m-%d %H:%M:%S')}",
+        }
+        return ds
 
 
 class SfluxAir(SfluxSource):
@@ -142,20 +168,8 @@ class SfluxPrc(SfluxSource):
 
 
 class SCHISMDataSflux(RompyBaseModel):
-    """This class is used to write SCHISM sflux data from a dataset.
-
-    Arguments:
-        air_1 (SfluxSource): The sflux air source 1.
-        air_2 (SfluxSource): The sflux air source 2.
-        rad_1 (SfluxSource): The sflux rad source 1.
-        rad_2 (SfluxSource): The sflux rad source 2.
-        prc_1 (SfluxSource): The sflux prc source 1.
-        prc_2 (SfluxSource): The sflux prc source 2.
-
-    """
-
-    data_type: Literal["sflux_prc"] = Field(
-        default="sflux_prc",
+    data_type: Literal["sflux"] = Field(
+        default="sflux",
         description="Model type discriminator",
     )
     air_1: SfluxSource = Field(None, description="sflux air source 1")
@@ -329,13 +343,9 @@ class SCHISMDataBoundary(DataBoundary):
                 ),
             },
         )
-        schism_ds["time_step"] = schism_ds.time_step.assign_attrs(
-            {"long_name": "time_step"}
-        )
-        schism_ds["time"] = schism_ds.time.assign_attrs(
-            {"long_name": "simulation_time"}
-        )
-        schism_ds["time_series"] = schism_ds.time_series.assign_attrs(
+        schism_ds.time_step.assign_attrs({"long_name": "time_step"})
+        schism_ds.time.assign_attrs({"long_name": "simulation_time"})
+        schism_ds.time_series.assign_attrs(
             {"long_name": ds[self.variable].attrs["long_name"]}
         )
         outfile = (
