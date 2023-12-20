@@ -339,7 +339,7 @@ class SCHISMDataBoundary(DataBoundary):
             {"long_name": ds[self.variable].attrs["long_name"]}
         )
         outfile = (
-            Path(destdir) / f"{self.id}.th2.nc"
+            Path(destdir) / f"{self.id}.th.nc"
         )  # the two is just a temporary fix to stop clash with tides
         schism_ds.to_netcdf(outfile)
         return outfile
