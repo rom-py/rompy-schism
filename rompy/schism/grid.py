@@ -33,15 +33,15 @@ class GR3Generator(RompyBaseModel):
 
     @field_validator("gr3_type")
     def gr3_type_validator(cls, v):
-        if v not in [
-            "albedo",
-            "diffmin",
-            "diffmax",
-            "watertype",
-            "windrot_geo2proj",
-        ]:
+        accept = ["albedo", "diffmin", "diffmax", "watertype", "windrot_geo2proj"]
+        warn = ["manning", "rough", "drag"]
+        if v not in accept + warn:
             raise ValueError(
                 "gr3_type must be one of 'albedo', 'diffmin', 'diffmax', 'watertype', 'windrot_geo2proj'"
+            )
+        if v in warn:
+            logger.warning(
+                f"{v} is being set to a constant value, this is not recommended. For best results, please supply friction gr3 files with spatially varying values. Further options are under development."
             )
         return v
 
@@ -79,8 +79,10 @@ class SCHISMGrid(BaseGrid):
         ..., description="Path to hgrid.gr3 file"
     )  # TODO always need. Follow up with Vanessa
     vgrid: Optional[DataBlob] = Field(default=None, description="Path to vgrid.in file")
-    drag: Optional[DataBlob] = Field(default=None, description="Path to drag.gr3 file")
-    rough: Optional[DataBlob] = Field(
+    drag: Optional[DataBlob | float] = Field(
+        default=None, description="Path to drag.gr3 file"
+    )
+    rough: Optional[DataBlob | float] = Field(
         default=None, description="Path to rough.gr3 file"
     )
     manning: Optional[DataBlob | float] = Field(
@@ -127,9 +129,12 @@ class SCHISMGrid(BaseGrid):
     _pyschism_vgrid: Optional[Vgrid] = None
 
     @model_validator(mode="after")
-    def validate_rough_drag_manning(cls, v):
-        if sum([v.rough is not None, v.drag is not None, v.manning is not None]) > 1:
+    def validate_rough_drag_manning(v):
+        fric_sum = sum([v.rough is not None, v.drag is not None, v.manning is not None])
+        if fric_sum > 1:
             raise ValueError("Only one of rough, drag, manning can be set")
+        if fric_sum == 0:
+            raise ValueError("At least one of rough, drag, manning must be set")
         return v
 
     # validator that checks for gr3 source and if if not a daba blob or GR3Input, initializes a GR3Generator
