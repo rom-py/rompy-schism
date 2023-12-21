@@ -7,21 +7,28 @@ import pytest
 import xarray as xr
 
 from rompy.core import BaseGrid, DataBlob, DataGrid, TimeRange
-from rompy.core.data import (SourceDatamesh, SourceDataset, SourceFile,
-                             SourceIntake)
+from rompy.core.data import SourceDatamesh, SourceDataset, SourceFile, SourceIntake
 from rompy.schism import SCHISMGrid
-from rompy.schism.data import (SCHISMDataBoundary, SCHISMDataOcean,
-                               SCHISMDataSflux, SCHISMDataTides, SfluxAir,
-                               TidalDataset)
+from rompy.schism.data import (
+    SCHISMDataBoundary,
+    SCHISMDataOcean,
+    SCHISMDataSflux,
+    SCHISMDataTides,
+    SfluxAir,
+    TidalDataset,
+)
 from rompy.schism.namelists import Sflux_Inputs
 
 HERE = Path(__file__).parent
 DATAMESH_TOKEN = os.environ.get("DATAMESH_TOKEN")
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 
 @pytest.fixture
 def grid2d():
-    return SCHISMGrid(hgrid=DataBlob(source="test_data/hgrid.gr3"))
+    return SCHISMGrid(hgrid=DataBlob(source="test_data/hgrid.gr3"), drag=1)
 
 
 @pytest.fixture
@@ -34,10 +41,17 @@ def grid_atmos_source():
 
 @pytest.fixture
 def hycom_bnd():
+    hycomdata = HERE / "test_data" / "hycom.nc"
+    if not hycomdata.exists():
+        from utils import download_hycom
+
+        logging.info("Hycom test data not found, downloading...")
+        logging.info("This may take a while...only has to be done once.")
+        download_hycom(dest=HERE / "test_data", hgrid=HERE / "test_data" / "hgrid.gr3")
     return SCHISMDataBoundary(
         id="hycom",
         source=SourceFile(
-            uri=HERE / ".." / "data" / "hycom.nc",
+            uri=HERE / "test_data" / "hycom.nc",
         ),
         variable="surf_el",
         coords={"t": "time", "y": "ylat", "x": "xlon", "z": "depth"},
