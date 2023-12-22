@@ -89,16 +89,15 @@ def test_tidal_boundary(tmp_path, grid2d):
     tides = SCHISMDataTides(
         tidal_data=TidalDataset(
             elevations=Path(__file__).parent
-            / ".."
-            / "data"
-            / "tides"
-            / "h_m2s2n2k2k1o1p1q1mmmfm4mn4ms42n2s12q1j1l2m3mu2nu2oo1.nc",
+            / "test_data"
+            / "tpxo9-test"
+            / "h_m2s2n2.nc",
             velocities=Path(__file__).parent
-            / ".."
-            / "data"
-            / "tides"
-            / "u_m2s2n2k2k1o1p1q1mmmfm4mn4ms42n2s12q1j1l2m3mu2nu2oo1.nc",
-        )
+            / "test_data"
+            / "tpxo9-test"
+            / "u_m2s2n2.nc",
+        ),
+        constituents=["M2", "S2", "N2"],
     )
     tides.get(
         destdir=tmp_path,
