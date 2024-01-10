@@ -298,9 +298,9 @@ class SCHISMDataBoundary(DataBoundary):
     variable: str = Field(..., description="variable name in the dataset")
 
     @model_validator(mode="after")
-    def _set_variables(cls, v):
-        v.variables = [v.variable]
-        return v
+    def _set_variables(self) -> "SCHISMDataBoundary":
+        self.variables = [self.variable]
+        return self
 
     def get(
         self,
