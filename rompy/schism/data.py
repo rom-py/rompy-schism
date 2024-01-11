@@ -293,7 +293,7 @@ class SCHISMDataBoundary(DataBoundary):
     )
     variable: str = Field(..., description="variable name in the dataset")
     sel_method_kwargs: dict = Field(
-        default={}, description="Keyword arguments for sel_method"
+        default={"method": "nearest"}, description="Keyword arguments for sel_method"
     )
 
     @model_validator(mode="after")
