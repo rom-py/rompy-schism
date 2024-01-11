@@ -129,7 +129,7 @@ class SCHISMGrid(BaseGrid):
     _pyschism_vgrid: Optional[Vgrid] = None
 
     @model_validator(mode="after")
-    def validate_rough_drag_manning(v):
+    def validate_rough_drag_manning(cls, v):
         fric_sum = sum([v.rough is not None, v.drag is not None, v.manning is not None])
         if fric_sum > 1:
             raise ValueError("Only one of rough, drag, manning can be set")
