@@ -335,6 +335,9 @@ class SCHISMGrid(BaseGrid):
         self.plot(ax=ax)
         ax.set_title("Mesh")
 
+    def boundary_points(self):
+        return self.ocean_boundary()
+
     def ocean_boundary(self):
         bnd = self.pyschism_hgrid.boundaries.open.get_coordinates()
         return bnd.x.values, bnd.y.values

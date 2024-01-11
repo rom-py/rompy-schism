@@ -243,6 +243,10 @@ class SCHISMDataWave(BoundaryWaveStation):
         default="wave",
         description="Model type discriminator",
     )
+    sel_method_kwargs: dict = Field(
+        default={"method": "nearest", "unique": True},
+        description="Keyword arguments for sel_method",
+    )
 
     def get(
         self,
@@ -292,8 +296,11 @@ class SCHISMDataBoundary(DataBoundary):
         choices=["elev2D", "uv3D", "TEM_3D", "SAL_3D", "bnd"],
     )
     variable: str = Field(..., description="variable name in the dataset")
-    sel_method_kwargs: dict = Field(
-        default={"method": "nearest"}, description="Keyword arguments for sel_method"
+    sel_method: Literal["sel", "interp"] = Field(
+        default="interp",
+        description=(
+            "Xarray method to use for selecting boundary points from the dataset"
+        ),
     )
 
     @model_validator(mode="after")
