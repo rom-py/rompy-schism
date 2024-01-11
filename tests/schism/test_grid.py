@@ -6,21 +6,23 @@ from rompy.core import DataBlob
 from rompy.core.grid import BaseGrid
 from rompy.schism import SCHISMGrid
 
+here = Path(__file__).parent
+
 
 def test_SCHISMGrid2D(tmpdir):
-    hgrid = DataBlob(source="test_data/hgrid.gr3")
-    drag = DataBlob(source="test_data/drag.gr3")
-    rough = DataBlob(source="test_data/rough.gr3")
-    manning = DataBlob(source="test_data/manning.gr3")
-    hgridll = DataBlob(source="test_data/hgrid.ll")
-    diffmin = DataBlob(source="test_data/diffmin.gr3")
-    diffmax = DataBlob(source="test_data/diffmax.gr3")
-    hgrid_WWM = DataBlob(source="test_data/hgrid_WWM.gr3")
-    wwmbnd = DataBlob(source="test_data/wwmbnd.gr3")
+    hgrid = DataBlob(source=here / "test_data/hgrid.gr3")
+    drag = DataBlob(source=here / "test_data/drag.gr3")
+    rough = DataBlob(source=here / "test_data/rough.gr3")
+    manning = DataBlob(source=here / "test_data/manning.gr3")
+    hgridll = DataBlob(source=here / "test_data/hgrid.ll")
+    diffmin = DataBlob(source=here / "test_data/diffmin.gr3")
+    diffmax = DataBlob(source=here / "test_data/diffmax.gr3")
+    hgrid_WWM = DataBlob(source=here / "test_data/hgrid_WWM.gr3")
+    wwmbnd = DataBlob(source=here / "test_data/wwmbnd.gr3")
 
     grid = SCHISMGrid(
         hgrid=hgrid,
-        # drag=drag,
+        drag=drag,
         # rough=rough,
         # manning=1.2,
         # hgridll=hgridll,
