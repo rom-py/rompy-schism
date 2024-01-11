@@ -12,12 +12,8 @@ from pydantic import Field, field_validator, model_validator
 from pyschism.forcing.bctides import Bctides
 
 from rompy.core import DataGrid, RompyBaseModel
-from rompy.core.boundary import (
-    BoundaryWaveStation,
-    DataBoundary,
-    SourceFile,
-    SourceWavespectra,
-)
+from rompy.core.boundary import (BoundaryWaveStation, DataBoundary, SourceFile,
+                                 SourceWavespectra)
 from rompy.core.data import DATA_SOURCE_TYPES, DataBlob
 from rompy.core.time import TimeRange
 from rompy.schism.grid import SCHISMGrid
@@ -296,6 +292,9 @@ class SCHISMDataBoundary(DataBoundary):
         choices=["elev2D", "uv3D", "TEM_3D", "SAL_3D", "bnd"],
     )
     variable: str = Field(..., description="variable name in the dataset")
+    sel_method_kwargs: dict = Field(
+        default={}, description="Keyword arguments for sel_method"
+    )
 
     @model_validator(mode="after")
     def _set_variables(self) -> "SCHISMDataBoundary":
