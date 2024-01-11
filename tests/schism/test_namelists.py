@@ -26,10 +26,7 @@ def compare_nmls_values(nml1, nml2):
             compare_nmls_values(value, nml2[key])
         else:
             if value != nml2[key]:
-                import ipdb
-
                 print(key, value, nml2[key])
-                ipdb.set_trace()
 
 
 def compare_nmls(nml1, nml2):
