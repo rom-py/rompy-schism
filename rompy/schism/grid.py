@@ -236,7 +236,7 @@ class SCHISMGrid(BaseGrid):
         tvdflag.write(destdir / "tvprop.in")
         return destdir / "tvprop.in"
 
-    def _get_boundary(self, tolerance=None) -> Polygon:
+    def boundary(self, tolerance=None) -> Polygon:
         bnd = self.pyschism_hgrid.boundaries.open.get_coordinates()
         polygon = Polygon(zip(bnd.x.values, bnd.y.values))
         if tolerance:
@@ -334,9 +334,6 @@ class SCHISMGrid(BaseGrid):
         ax = fig.add_subplot(122, projection=ccrs.PlateCarree())
         self.plot(ax=ax)
         ax.set_title("Mesh")
-
-    def boundary_points(self):
-        return self.ocean_boundary()
 
     def ocean_boundary(self):
         bnd = self.pyschism_hgrid.boundaries.open.get_coordinates()
