@@ -236,14 +236,8 @@ class SCHISMGrid(BaseGrid):
         tvdflag.write(destdir / "tvprop.in")
         return destdir / "tvprop.in"
 
-    def _get_boundary(self, tolerance=None) -> Polygon:
-        bnd = pd.concat(
-            [
-                self.pyschism_hgrid.hgrid.boundaries.open.get_coordinates(),
-                self.pyschism_hgrid.hgrid.boundaries.land.get_coordinates(),
-            ]
-        )
-        # convert pandas dataframe to polygon
+    def boundary(self, tolerance=None) -> Polygon:
+        bnd = self.pyschism_hgrid.boundaries.open.get_coordinates()
         polygon = Polygon(zip(bnd.x.values, bnd.y.values))
         if tolerance:
             polygon = polygon.simplify(tolerance=tolerance)
