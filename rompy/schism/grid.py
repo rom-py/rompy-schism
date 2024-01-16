@@ -70,60 +70,68 @@ class GR3Generator(RompyBaseModel):
         return self.generate_gr3(destdir)
 
 
-class WWMGR3Generator(RompyBaseModel):
+class WWMBNDGR3Generator(RompyBaseModel):
     hgrid: DataBlob | Path = Field(..., description="Path to hgrid.gr3 file")
-    flags: list[int] = Field(..., description="List of flags to set in wwmbnd.gr3 file")
+    flags: list[int] = Field(
+        None,
+        description="List of boundary condition flags. This replicates the functionality of the gen_wwmbnd.in file. Must be the same length as the number of open boundaries in the hgrid.gr3 file. If not specified, it is assumed that all open hgrid files are open to waves",
+    )
 
+    def generate(self, destdir: str | Path) -> Path:
+        # Adapted from https://github.com/schism-dev/schism/blob/master/src/Utility/Pre-Processing/gen_wwmbnd.f90
+        # Read input files
+        if isinstance(self.hgrid, DataBlob):
+            if not self.hgrid._copied:
+                self.hgrid.get(destdir)
+            ref = self.hgrid._copied
+        else:
+            ref = self.hgrid
+        with open("gen_wwmbnd.in", "r") as file:
+            nope2 = int(file.readline().strip())
+            ifl_wwm = np.zeros(nope2, dtype=int)
+            for k in range(nope2):
+                j, ifl_wwm[k] = map(int, file.readline().split())
 
-def generate_wwmbnd(hgrid, dest):
-    # Adapted from https://github.com/schism-dev/schism/blob/master/src/Utility/Pre-Processing/gen_wwmbnd.f90
-    # Read input files
-    with open("gen_wwmbnd.in", "r") as file:
-        nope2 = int(file.readline().strip())
-        ifl_wwm = np.zeros(nope2, dtype=int)
-        for k in range(nope2):
-            j, ifl_wwm[k] = map(int, file.readline().split())
+        with open(ref, "r") as file:
+            file.readline()
+            ne, nnp = map(int, file.readline().split())
+            xnd, ynd, ibnd, nm = (
+                np.zeros(nnp),
+                np.zeros(nnp),
+                np.zeros(nnp),
+                np.zeros((ne, 3), dtype=int),
+            )
+            ibnd.fill(0)
 
-    with open(hgrid, "r") as file:
-        file.readline()
-        ne, nnp = map(int, file.readline().split())
-        xnd, ynd, ibnd, nm = (
-            np.zeros(nnp),
-            np.zeros(nnp),
-            np.zeros(nnp),
-            np.zeros((ne, 3), dtype=int),
-        )
-        ibnd.fill(0)
+            for i in range(nnp):
+                j, xnd[i], ynd[i], tmp = map(float, file.readline().split())
 
-        for i in range(nnp):
-            j, xnd[i], ynd[i], tmp = map(float, file.readline().split())
+            for i in range(ne):
+                j, k, *nm[i, :] = map(int, file.readline().split())
 
-        for i in range(ne):
-            j, k, *nm[i, :] = map(int, file.readline().split())
+            nope = int(file.readline().split()[0].strip())
+            if nope != nope2:
+                raise ValueError("nope is not equal to nope2")
 
-        nope = int(file.readline().split()[0].strip())
-        if nope != nope2:
-            raise ValueError("nope is not equal to nope2")
+            neta = int(file.readline().split()[0].strip())
 
-        neta = int(file.readline().split()[0].strip())
+            for k in range(nope):
+                nond = int(file.readline().split()[0].strip())
+                for _ in range(nond):
+                    iond = int(file.readline().strip())
+                    if iond > nnp or iond <= 0:
+                        raise ValueError("iond > nnp")
 
-        for k in range(nope):
-            nond = int(file.readline().split()[0].strip())
-            for _ in range(nond):
-                iond = int(file.readline().strip())
-                if iond > nnp or iond <= 0:
-                    raise ValueError("iond > nnp")
+                    ibnd[iond - 1] = ifl_wwm[k]
 
-                ibnd[iond - 1] = ifl_wwm[k]
+        # Write output file
+        with open(Path(destdir) / "wwmbnd.gr3", "w") as file:
+            file.write(f"{ne} {nnp}\n")
+            for i in range(nnp):
+                file.write(f"{i+1} {xnd[i]} {ynd[i]} {float(ibnd[i])}\n")
 
-    # Write output file
-    with open(dest, "w") as file:
-        file.write(f"{ne} {nnp}\n")
-        for i in range(nnp):
-            file.write(f"{i+1} {xnd[i]} {ynd[i]} {float(ibnd[i])}\n")
-
-        for i in range(ne):
-            file.write(f"{i+1} 3 {' '.join(map(str, nm[i, :]))}\n")
+            for i in range(ne):
+                file.write(f"{i+1} 3 {' '.join(map(str, nm[i, :]))}\n")
 
 
 # TODO - check datatypes for gr3 files (int vs float)
