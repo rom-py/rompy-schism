@@ -72,7 +72,7 @@ class GR3Generator(RompyBaseModel):
 
 class WWMBNDGR3Generator(RompyBaseModel):
     hgrid: DataBlob | Path = Field(..., description="Path to hgrid.gr3 file")
-    flags: list[int] = Field(
+    bcflags: list[int] = Field(
         None,
         description="List of boundary condition flags. This replicates the functionality of the gen_wwmbnd.in file. Must be the same length as the number of open boundaries in the hgrid.gr3 file. If not specified, it is assumed that all open hgrid files are open to waves",
     )
@@ -86,11 +86,6 @@ class WWMBNDGR3Generator(RompyBaseModel):
             ref = self.hgrid._copied
         else:
             ref = self.hgrid
-        with open("gen_wwmbnd.in", "r") as file:
-            nope2 = int(file.readline().strip())
-            ifl_wwm = np.zeros(nope2, dtype=int)
-            for k in range(nope2):
-                j, ifl_wwm[k] = map(int, file.readline().split())
 
         with open(ref, "r") as file:
             file.readline()
@@ -110,8 +105,15 @@ class WWMBNDGR3Generator(RompyBaseModel):
                 j, k, *nm[i, :] = map(int, file.readline().split())
 
             nope = int(file.readline().split()[0].strip())
+
+            bcflags = self.bcflags or np.ones(nope, dtype=int)
+            nope2 = len(bcflags)
+            ifl_wwm = np.zeros(bcflags, dtype=int)
+
             if nope != nope2:
-                raise ValueError("nope is not equal to nope2")
+                raise ValueError(
+                    f"List of flags {nope2} must be the same length as the number of open boundaries in the hgrid.gr3 file ({nope})"
+                )
 
             neta = int(file.readline().split()[0].strip())
 
