@@ -5,6 +5,7 @@ import pytest
 from rompy.core import DataBlob
 from rompy.core.grid import BaseGrid
 from rompy.schism import SCHISMGrid
+from rompy.schism.grid import WWMBNDGR3Generator
 
 here = Path(__file__).parent
 
@@ -52,3 +53,16 @@ def test_SCHISMGrid2D(tmpdir):
     assert staging_dir.joinpath("diffmin.gr3").exists()
     assert staging_dir.joinpath("diffmax.gr3").exists()
     assert staging_dir.joinpath("tvprop.in").exists()
+
+
+def test_generate_wwmbnd():
+    hgrid = "test_data/hgrid.gr3"
+    wwmbnd = WWMBNDGR3Generator(hgrid=hgrid)
+    wwmbnd.get("./")
+
+    # assert contents of wwmbnd.gr3 and wwmbnd_ref.gr3 are the same
+    with open("wwmbnd.gr3", "r") as f:
+        wwmbnd_lines = f.readlines()
+    with open("wwmbnd_ref.gr3", "r") as f:
+        wwmbnd_ref_lines = f.readlines()
+    assert wwmbnd_lines == wwmbnd_ref_lines
