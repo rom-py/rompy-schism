@@ -127,13 +127,18 @@ class WWMBNDGR3Generator(RompyBaseModel):
                     ibnd[iond - 1] = ifl_wwm[k]
 
         # Write output file
-        with open(Path(destdir) / "wwmbnd.gr3", "w") as file:
+        dest = Path(destdir) / "wwmbnd.gr3"
+        with open(dest, "w") as file:
             file.write(f"{ne} {nnp}\n")
             for i in range(nnp):
                 file.write(f"{i+1} {xnd[i]} {ynd[i]} {float(ibnd[i])}\n")
 
             for i in range(ne):
                 file.write(f"{i+1} 3 {' '.join(map(str, nm[i, :]))}\n")
+
+    def get(self, destdir: str | Path) -> Path:
+        """Alias to maintain api compatibility with DataBlob"""
+        return self.generate(destdir)
 
 
 # TODO - check datatypes for gr3 files (int vs float)
