@@ -280,10 +280,15 @@ class SCHISMGrid(BaseGrid):
             "windrot_geo2proj",
         ]:
             source = getattr(self, filetype)
-            if filetype == "hgridll":
+            if filetype in "hgridll":
                 if source is None:
                     logger.info(f"Creating symbolic link for hgrid.ll")
                     os.symlink("./hgrid.gr3", f"{destdir}/hgrid.ll")
+                    continue
+            if filetype in "hgrid_WWM":
+                if source is None:
+                    logger.info(f"Creating symbolic link for {filetype}.gr3")
+                    os.symlink("./hgrid.gr3", f"{destdir}/{filetype}.gr3")
                     continue
             if source is not None:
                 source.get(destdir)
