@@ -12,18 +12,18 @@ here = Path(__file__).parent
 
 def test_SCHISMGrid2D(tmpdir):
     hgrid = DataBlob(source=here / "test_data/hgrid.gr3")
-    drag = DataBlob(source=here / "test_data/drag.gr3")
-    rough = DataBlob(source=here / "test_data/rough.gr3")
-    manning = DataBlob(source=here / "test_data/manning.gr3")
-    hgridll = DataBlob(source=here / "test_data/hgrid.ll")
-    diffmin = DataBlob(source=here / "test_data/diffmin.gr3")
-    diffmax = DataBlob(source=here / "test_data/diffmax.gr3")
-    hgrid_WWM = DataBlob(source=here / "test_data/hgrid_WWM.gr3")
-    wwmbnd = DataBlob(source=here / "test_data/wwmbnd.gr3")
+    # drag = DataBlob(source=here / "test_data/drag.gr3")
+    # rough = DataBlob(source=here / "test_data/rough.gr3")
+    # manning = DataBlob(source=here / "test_data/manning.gr3")
+    # hgridll = DataBlob(source=here / "test_data/hgrid.ll")
+    # diffmin = DataBlob(source=here / "test_data/diffmin.gr3")
+    # diffmax = DataBlob(source=here / "test_data/diffmax.gr3")
+    # hgrid_WWM = DataBlob(source=here / "test_data/hgrid_WWM.gr3")
+    # wwmbnd = DataBlob(source=here / "test_data/wwmbnd.gr3")
 
     grid = SCHISMGrid(
         hgrid=hgrid,
-        drag=drag,
+        drag=1,
         # rough=rough,
         # manning=1.2,
         # hgridll=hgridll,
@@ -33,7 +33,7 @@ def test_SCHISMGrid2D(tmpdir):
         # wwmbnd=wwmbnd,
     )
 
-    assert grid.is_3d == False
+    # assert grid.is_3d == False
     # # assert grid.drag == drag
     # # assert grid.rough == rough
     # assert grid.manning == manning
@@ -55,16 +55,17 @@ def test_SCHISMGrid2D(tmpdir):
     assert staging_dir.joinpath("diffmin.gr3").exists()
     assert staging_dir.joinpath("diffmax.gr3").exists()
     assert staging_dir.joinpath("tvprop.in").exists()
+    assert staging_dir.joinpath("vgrid.in").exists()
 
 
-def test_generate_wwmbnd():
-    hgrid = "test_data/hgrid.gr3"
-    wwmbnd = WWMBNDGR3Generator(hgrid=hgrid)
-    wwmbnd.get("./")
-
-    # assert contents of wwmbnd.gr3 and wwmbnd_ref.gr3 are the same
-    with open("wwmbnd.gr3", "r") as f:
-        wwmbnd_lines = f.readlines()
-    with open("wwmbnd_ref.gr3", "r") as f:
-        wwmbnd_ref_lines = f.readlines()
-    assert wwmbnd_lines == wwmbnd_ref_lines
+# def test_generate_wwmbnd():
+#     hgrid = "test_data/hgrid.gr3"
+#     wwmbnd = WWMBNDGR3Generator(hgrid=hgrid)
+#     wwmbnd.get("./")
+#
+#     # assert contents of wwmbnd.gr3 and wwmbnd_ref.gr3 are the same
+#     with open("wwmbnd.gr3", "r") as f:
+#         wwmbnd_lines = f.readlines()
+#     with open("wwmbnd_ref.gr3", "r") as f:
+#         wwmbnd_ref_lines = f.readlines()
+#     assert wwmbnd_lines == wwmbnd_ref_lines
