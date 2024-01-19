@@ -4,7 +4,8 @@ from typing import Annotated, Literal, Optional, Union
 
 from pydantic import Field, model_validator
 
-from rompy.core import BaseConfig, DataBlob, RompyBaseModel, Spectrum, TimeRange
+from rompy.core import (BaseConfig, DataBlob, RompyBaseModel, Spectrum,
+                        TimeRange)
 
 from .data import SCHISMData
 from .grid import SCHISMGrid
@@ -310,14 +311,6 @@ class SchismCSIROConfig(BaseConfig):
                 raise ValueError("rough.gr3 must be specified when nchi=1")
         else:
             raise ValueError("nchi must be 0, -1, or 1")
-        return v
-
-    @model_validator(mode="after")
-    def validate_wwminputs(cls, v):
-        if v.grid.hgrid_WWM is None:
-            raise ValueError("hgrid_WWM.gr3 must be specified for csiro template")
-        if v.grid.wwmbnd is None:
-            raise ValueError("wwmbnd.gr3 must be specified for csiro template")
         return v
 
     def __call__(self, runtime) -> str:
