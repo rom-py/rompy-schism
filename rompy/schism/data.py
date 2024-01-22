@@ -31,6 +31,7 @@ class SfluxSource(DataGrid):
         default="sflux",
         description="Model type discriminator",
     )
+    id: str = Field("sflux_source", description="id of the source")
     relative_weight: float = Field(
         1.0,
         description="relative weight of the source file if two files are provided",
@@ -47,11 +48,11 @@ class SfluxSource(DataGrid):
     @property
     def outfile(self) -> str:
         # TODO - filenumber is. Hardcoded to 1 for now.
-        return f'sflux_{self.id}.{str(1).rjust(4, "0")}.nc'
+        return f'{self.id}_1.{str(1).rjust(4, "0")}.nc'
 
     @property
     def namelist(self) -> dict:
-        ret = {}
+        ret = self.model_dump()
         for key, value in self.model_dump().items():
             if key in ["relative_weight", "max_window_hours", "fail_if_missing"]:
                 ret.update({f"{self.id}_{key}": value})
@@ -96,24 +97,24 @@ class SfluxAir(SfluxSource):
         default="sflux_air",
         description="Model type discriminator",
     )
-    uwind_name: SfluxSource = Field(
-        None,
+    uwind_name: str = Field(
+        "u10",
         description="name of zonal wind variable in source",
     )
-    vwind_name: SfluxSource = Field(
-        None,
+    vwind_name: str = Field(
+        "v10",
         description="name of meridional wind variable in source",
     )
-    prmsl_name: SfluxSource = Field(
-        None,
+    prmsl_name: str = Field(
+        "mslp",
         description="name of mean sea level pressure variable in source",
     )
-    stmp_name: SfluxSource = Field(
-        None,
+    stmp_name: str = Field(
+        "stmp",
         description="name of surface air temperature variable in source",
     )
     spfh_name: SfluxSource = Field(
-        None,
+        "spfh",
         description="name of specific humidity variable in source",
     )
 
@@ -127,6 +128,20 @@ class SfluxAir(SfluxSource):
         ]:
             if getattr(self, variable) is not None:
                 self.variables.append(getattr(self, variable))
+
+    # @property
+    # def namelist(self) -> dict:
+    #     ret = super().namelist
+    #     for key, value in self.model_dump().items():
+    #         if key in [
+    #             "uwind_name",
+    #             "vwind_name",
+    #             "prmsl_name",
+    #             "stmp_name",
+    #             "spfh_name",
+    #         ]:
+    #             ret.update({f"{self.id}_{key}": value})
+    #     return ret
 
 
 class SfluxRad(SfluxSource):
@@ -172,12 +187,12 @@ class SCHISMDataSflux(RompyBaseModel):
         default="sflux",
         description="Model type discriminator",
     )
-    air_1: SfluxSource = Field(None, description="sflux air source 1")
-    air_2: SfluxSource = Field(None, description="sflux air source 2")
-    rad_1: SfluxSource = Field(None, description="sflux rad source 1")
-    rad_2: SfluxSource = Field(None, description="sflux rad source 2")
-    prc_1: SfluxSource = Field(None, description="sflux prc source 1")
-    prc_2: SfluxSource = Field(None, description="sflux prc source 2")
+    air_1: SfluxAir = Field(None, description="sflux air source 1")
+    air_2: SfluxAir = Field(None, description="sflux air source 2")
+    rad_1: SfluxRad = Field(None, description="sflux rad source 1")
+    rad_2: SfluxRad = Field(None, description="sflux rad source 2")
+    prc_1: SfluxPrc = Field(None, description="sflux prc source 1")
+    prc_2: SfluxPrc = Field(None, description="sflux prc source 2")
 
     def get(
         self,
@@ -203,8 +218,10 @@ class SCHISMDataSflux(RompyBaseModel):
             data = getattr(self, variable)
             if data is None:
                 continue
+            data.id = variable
             logger.info(f"Fetching {variable}")
             namelistargs.update(data.namelist)
+            namelistargs.update({f"{variable}_file": data.outfile})
             data.get(destdir, grid, time)
         Sflux_Inputs(**namelistargs).write_nml(destdir)
 
