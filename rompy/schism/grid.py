@@ -373,8 +373,9 @@ class SCHISMGrid(BaseGrid):
         tvdflag = Tvdflag(
             self.pyschism_hgrid, np.array([1] * len(self.pyschism_hgrid.elements))
         )
-        tvdflag.write(destdir / "tvprop.in")
-        return destdir / "tvprop.in"
+        dest = destdir / "tvd.prop"
+        tvdflag.write(dest)
+        return dest
 
     def boundary(self, tolerance=None) -> Polygon:
         bnd = self.pyschism_hgrid.boundaries.open.get_coordinates()
