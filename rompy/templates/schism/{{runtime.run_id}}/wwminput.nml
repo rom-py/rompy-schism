@@ -382,7 +382,8 @@
                                      ! then only one file is generated
                                      ! otherwise, for example for 86400
                                      ! daily output files are created.
- OUTSTYLE       = '{{config.outstyle}}'              ! output option - use 'NO' for no output
+ ! OUTSTYLE       = '{{config.outstyle}}'              ! output option - use 'NO' for no output
+ OUTSTYLE       = 'NO'              ! Temporary until implemented
                                      ! 'NC' for netcdf output
                                      ! 'XFN' for XFN output (default)
                                      ! 'SHP' for DARKO SHP output
