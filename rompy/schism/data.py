@@ -129,20 +129,6 @@ class SfluxAir(SfluxSource):
             if getattr(self, variable) is not None:
                 self.variables.append(getattr(self, variable))
 
-    # @property
-    # def namelist(self) -> dict:
-    #     ret = super().namelist
-    #     for key, value in self.model_dump().items():
-    #         if key in [
-    #             "uwind_name",
-    #             "vwind_name",
-    #             "prmsl_name",
-    #             "stmp_name",
-    #             "spfh_name",
-    #         ]:
-    #             ret.update({f"{self.id}_{key}": value})
-    #     return ret
-
 
 class SfluxRad(SfluxSource):
     """This is a single variable source for and sflux input"""
