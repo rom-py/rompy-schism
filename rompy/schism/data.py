@@ -243,8 +243,12 @@ class SCHISMDataWave(BoundaryWaveStation):
         default="wave",
         description="Model type discriminator",
     )
+    sel_method: dict = Field(
+        default="nearest",
+        description="Keyword arguments for sel_method",
+    )
     sel_method_kwargs: dict = Field(
-        default={"method": "nearest", "unique": True},
+        default={"unique": True},
         description="Keyword arguments for sel_method",
     )
 
