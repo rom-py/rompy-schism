@@ -26,15 +26,13 @@ config:
     data_type: schism
     atmos:
       air_1:
-        id: era5
         source: 
           uri:  ../../tests/data/era5-20230101.nc
           model_type: open_dataset
+        uwind_name: u10
+        vwind_name: v10
         filter:
           sort: {coords: [latitude]}
-        variables: 
-          - u10
-          - v10
         buffer: 5
     ocean:
       elev2D:
