@@ -12,29 +12,30 @@ config:
       id: hgrid
       model_type: data_blob
       source: ../../tests/schism/test_data/hgrid.gr3
-    manning:
-      model_type: data_blob
-      source: ../../tests/schism/test_data/manning.gr3
-    hgrid_WWM:
-      model_type: data_blob
-      source: ../../tests/schism/test_data/hgrid_WWM.gr3
-    wwmbnd:
-      model_type: data_blob
-      source: ../../tests/schism/test_data/wwmbnd.gr3
+    manning: 1
+    # manning:
+    #   model_type: data_blob
+    #   source: ../../tests/schism/test_data/manning.gr3
+    # hgrid_WWM:
+    #   model_type: data_blob
+    #   source: ../../tests/schism/test_data/hgrid_WWM.gr3
+    # wwmbnd:
+    #   model_type: data_blob
+    #   source: ../../tests/schism/test_data/wwmbnd.gr3
   data:
     data_type: schism
     atmos:
       air_1:
-        buffer: 0.0
         id: era5
         source: 
           uri:  ../../tests/data/era5-20230101.nc
           model_type: open_dataset
-          filter:
-            sort: {coords: [latitude]}
+        filter:
+          sort: {coords: [latitude]}
         variables: 
           - u10
           - v10
+        buffer: 5
     ocean:
       elev2D:
         buffer: 0.0
@@ -60,7 +61,6 @@ config:
         y: lat
         z: depth
       id: wavedata
-      sel_method: nearest
       source:
         catalog_uri: ../../tests/data/catalog.yaml
         dataset_id: ausspec
