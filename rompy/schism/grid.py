@@ -196,7 +196,7 @@ class GridLinker(GeneratorBase):
         if isinstance(self.hgrid, DataBlob):
             if not self.hgrid._copied:
                 self.hgrid.get(destdir)
-            ref = self.hgrid._copied
+            ref = self.hgrid._copied.name
         else:
             ref = self.hgrid
         if self.gridtype == "hgridll":
@@ -206,6 +206,7 @@ class GridLinker(GeneratorBase):
         dest = Path(destdir) / f"{filename}"
         logger.info(f"Linking {ref} to {dest}")
         dest.symlink_to(ref)
+        return dest
 
 
 # TODO - check datatypes for gr3 files (int vs float)
@@ -351,10 +352,10 @@ class SCHISMGrid(BaseGrid):
         for filetype in G3FILES + ["hgrid"]:
             source = getattr(self, filetype)
             if source is not None:
-                source.get(destdir)
+                ret[filetype] = source.get(destdir)
         for filetype in GRIDLINKS + ["vgrid", "wwmbnd"]:
             source = getattr(self, filetype)
-            source.get(destdir)
+            ret[filetype] = source.get(destdir)
         self.generate_tvprop(destdir)
         return ret
 

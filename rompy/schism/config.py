@@ -315,8 +315,8 @@ class SchismCSIROConfig(BaseConfig):
 
     def __call__(self, runtime) -> str:
         # Copy grid files
-        self.grid.get(runtime.staging_dir)
         ret = self.model_dump()
+        ret["grid"] = self.grid.get(runtime.staging_dir)
         # TODO Still need to link up these maybe?
         ret.update(
             self.data.get(

@@ -41,7 +41,7 @@
  FRLOW          = 0.04               ! Low frequency limit of the discrete wave period (Hz; 1/period) if 24, use 0.04
  FRHIGH         = 1.                 ! High frequency limit of the discrete wave period.
  MSC            = {{config.msc2}}                 ! Number of frequency bins
- FILEGRID       = '{{config.grid.hgrid_WWM.source.name}}'    ! Name of the grid file. hgrid_WWM.gr3 if IGRIDTYPE = 3 (SCHISM)
+ FILEGRID       = '{{config.grid.hgrid_WWM}}'    ! Name of the grid file. hgrid_WWM.gr3 if IGRIDTYPE = 3 (SCHISM)
  IGRIDTYPE      = 3                  ! Gridtype used.
                                      ! 1 ~ XFN system.dat
                                      ! 2 ~ WWM-PERIODIC
@@ -71,7 +71,7 @@
  DELTC          = 1                  ! Time step in FILEWAVE 
  UNITC          = 'HR'               ! Unit can be HR, MIN, SEC 
  ENDTC          = '{{runtime.period.end.strftime("%Y%m%d.%H%M%S")}}'  ! End time
- FILEBOUND      = '{{config.grid.wwmbnd.source.name}}'       ! Boundary file defining boundary conditions and Neumann nodes.
+ FILEBOUND      = '{{config.grid.wwmbnd}}'       ! Boundary file defining boundary conditions and Neumann nodes.
                                      ! In this file there is following definition Flag 0: not on boundary; 3: Neumann (0 gradient only for advection part);
                                      ! 2: active bnd (Dirichlet). Bnd flags imported from SCHISM: ! 1: exterior bnd; -1: interior (islands)
                                      ! exterior and interior boundaries need not to be defined.
