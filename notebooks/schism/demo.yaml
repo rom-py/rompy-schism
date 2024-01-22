@@ -27,10 +27,11 @@ config:
     atmos:
       air_1:
         source: 
-          uri:  ../../tests/data/era5-20230101.nc
+          uri:  ../../tests/schism/test_data/atmos.nc
           model_type: open_dataset
         uwind_name: u10
         vwind_name: v10
+        prml_name: mslp
         filter:
           sort: {coords: [latitude]}
         buffer: 5
