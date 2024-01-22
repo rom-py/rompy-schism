@@ -48,11 +48,21 @@ config:
           uri:  ../../tests/schism/test_data/hycom20230101.nc
           model_type: open_dataset
         variable: surf_el
-    # tides:
-    #   cutoff_depth: 50.0
-    #   tidal_data:
-    #     elevations: ../../tests/schism/test_data/tides/h_m2s2n2k2k1o1p1q1mmmfm4mn4ms42n2s12q1j1l2m3mu2nu2oo1.nc
-    #     velocities: ../../tests/schism/test_data/tides/u_m2s2n2k2k1o1p1q1mmmfm4mn4ms42n2s12q1j1l2m3mu2nu2oo1.nc
+    tides:
+      constituents:
+      - M2
+      - S2
+      - N2
+      cutoff_depth: 50.0
+      flags:
+      - - 5
+        - 5
+        - 4
+        - 4
+      tidal_data:
+        data_type: tidal_dataset
+        elevations: ../../tests/schism/test_data/tpxo9-test/h_m2s2n2.nc
+        velocities: ../../tests/schism/test_data/tpxo9-test/u_m2s2n2.nc
     wave:
       buffer: 0.0
       coords:
