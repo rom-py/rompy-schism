@@ -56,7 +56,7 @@ class SfluxSource(DataGrid):
         for key, value in self.model_dump().items():
             if key in ["relative_weight", "max_window_hours", "fail_if_missing"]:
                 ret.update({f"{self.id}_{key}": value})
-        ret.update({f"{self.id}_file": self.outfile})
+        ret.update({f"{self.id}_file": self.id})
         return ret
 
     @property
@@ -224,7 +224,6 @@ class SCHISMDataSflux(RompyBaseModel):
             data.id = variable
             logger.info(f"Fetching {variable}")
             namelistargs.update(data.namelist)
-            namelistargs.update({f"{variable}_file": data.outfile})
             data.get(destdir, grid, time)
         Sflux_Inputs(**namelistargs).write_nml(destdir)
 
