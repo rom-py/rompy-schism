@@ -484,6 +484,9 @@ class SCHISMGrid(BaseGrid):
         bnd = self.pyschism_hgrid.boundaries.land.get_coordinates()
         return bnd.x.values, bnd.y.values
 
+    def boundary_points(self, spacing=None) -> tuple:
+        return self.ocean_boundary()
+
 
 if __name__ == "__main__":
     import cartopy.crs as ccrs
