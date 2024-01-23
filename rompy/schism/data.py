@@ -129,6 +129,23 @@ class SfluxAir(SfluxSource):
             if getattr(self, variable) is not None:
                 self.variables.append(getattr(self, variable))
 
+    @property
+    def ds(self):
+        """Return the xarray dataset for this data source."""
+        ds = super().ds
+        for variable in [
+            "uwind_name",
+            "vwind_name",
+            "prmsl_name",
+            "stmp_name",
+            "spfh_name",
+        ]:
+            data_var = getattr(self, variable)
+            if data_var not in ds.data_vars:
+                ds[data_var] = ds[self.uwind_name] * np.nan
+                ds.data_vars[data_var].attrs["long_name"] = data_var
+        return ds
+
 
 class SfluxRad(SfluxSource):
     """This is a single variable source for and sflux input"""
