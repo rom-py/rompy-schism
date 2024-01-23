@@ -48,7 +48,7 @@ class SfluxSource(DataGrid):
     @property
     def outfile(self) -> str:
         # TODO - filenumber is. Hardcoded to 1 for now.
-        return f'{self.id}_1.{str(1).rjust(4, "0")}.nc'
+        return f'{self.id}.{str(1).rjust(4, "0")}.nc'
 
     @property
     def namelist(self) -> dict:
