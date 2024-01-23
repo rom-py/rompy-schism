@@ -510,7 +510,7 @@ class SCHISMDataTides(RompyBaseModel):
         50.0,
         description="cutoff depth for tides",
     )
-    flags: Optional[list] = Field([[5, 5, 4, 4]], description="nested list of bctypes")
+    flags: Optional[list] = Field([[5, 5, 0, 0]], description="nested list of bctypes")
     constituents: Union[str, list] = Field("major", description="constituents")
     database: str = Field("tpxo", description="database", choices=["tpxo", "fes2014"])
     add_earth_tidal: bool = Field(True, description="add_earth_tidal")
