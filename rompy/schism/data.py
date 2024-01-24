@@ -12,8 +12,12 @@ from pydantic import Field, field_validator, model_validator
 from pyschism.forcing.bctides import Bctides
 
 from rompy.core import DataGrid, RompyBaseModel
-from rompy.core.boundary import (BoundaryWaveStation, DataBoundary, SourceFile,
-                                 SourceWavespectra)
+from rompy.core.boundary import (
+    BoundaryWaveStation,
+    DataBoundary,
+    SourceFile,
+    SourceWavespectra,
+)
 from rompy.core.data import DATA_SOURCE_TYPES, DataBlob
 from rompy.core.time import TimeRange
 from rompy.schism.grid import SCHISMGrid
@@ -332,6 +336,23 @@ class SCHISMDataBoundary(DataBoundary):
         self.variables = [self.variable]
         return self
 
+    # @property
+    # def ds(self):
+    #     """Return the xarray dataset for this data source."""
+    #     # I don't like this approach, as its no longer lazy
+    #     ds = super().ds
+    #     if self.extrapolate_to_coast:
+    #         for var in ds.data_vars:
+    #             ds[var] = (
+    #                 ds[var].interpolate_na(
+    #                     method="linear", fill_value="extrapolate", dim=self.coords.x
+    #                 )
+    #                 + ds[var].interpolate_na(
+    #                     method="linear", fill_value="extrapolate", dim=self.coords.y
+    #                 )
+    #             ) / 2
+    #     return ds
+
     def get(
         self,
         destdir: str | Path,
@@ -360,7 +381,11 @@ class SCHISMDataBoundary(DataBoundary):
             self._filter_time(time)
         ds = self._sel_boundary(grid)
         dt = total_seconds((ds.time[1] - ds.time[0]).values)
-        time_series = np.expand_dims(ds[self.variable].values, axis=(2, 3))
+
+        data = ds[self.variable].values
+        for i in range(data.shape[0]):
+            data[i, :] = fill_tails(data[i, :])
+        time_series = np.expand_dims(data, axis=(2, 3))
 
         schism_ds = xr.Dataset(
             coords={
@@ -399,10 +424,28 @@ class SCHISMDataBoundary(DataBoundary):
         }
         schism_ds.time.encoding["units"] = unit
         schism_ds.time.encoding["calendar"] = "proleptic_gregorian"
+        if schism_ds.time_series.isnull().any():
+            msg = "Some values are null. This will cause SCHISM to crash. Please check your data."
+            logger.warning(msg)
 
         outfile = Path(destdir) / f"{self.id}.th.nc"
         schism_ds.to_netcdf(outfile, "w", "NETCDF3_CLASSIC", unlimited_dims="time")
         return outfile
+
+
+def fill_tails(arr):
+    """If the tails of  1d array are nan, fill with the last non nan value."""
+    # If the tails of  1d array are nan, fill with the last non nan value. Must work on both ends
+    mask = np.isnan(arr)
+    idx = np.where(~mask, np.arange(mask.shape[0]), 0)
+    np.maximum.accumulate(idx, axis=0, out=idx)
+    out = arr[idx]
+    # repoat the same from the other end
+    mask = np.isnan(out)
+    idx = np.where(~mask, np.arange(mask.shape[0]), 0)
+    np.maximum.accumulate(idx[::-1], axis=0, out=idx[::-1])
+    out = out[idx[::-1]]
+    return out
 
 
 class SCHISMDataOcean(RompyBaseModel):
