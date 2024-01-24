@@ -44,7 +44,7 @@ config:
           y: ylat
           z: depth
         source: 
-          uri:  ../../tests/schism/test_data/hycom20230101.nc
+          uri:  ../../tests/schism/test_data/hycom.nc
           model_type: open_dataset
         variable: surf_el
     tides:
@@ -53,11 +53,8 @@ config:
       - S2
       - N2
       cutoff_depth: 50.0
-      flags:
-      - - 5
-        - 5
-        - 4
-        - 4
+      flags: 
+        - [5, 3, 0, 0]
       tidal_data:
         data_type: tidal_dataset
         elevations: ../../tests/schism/test_data/tpxo9-test/h_m2s2n2.nc
