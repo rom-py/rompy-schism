@@ -361,12 +361,11 @@ class SCHISMDataBoundary(DataBoundary):
             self._filter_time(time)
         ds = self._sel_boundary(grid)
         dt = total_seconds((ds.time[1] - ds.time[0]).values)
-        times = np.arange(0, ds.time.size) * dt
         time_series = np.expand_dims(ds[self.variable].values, axis=(2, 3))
 
         schism_ds = xr.Dataset(
             coords={
-                "time": times,
+                "time": ds.time,
                 "nOpenBndNodes": np.arange(0, ds.xlon.size),
                 "nComponents": np.array([1]),
                 "one": np.array([1]),
@@ -380,14 +379,31 @@ class SCHISMDataBoundary(DataBoundary):
             },
         )
         schism_ds.time_step.assign_attrs({"long_name": "time_step"})
-        schism_ds.time.assign_attrs({"long_name": "simulation_time"})
-        schism_ds.time_series.assign_attrs(
-            {"long_name": ds[self.variable].attrs["long_name"]}
-        )
+        basedate = pd.to_datetime(ds.time.values[0])
+        unit = f"days since {basedate.strftime('%Y-%m-%d %H:%M:%S')}"
+        schism_ds.time.attrs = {
+            "long_name": "Time",
+            "standard_name": "time",
+            "base_date": np.int32(
+                np.array(
+                    [
+                        basedate.year,
+                        basedate.month,
+                        basedate.day,
+                        basedate.hour,
+                        basedate.minute,
+                        basedate.second,
+                    ]
+                )
+            ),
+            # "units": unit,
+        }
+        schism_ds.time.encoding["units"] = unit
+        schism_ds.time.encoding["calendar"] = "proleptic_gregorian"
+
         outfile = (
             Path(destdir) / f"{self.id}.th.nc"
-        )  # the two is just a temporary fix to stop clash with tides
-        schism_ds.to_netcdf(outfile)
+        schism_ds.to_netcdf(outfile, "w", "NETCDF3_CLASSIC", unlimited_dims="time")
         return outfile
 
 
