@@ -1,5 +1,6 @@
 import logging
 from datetime import datetime
+from glob import glob
 from pathlib import Path
 from time import time
 
@@ -31,13 +32,14 @@ def download_hycom(dest=Path("./"), hgrid=Path("./hgrid.gr3")):
     hycom.fetch_data(date, rnday=2, bnd=False, nudge=False, sub_sample=5, outdir="./")
     print(f"It took {(time()-t0)/60} mins to download")
 
-    files = Path("./").glob("hycom_*.nc")
+    files = glob("hycom_*.nc")
+    files.sort()
     logging.info("Concatenating files...")
     xr.open_mfdataset(files, concat_dim="time", combine="nested")["surf_el"].to_netcdf(
         dest / "hycom.nc"
     )
     for file in files:
-        file.unlink()
+        os.remove(file)
 
 
 def compare_files(file1, file2):
