@@ -74,6 +74,13 @@ def test_atmos(tmp_path, grid_atmos_source):
 
 def test_oceandataboundary(tmp_path, grid2d, hycom_bnd):
     hycom_bnd.get(tmp_path, grid2d)
+    with xr.open_dataset(tmp_path / "hycom.th.nc") as bnd:
+        assert "one" in bnd.dims
+        assert "time" in bnd.dims
+        assert "nOpenBndNodes" in bnd.dims
+        assert "nLevels" in bnd.dims
+        assert "nComponents" in bnd.dims
+        assert len(bnd.nOpenBndNodes) == len(grid2d.ocean_boundary()[0])
 
 
 def test_oceandata(tmp_path, grid2d, hycom_bnd):
