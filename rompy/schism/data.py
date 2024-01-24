@@ -65,11 +65,8 @@ class SfluxSource(DataGrid):
         ds = self.source.open(
             variables=self.variables, filters=self.filter, coords=self.coords
         )
-        dt = total_seconds((ds.time[1] - ds.time[0]).values)
-        times = np.arange(0, ds.time.size) * dt
-        ds.time.assign_attrs({"long_name": "simulation_time"})
         basedate = pd.to_datetime(ds.time.values[0])
-        ds["time"] = times
+        unit = f"days since {basedate.strftime('%Y-%m-%d %H:%M:%S')}"
         ds.time.attrs = {
             "long_name": "Time",
             "standard_name": "time",
@@ -85,8 +82,10 @@ class SfluxSource(DataGrid):
                     ]
                 )
             ),
-            "units": f"days since {basedate.strftime('%Y-%m-%d %H:%M:%S')}",
+            # "units": unit,
         }
+        ds.time.encoding["units"] = unit
+        ds.time.encoding["calendar"] = "proleptic_gregorian"
         return ds
 
 
@@ -401,8 +400,7 @@ class SCHISMDataBoundary(DataBoundary):
         schism_ds.time.encoding["units"] = unit
         schism_ds.time.encoding["calendar"] = "proleptic_gregorian"
 
-        outfile = (
-            Path(destdir) / f"{self.id}.th.nc"
+        outfile = Path(destdir) / f"{self.id}.th.nc"
         schism_ds.to_netcdf(outfile, "w", "NETCDF3_CLASSIC", unlimited_dims="time")
         return outfile
 
@@ -475,20 +473,6 @@ class SCHISMDataOcean(RompyBaseModel):
         return f"SCHISMDataOcean"
 
 
-# def setup_bctides():
-#     # Taken from example at https://schism-dev.github.io/schism/master/getting-started/pre-processing-with-pyschism/boundary.html I don't really understand this
-#     # Ultimately these will not wanted to be hardcoded.
-#     iet3 = iettype.Iettype3(constituents="major", database="tpxo")
-#     iet4 = iettype.Iettype4()
-#     iet5 = iettype.Iettype5(iettype3=iet3, iettype4=iet4)
-#     ifl3 = ifltype.Ifltype3(constituents="major", database="tpxo")
-#     ifl4 = ifltype.Ifltype4()
-#     ifl5 = ifltype.Ifltype5(ifltype3=ifl3, ifltype4=ifl4)
-#     # isa3 = isatype.Isatype4()
-#     # ite3 = itetype.Itetype4()
-#     return ifl5, iet5
-
-
 class TidalDataset(RompyBaseModel):
     data_type: Literal["tidal_dataset"] = Field(
         default="tidal_dataset",
@@ -525,7 +509,7 @@ class SCHISMDataTides(RompyBaseModel):
         50.0,
         description="cutoff depth for tides",
     )
-    flags: Optional[list] = Field([[5, 5, 0, 0]], description="nested list of bctypes")
+    flags: Optional[list] = Field([[5, 3, 0, 0]], description="nested list of bctypes")
     constituents: Union[str, list] = Field("major", description="constituents")
     database: str = Field("tpxo", description="database", choices=["tpxo", "fes2014"])
     add_earth_tidal: bool = Field(True, description="add_earth_tidal")
