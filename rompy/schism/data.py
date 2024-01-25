@@ -12,12 +12,8 @@ from pydantic import Field, field_validator, model_validator
 from pyschism.forcing.bctides import Bctides
 
 from rompy.core import DataGrid, RompyBaseModel
-from rompy.core.boundary import (
-    BoundaryWaveStation,
-    DataBoundary,
-    SourceFile,
-    SourceWavespectra,
-)
+from rompy.core.boundary import (BoundaryWaveStation, DataBoundary, SourceFile,
+                                 SourceWavespectra)
 from rompy.core.data import DATA_SOURCE_TYPES, DataBlob
 from rompy.core.time import TimeRange
 from rompy.schism.grid import SCHISMGrid
@@ -330,6 +326,9 @@ class SCHISMDataBoundary(DataBoundary):
             "Xarray method to use for selecting boundary points from the dataset"
         ),
     )
+    interpolate_missing_coastal: bool = Field(
+        True, description="interpolate_missing coastal data points"
+    )
 
     @model_validator(mode="after")
     def _set_variables(self) -> "SCHISMDataBoundary":
@@ -383,8 +382,9 @@ class SCHISMDataBoundary(DataBoundary):
         dt = total_seconds((ds.time[1] - ds.time[0]).values)
 
         data = ds[self.variable].values
-        for i in range(data.shape[0]):
-            data[i, :] = fill_tails(data[i, :])
+        if self.interpolate_missing_coastal:
+            for i in range(data.shape[0]):
+                data[i, :] = fill_tails(data[i, :])
         time_series = np.expand_dims(data, axis=(2, 3))
 
         schism_ds = xr.Dataset(
@@ -435,7 +435,6 @@ class SCHISMDataBoundary(DataBoundary):
 
 def fill_tails(arr):
     """If the tails of  1d array are nan, fill with the last non nan value."""
-    # If the tails of  1d array are nan, fill with the last non nan value. Must work on both ends
     mask = np.isnan(arr)
     idx = np.where(~mask, np.arange(mask.shape[0]), 0)
     np.maximum.accumulate(idx, axis=0, out=idx)
