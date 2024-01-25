@@ -89,10 +89,16 @@ def test_oceandata(tmp_path, grid2d, hycom_bnd):
 
 
 def test_tidal_boundary(tmp_path, grid2d):
+    if not (HERE / "test_data" / "tpxo9-neaus" / "h_m2s2n2.nc").exists():
+        from utils import untar_file
+
+        untar_file(HERE / "test_data" / "tpxo9-neaus.tar.gz", HERE / "test_data/")
+    from utils import untar_file
+
     tides = SCHISMDataTides(
         tidal_data=TidalDataset(
-            elevations=HERE / "test_data" / "tpxo9-test" / "h_m2s2n2.nc",
-            velocities=HERE / "test_data" / "tpxo9-test" / "u_m2s2n2.nc",
+            elevations=HERE / "test_data" / "tpxo9-neaus" / "h_m2s2n2.nc",
+            velocities=HERE / "test_data" / "tpxo9-neaus" / "u_m2s2n2.nc",
         ),
         constituents=["M2", "S2", "N2"],
     )
