@@ -41,7 +41,7 @@
  FRLOW          = 0.04               ! Low frequency limit of the discrete wave period (Hz; 1/period) if 24, use 0.04
  FRHIGH         = 1.                 ! High frequency limit of the discrete wave period.
  MSC            = {{config.msc2}}                 ! Number of frequency bins
- FILEGRID       = '{{config.grid.hgrid_WWM}}'    ! Name of the grid file. hgrid_WWM.gr3 if IGRIDTYPE = 3 (SCHISM)
+ FILEGRID       = '{{config.grid.hgrid_WWM.name}}'    ! Name of the grid file. hgrid_WWM.gr3 if IGRIDTYPE = 3 (SCHISM)
  IGRIDTYPE      = 3                  ! Gridtype used.
                                      ! 1 ~ XFN system.dat
                                      ! 2 ~ WWM-PERIODIC
