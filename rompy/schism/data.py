@@ -12,12 +12,8 @@ from pydantic import Field, field_validator, model_validator
 from pyschism.forcing.bctides import Bctides
 
 from rompy.core import DataGrid, RompyBaseModel
-from rompy.core.boundary import (
-    BoundaryWaveStation,
-    DataBoundary,
-    SourceFile,
-    SourceWavespectra,
-)
+from rompy.core.boundary import (BoundaryWaveStation, DataBoundary, SourceFile,
+                                 SourceWavespectra)
 from rompy.core.data import DATA_SOURCE_TYPES, DataBlob
 from rompy.core.time import TimeRange
 from rompy.schism.grid import SCHISMGrid
@@ -146,7 +142,11 @@ class SfluxAir(SfluxSource):
             data_var = getattr(self, variable)
             if data_var not in ds.data_vars:
                 ds[data_var] = ds[self.uwind_name].copy()
-                ds[data_var][:, :, :] = -999
+                if variable == "spfh_name":
+                    missing = 0.01
+                else:
+                    missing = -999
+                ds[data_var][:, :, :] = missing
                 ds.data_vars[data_var].attrs["long_name"] = data_var
         return ds
 
