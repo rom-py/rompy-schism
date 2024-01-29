@@ -65,11 +65,11 @@ class Sflux_Inputs(NamelistBaseModel):
                 continue
             if isinstance(value, list):
                 value = ", ".join([str(item) for item in value])
-            if isinstance(value, bool):
-                value = ".true." if value else ".false."
             if isinstance(value, str):
                 value = f"'{value}'"
-            ret += [f"{key} = {value}"]
+            if isinstance(value, bool):
+                value = ".true." if value else ".false."
+            ret += [f"{key}={value},"]
         ret += ["/"]
         return "\n".join(ret)
 
