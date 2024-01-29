@@ -168,8 +168,6 @@ class WWMBNDGR3Generator(GeneratorBase):
 
                     ibnd[iond - 1] = ifl_wwm[k]
 
-        __import__("ipdb").set_trace()
-
         # Write output file
         dest = Path(destdir) / "wwmbnd.gr3"
         with open(dest, "w") as file:
