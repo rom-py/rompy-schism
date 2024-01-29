@@ -150,7 +150,7 @@ class WWMBNDGR3Generator(GeneratorBase):
 
             bcflags = self.bcflags or np.ones(nope, dtype=int)
             nope2 = len(bcflags)
-            ifl_wwm = np.zeros(bcflags, dtype=int)
+            ifl_wwm = np.array(bcflags, dtype=int)
 
             if nope != nope2:
                 raise ValueError(
@@ -167,6 +167,8 @@ class WWMBNDGR3Generator(GeneratorBase):
                         raise ValueError("iond > nnp")
 
                     ibnd[iond - 1] = ifl_wwm[k]
+
+        __import__("ipdb").set_trace()
 
         # Write output file
         dest = Path(destdir) / "wwmbnd.gr3"
