@@ -12,8 +12,12 @@ from pydantic import Field, field_validator, model_validator
 from pyschism.forcing.bctides import Bctides
 
 from rompy.core import DataGrid, RompyBaseModel
-from rompy.core.boundary import (BoundaryWaveStation, DataBoundary, SourceFile,
-                                 SourceWavespectra)
+from rompy.core.boundary import (
+    BoundaryWaveStation,
+    DataBoundary,
+    SourceFile,
+    SourceWavespectra,
+)
 from rompy.core.data import DATA_SOURCE_TYPES, DataBlob
 from rompy.core.time import TimeRange
 from rompy.schism.grid import SCHISMGrid
@@ -65,6 +69,11 @@ class SfluxSource(DataGrid):
         ds = self.source.open(
             variables=self.variables, filters=self.filter, coords=self.coords
         )
+        # rename latitude and longitide to lat and lon
+        ds = ds.rename_dims({"latitude": "ny_grid", "longitude": "nx_grid"})
+        lon, lat = np.meshgrid(ds["longitude"], ds["latitude"])
+        ds["lon"] = (("ny_grid", "nx_grid"), lon)
+        ds["lat"] = (("ny_grid", "nx_grid"), lat)
         basedate = pd.to_datetime(ds.time.values[0])
         unit = f"days since {basedate.strftime('%Y-%m-%d %H:%M:%S')}"
         ds.time.attrs = {
