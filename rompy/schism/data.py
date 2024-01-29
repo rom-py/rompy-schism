@@ -12,12 +12,8 @@ from pydantic import Field, field_validator, model_validator
 from pyschism.forcing.bctides import Bctides
 
 from rompy.core import DataGrid, RompyBaseModel
-from rompy.core.boundary import (
-    BoundaryWaveStation,
-    DataBoundary,
-    SourceFile,
-    SourceWavespectra,
-)
+from rompy.core.boundary import (BoundaryWaveStation, DataBoundary, SourceFile,
+                                 SourceWavespectra)
 from rompy.core.data import DATA_SOURCE_TYPES, DataBlob
 from rompy.core.time import TimeRange
 from rompy.schism.grid import SCHISMGrid
@@ -661,7 +657,7 @@ class SCHISMData(RompyBaseModel):
                 continue
             output = data.get(destdir, grid, time)
             ret.update({datatype: output})
-            ret[
-                "wave"
-            ] = "dummy"  # Just to make cookiecutter happy if excluding wave forcing
+            # ret[
+            #     "wave"
+            # ] = "dummy"  # Just to make cookiecutter happy if excluding wave forcing
         return ret
