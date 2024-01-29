@@ -6,6 +6,8 @@ period:
 run_id: test_schism
 config:
   model_type: schismcsiro
+  mesbf: 1
+  fricc: 0.067
   grid:
     grid_type: schism
     hgrid:
