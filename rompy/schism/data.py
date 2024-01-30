@@ -385,6 +385,12 @@ class SCHISMDataBoundary(DataBoundary):
 
         """
         # prepare xarray.Dataset and save forcing netCDF file
+        outfile = Path(destdir) / f"{self.id}.th.nc"
+        boundary_ds = self.boundary_ds(grid, time)
+        boundary_ds.to_netcdf(outfile, "w", "NETCDF3_CLASSIC", unlimited_dims="time")
+        return outfile
+
+    def boundary_ds(self, grid: SCHISMGrid, time: Optional[TimeRange]) -> xr.Dataset:
         logger.info(f"Fetching {self.id}")
         if self.crop_data and time is not None:
             self._filter_time(time)
@@ -437,10 +443,7 @@ class SCHISMDataBoundary(DataBoundary):
         if schism_ds.time_series.isnull().any():
             msg = "Some values are null. This will cause SCHISM to crash. Please check your data."
             logger.warning(msg)
-
-        outfile = Path(destdir) / f"{self.id}.th.nc"
-        schism_ds.to_netcdf(outfile, "w", "NETCDF3_CLASSIC", unlimited_dims="time")
-        return outfile
+        return schism_ds
 
 
 def fill_tails(arr):
