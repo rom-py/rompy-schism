@@ -16,7 +16,7 @@
   ibc = 1 !0 for Baroclinic option; 1 for barotropic
   ibtp = 0 !1 
 
-  rnday = {{config.rnday}} !total run time in days
+  rnday = {{config._rnday}} !total run time in days
   dt = {{config.time_step}} !Time step in sec
 
 ! Grid for WWM (USE_WWM)
@@ -650,7 +650,7 @@
 ! Option for hotstart outputs
 !-----------------------------------------------------------------------
   nhot = 0 !use 1 to write out hotstart: output *_hotstart every 'hotout_write' steps
-  nhot_write = 22320.0 !must be a multiple of ihfskip if nhot=1
+!  nhot_write = 22320.0 !must be a multiple of ihfskip if nhot=1
 
 !-----------------------------------------------------------------------
 ! Station output option. If iout_sta/=0, need output skip (nspool_sta) and

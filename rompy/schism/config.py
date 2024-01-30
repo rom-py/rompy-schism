@@ -2,7 +2,7 @@ import logging
 from pathlib import Path
 from typing import Annotated, Literal, Optional, Union
 
-from pydantic import Field, model_validator
+from pydantic import Field, PrivateAttr, model_validator
 
 from rompy.core import (BaseConfig, DataBlob, RompyBaseModel, Spectrum,
                         TimeRange)
@@ -46,7 +46,6 @@ class SchismCSIROConfig(BaseConfig):
     data: SCHISMData = Field(description="Model inputs")
     project: str = Field("WAXA", description="TODO")
     utc_start: int = Field(0, description="TODO")
-    rnday: int = Field(120, description="TODO")
     time_step: float = Field(120.0, description="TODO")
     msc2: int = Field(
         description="same as msc in .nml ... for consitency check between SCHISM and WWM",
@@ -316,6 +315,7 @@ class SchismCSIROConfig(BaseConfig):
     def __call__(self, runtime) -> str:
         # Copy grid files
         ret = self.model_dump()
+        ret["_rnday"] = runtime.period.duration.total_seconds() / 86400
         ret["grid"] = self.grid.get(runtime.staging_dir)
         # TODO Still need to link up these maybe?
         ret.update(
