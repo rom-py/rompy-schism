@@ -70,7 +70,7 @@ class Sflux_Inputs(NamelistBaseModel):
             if isinstance(value, bool):
                 value = ".true." if value else ".false."
             ret += [f"{key}={value},"]
-        ret += ["/"]
+        ret += ["/\n"]
         return "\n".join(ret)
 
     def write_nml(self, destdir: str) -> None:
