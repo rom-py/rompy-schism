@@ -12,8 +12,12 @@ from pydantic import Field, field_validator, model_validator
 from pyschism.forcing.bctides import Bctides
 
 from rompy.core import DataGrid, RompyBaseModel
-from rompy.core.boundary import (BoundaryWaveStation, DataBoundary, SourceFile,
-                                 SourceWavespectra)
+from rompy.core.boundary import (
+    BoundaryWaveStation,
+    DataBoundary,
+    SourceFile,
+    SourceWavespectra,
+)
 from rompy.core.data import DATA_SOURCE_TYPES, DataBlob
 from rompy.core.time import TimeRange
 from rompy.schism.grid import SCHISMGrid
@@ -453,11 +457,12 @@ def fill_tails(arr):
     np.maximum.accumulate(idx, axis=0, out=idx)
     out = arr[idx]
     # repoat the same from the other end
-    mask = np.isnan(out)
+    reverse = out[::-1]
+    mask = np.isnan(reverse)
     idx = np.where(~mask, np.arange(mask.shape[0]), 0)
-    np.maximum.accumulate(idx[::-1], axis=0, out=idx[::-1])
-    out = out[idx[::-1]]
-    return out
+    np.maximum.accumulate(idx, axis=0, out=idx)
+    out = reverse[idx]
+    return out[::-1]
 
 
 class SCHISMDataOcean(RompyBaseModel):
