@@ -1,7 +1,7 @@
 output_dir: schism_declaritive
 period:
   start: 20230101T00
-  end: 20230102T00
+  end: 20230101T12
   interval: 3600
 run_id: test_schism
 config:
@@ -13,17 +13,9 @@ config:
     hgrid:
       id: hgrid
       model_type: data_blob
-      source: ../../tests/schism/test_data/hgrid.gr3
+        #source: ../../tests/schism/test_data/hgrid.gr3
+      source: ../../tests/schism/test_data/hgrid_20kmto60km_rompyschism_testing.gr3
     manning: 1
-    # manning:
-    #   model_type: data_blob
-    #   source: ../../tests/schism/test_data/manning.gr3
-    # hgrid_WWM:
-    #   model_type: data_blob
-    #   source: ../../tests/schism/test_data/hgrid_WWM.gr3
-    # wwmbnd:
-    #   model_type: data_blob
-    #   source: ../../tests/schism/test_data/wwmbnd.gr3
   data:
     data_type: schism
     atmos:
