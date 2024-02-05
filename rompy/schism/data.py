@@ -1,5 +1,6 @@
 import logging
 import os
+from datetime import timedelta
 from pathlib import Path
 from typing import Literal, Optional, Union
 
@@ -12,12 +13,8 @@ from pydantic import Field, field_validator, model_validator
 from pyschism.forcing.bctides import Bctides
 
 from rompy.core import DataGrid, RompyBaseModel
-from rompy.core.boundary import (
-    BoundaryWaveStation,
-    DataBoundary,
-    SourceFile,
-    SourceWavespectra,
-)
+from rompy.core.boundary import (BoundaryWaveStation, DataBoundary, SourceFile,
+                                 SourceWavespectra)
 from rompy.core.data import DATA_SOURCE_TYPES, DataBlob
 from rompy.core.time import TimeRange
 from rompy.schism.grid import SCHISMGrid
@@ -48,6 +45,10 @@ class SfluxSource(DataGrid):
         True, description="Fail if the source file is missing"
     )
     id: str = Field(None, description="id of the source", choices=["air", "rad", "prc"])
+    time_buffer: list[int] = Field(
+        default=[0, 1],
+        description="Number of source data timesteps to buffer the time range if `filter_time` is True",
+    )
 
     @property
     def outfile(self) -> str:
@@ -285,6 +286,10 @@ class SCHISMDataWave(BoundaryWaveStation):
         default={"unique": True},
         description="Keyword arguments for sel_method",
     )
+    time_buffer: list[int] = Field(
+        default=[0, 1],
+        description="Number of source data timesteps to buffer the time range if `filter_time` is True",
+    )
 
     def get(
         self,
@@ -343,6 +348,10 @@ class SCHISMDataBoundary(DataBoundary):
     interpolate_missing_coastal: bool = Field(
         True, description="interpolate_missing coastal data points"
     )
+    time_buffer: list[int] = Field(
+        default=[0, 1],
+        description="Number of source data timesteps to buffer the time range if `filter_time` is True",
+    )
 
     @model_validator(mode="after")
     def _set_variables(self) -> "SCHISMDataBoundary":
@@ -399,7 +408,10 @@ class SCHISMDataBoundary(DataBoundary):
         if self.crop_data and time is not None:
             self._filter_time(time)
         ds = self._sel_boundary(grid)
-        dt = total_seconds((ds.time[1] - ds.time[0]).values)
+        if len(ds.time) > 1:
+            dt = total_seconds((ds.time[1] - ds.time[0]).values)
+        else:
+            dt = 3600
 
         data = ds[self.variable].values
         if self.interpolate_missing_coastal:
@@ -659,6 +671,14 @@ class SCHISMData(RompyBaseModel):
         time: Optional[TimeRange] = None,
     ) -> None:
         ret = {}
+        # if time:
+        #     # Bump enddate by 1 hour to make sure we get the last time step
+        #     time = TimeRange(
+        #         start=time.start,
+        #         end=time.end + timedelta(hours=1),
+        #         interval=time.interval,
+        #         include_end=time.include_end,
+        #     )
         for datatype in ["atmos", "ocean", "wave", "tides"]:
             data = getattr(self, datatype)
             if data is None:
