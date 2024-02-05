@@ -34,9 +34,9 @@ class GeneratorBase(RompyBaseModel):
     def generate(self, destdir: str | Path) -> Path:
         raise NotImplementedError
 
-    def get(self, destdir: str | Path) -> Path:
+    def get(self, destdir: str | Path, name: str = None) -> Path:
         """Alias to maintain api compatibility with DataBlob"""
-        return self.generate(destdir)
+        return self.generate(destdir, name=name)
 
 
 class GR3Generator(GeneratorBase):
@@ -64,10 +64,10 @@ class GR3Generator(GeneratorBase):
     def id(self):
         return self.gr3_type
 
-    def generate(self, destdir: str | Path) -> Path:
+    def generate(self, destdir: str | Path, name: str = None) -> Path:
         if isinstance(self.hgrid, DataBlob):
             if not self.hgrid._copied:
-                self.hgrid.get(destdir)
+                self.hgrid.get(destdir, name="hgrid.gr3")
             ref = self.hgrid._copied
         else:
             ref = self.hgrid
@@ -88,7 +88,7 @@ class VgridGenerator(GeneratorBase):
     This is all hardcoded for now, may look at making this more flexible in the future.
     """
 
-    def generate(self, destdir: str | Path) -> Path:
+    def generate(self, destdir: str | Path, name: str = None) -> Path:
         dest = Path(destdir) / "vgrid.in"
         with open(dest, "w") as f:
             f.write("2 !ivcor (1: LSC2; 2: SZ) ; type of mesh you are using\n")
@@ -119,12 +119,12 @@ class WWMBNDGR3Generator(GeneratorBase):
         description="List of boundary condition flags. This replicates the functionality of the gen_wwmbnd.in file. Must be the same length as the number of open boundaries in the hgrid.gr3 file. If not specified, it is assumed that all open hgrid files are open to waves",
     )
 
-    def generate(self, destdir: str | Path) -> Path:
+    def generate(self, destdir: str | Path, name: str = None) -> Path:
         # Adapted from https://github.com/schism-dev/schism/blob/master/src/Utility/Pre-Processing/gen_wwmbnd.f90
         # Read input files
         if isinstance(self.hgrid, DataBlob):
             if not self.hgrid._copied:
-                self.hgrid.get(destdir)
+                self.hgrid.get(destdir, name="hgrid.gr3")
             ref = self.hgrid._copied
         else:
             ref = self.hgrid
@@ -193,10 +193,10 @@ class GridLinker(GeneratorBase):
             raise ValueError(f"gridtype must be one of {GRIDLINKS}")
         return v
 
-    def generate(self, destdir: str | Path) -> Path:
+    def generate(self, destdir: str | Path, name: str = None) -> Path:
         if isinstance(self.hgrid, DataBlob):
             if not self.hgrid._copied:
-                self.hgrid.get(destdir)
+                self.hgrid.get(destdir, name="hgrid.gr3")
             ref = self.hgrid._copied.name
         else:
             ref = self.hgrid
@@ -215,9 +215,7 @@ class SCHISMGrid(BaseGrid):
     """SCHISM grid in geographic space."""
 
     grid_type: Literal["schism"] = Field("schism", description="Model descriminator")
-    hgrid: DataBlob = Field(
-        ..., description="Path to hgrid.gr3 file"
-    )  # TODO always need. Follow up with Vanessa
+    hgrid: DataBlob = Field(..., description="Path to hgrid.gr3 file")
     vgrid: Optional[DataBlob | VgridGenerator] = Field(
         default=None,
         description="Path to vgrid.in file",
@@ -353,7 +351,7 @@ class SCHISMGrid(BaseGrid):
         for filetype in G3FILES + ["hgrid"]:
             source = getattr(self, filetype)
             if source is not None:
-                ret[filetype] = source.get(destdir)
+                ret[filetype] = source.get(destdir, name=f"{filetype}.gr3")
         for filetype in GRIDLINKS + ["vgrid", "wwmbnd"]:
             source = getattr(self, filetype)
             ret[filetype] = source.get(destdir)
