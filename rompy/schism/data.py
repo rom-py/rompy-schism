@@ -71,8 +71,8 @@ class SfluxSource(DataGrid):
             variables=self.variables, filters=self.filter, coords=self.coords
         )
         # rename latitude and longitide to lat and lon
-        ds = ds.rename_dims({"latitude": "ny_grid", "longitude": "nx_grid"})
-        lon, lat = np.meshgrid(ds["longitude"], ds["latitude"])
+        ds = ds.rename_dims({self.coords.y: "ny_grid", self.coords.x: "nx_grid"})
+        lon, lat = np.meshgrid(ds[self.coords.x], ds[self.coords.y])
         ds["lon"] = (("ny_grid", "nx_grid"), lon)
         ds["lat"] = (("ny_grid", "nx_grid"), lat)
         basedate = pd.to_datetime(ds.time.values[0])
