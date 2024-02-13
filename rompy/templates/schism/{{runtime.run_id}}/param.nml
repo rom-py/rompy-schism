@@ -79,7 +79,7 @@
 ! Main ramp option
 !-----------------------------------------------------------------------
   nramp = 1 !ramp-up option (1: on; 0: off)
-  dramp = 1. !needed if nramp=1; ramp-up period in days
+  dramp = {{config.dramp}} !needed if nramp=1; ramp-up period in days
 
   nrampbc = 0 !ramp-up flag for baroclinic force
   drampbc = 1. !not used if nrampbc=0
@@ -148,7 +148,7 @@
            !1-modified Grant-Madsen formulation; 2-Soulsby (1997)
   hmin_radstress = 1. !min. total water depth used only in radiation stress calculation [m]
   nrampwafo = 1       !ramp-up option for the wave forces (1: on; 0: off)
-  drampwafo = 1.      !needed if nrampwafo=1; ramp-up period in days
+  drampwafo = {{config.drampwafo}      !needed if nrampwafo=1; ramp-up period in days
   turbinj = 0.15      !% of depth-induced wave breaking energy injected in turbulence (default: 0.15 (15%), as proposed by Feddersen, 2012)
 
 !-----------------------------------------------------------------------
@@ -372,7 +372,7 @@
 ! in backtracking as above). dtb_max/min are the max/min steps allowed -
 ! actual step is calculated adaptively based on local gradient.
 !-----------------------------------------------------------------------
-  nadv = 2 ! default is 1
+  nadv = {{config.nadv}} ! default is 1
   dtb_max = 30. !in sec
   dtb_min = 10.
 
@@ -444,7 +444,7 @@
   nws = 2 
   wtiminc = 3600 !50. !time step for atmos. forcing. Default: same as dt
   nrampwind = 1 !ramp-up option for atmos. forcing
-  drampwind = 1. !needed if nrampwind/=0; ramp-up period in days
+  drampwind = {{config.drampwind}} !needed if nrampwind/=0; ramp-up period in days
 {{config.iwindoffYN}}  iwindoff = 0 !needed only if nws/=0; '1': needs windfactor.gr3
   iwind_form = {{config.iwind_form}} !needed if nws/=0   !usually use -1, trialling -2 to see if makes a difference
   !If impose_net_flux/=0 and nws=2, read in net _surface_ heat flux as var 'dlwrf' 
