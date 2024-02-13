@@ -280,7 +280,18 @@ class SchismCSIROConfig(BaseConfig):
         description="The path to the model template",
         default=CSIRO_TEMPLATE,
     )
-
+    drampwafo float = Field(1.0, description="TODO")
+    nadv int = Field(1, description="TODO")
+    drampwind float = Field(1.0, description="TODO")
+    dramp float = Field(1.0, description="TODO")
+    TAUW string = Field('F', description="TODO")
+    TAUHF string = Field('T', description="TODO")
+    TAUTOT string = Field('T', description="TODO")
+    STOKESSURFX string = Field('T', description="TODO")
+    STOKESSURFY string = Field('T', description="TODO")
+    STOKESBAROX string = Field('T', description="TODO")
+    STOKESBAROY string = Field('T', description="TODO")
+    
     # validator example - ensure the following
     # Bottom friction.
     #           nchi=0: drag coefficients specified in drag.gr3; nchi=-1: Manning's
