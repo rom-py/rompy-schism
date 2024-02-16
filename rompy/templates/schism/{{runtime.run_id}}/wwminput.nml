@@ -54,8 +54,8 @@
 /
 
 &INIT
- LHOTR          = F                  ! Use hotstart file (see &HOTFILE section)
- LINID          = T                  ! Initial condition; F for default; use T if using WW3 as i.c. etc
+ LHOTR          = {{config.wwminput_LHOTR}}                  ! Use hotstart file (see &HOTFILE section)
+ LINID          = {{config.wwminput_LINID}}                ! Initial condition; F for default; use T if using WW3 as i.c. etc
  INITSTYLE      = 2                  ! 1 - Parametric Jonswap, 2 - Read from Global NETCDF files, work only if IBOUNDFORMAT=3/6
 /
 
@@ -466,7 +466,7 @@
                                      ! then only one file is generated
                                      ! otherwise, for example for 86400
                                      ! daily output files are created.
- OUTSTYLE       = 'NO'               ! output option
+ OUTSTYLE       = '{{config.wwminput_station_OUTSTYLE}}'               ! output option
                                      ! 'NO' no output
                                      ! 'STE' classic station output (default)
                                      ! 'NC' for netcdf output
@@ -545,7 +545,7 @@
 /
 
 &HOTFILE
- LHOTF          = F                  ! Write hotfile
+ LHOTF          = {{config.wwminput_LHOTF}}                  ! Write hotfile
  FILEHOT_OUT    = 'wwm_hot_out'      !'.nc' suffix will be added 
  BEGTC          = '{{runtime.period.start.strftime("%Y%m%d.%H%M%S")}}'  !Starting time of hotfile writing. With ihot!=0 in SCHISM,
                                      !this will be whatever the new hotstarted time is (even with ihot=2)
