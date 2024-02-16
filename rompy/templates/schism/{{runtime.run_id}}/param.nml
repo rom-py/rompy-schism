@@ -649,8 +649,8 @@
 !-----------------------------------------------------------------------
 ! Option for hotstart outputs
 !-----------------------------------------------------------------------
-  nhot = 0 !use 1 to write out hotstart: output *_hotstart every 'hotout_write' steps
-!  nhot_write = 22320.0 !must be a multiple of ihfskip if nhot=1
+  nhot = {{config.param_nhot}} !use 1 to write out hotstart: output *_hotstart every 'hotout_write' steps
+{{config.param_nhot_writeYN}}  nhot_write = {{config.param_nhot_write}} !must be a multiple of ihfskip if nhot=1
 
 !-----------------------------------------------------------------------
 ! Station output option. If iout_sta/=0, need output skip (nspool_sta) and

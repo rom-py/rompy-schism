@@ -280,6 +280,7 @@ class SchismCSIROConfig(BaseConfig):
         description="The path to the model template",
         default=CSIRO_TEMPLATE,
     )
+
     drampwafo: float = Field(1.0, description="TODO")
     nadv: int = Field(1, description="TODO")
     drampwind: float = Field(1.0, description="TODO")
@@ -291,6 +292,13 @@ class SchismCSIROConfig(BaseConfig):
     STOKESSURFY: str = Field('T', description="TODO")
     STOKESBAROX: str = Field('T', description="TODO")
     STOKESBAROY: str = Field('T', description="TODO")
+    wwminput_station_OUTSTYLE: str = Field('NO', description="'NO' no output 'STE' classic station output (default) 'NC' for netcdf output")
+    wwminput_LHOTF: str Field('F', description="wwminput Write hotfile")
+    param_nhot: int Field(0, "use 1 to write out hotstart: output *_hotstart every 'hotout_write' steps")
+    param_nhot_writeYN: str = Field('!', description="enables or disables (!) the nhot write field")
+    param_nhot_write: float = Field(22320.0, description="if enabled when nhot and nhotwriteYN enabled then must be a multiple of ihfskip if nhot=1")
+    wwminput_LHOTR: str  = Field('F', "Use hotstart file (see &HOTFILE section)")
+    wwminput_LINID: str = Field('T', " Initial condition; F for default; use T if using WW3 as i.c. etc")
     
     # validator example - ensure the following
     # Bottom friction.
