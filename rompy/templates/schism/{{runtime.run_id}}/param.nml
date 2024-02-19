@@ -148,7 +148,7 @@
            !1-modified Grant-Madsen formulation; 2-Soulsby (1997)
   hmin_radstress = 1. !min. total water depth used only in radiation stress calculation [m]
   nrampwafo = 1       !ramp-up option for the wave forces (1: on; 0: off)
-  drampwafo = {{config.drampwafo}      !needed if nrampwafo=1; ramp-up period in days
+  drampwafo = {{config.drampwafo}}      !needed if nrampwafo=1; ramp-up period in days
   turbinj = 0.15      !% of depth-induced wave breaking energy injected in turbulence (default: 0.15 (15%), as proposed by Feddersen, 2012)
 
 !-----------------------------------------------------------------------

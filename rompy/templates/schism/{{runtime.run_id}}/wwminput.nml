@@ -383,7 +383,7 @@
                                      ! otherwise, for example for 86400
                                      ! daily output files are created.
  ! OUTSTYLE       = '{{config.outstyle}}'              ! output option - use 'NO' for no output
- OUTSTYLE       = {{config.wwminput_history_outstyle}} ! output option - use 'NO' for no output
+ OUTSTYLE       = {{config.wwminput_history_OUTSTYLE}} ! output option - use 'NO' for no output
                                      ! 'NC' for netcdf output
                                      ! 'XFN' for XFN output (default)
                                      ! 'SHP' for DARKO SHP output
@@ -438,14 +438,14 @@
  WATLEV         = F                  ! water level
  WATLEVOLD      = F                  ! water level at previous time step
  DEPDT          = F                  ! change of water level in time
- DEP            = {{config.DEP}}                  ! depth
- TAUW           = {{config.TAUW}}                  ! surface stress from the wave
- TAUHF          = {{config.TAUHF}}                  ! high frequency surface stress
- TAUTOT         = {{config.TAUTOT}}                  ! total surface stress
- STOKESSURFX    = {{config.STOKESSURFX}}                 ! Surface Stokes drift in X direction
- STOKESSURFY    = {{config.STOKESSURFY}}                  ! Surface Stokes drift in Y direction
- STOKESBAROX    = {{config.STOKESBAROX}}                  ! Barotropic Stokes drift in X direction
- STOKESBAROY    = {{config.STOKESBAROY}}                   ! Barotropic Stokes drift in Y direction
+ DEP            = {{config.wwminput_history_DEP}}                  ! depth
+ TAUW           = {{config.wwminput_history_TAUW}}                  ! surface stress from the wave
+ TAUHF          = {{config.wwminput_history_TAUHF}}                  ! high frequency surface stress
+ TAUTOT         = {{config.wwminput_history_TAUTOT}}                  ! total surface stress
+ STOKESSURFX    = {{config.wwminput_history_STOKESSURFX}}                 ! Surface Stokes drift in X direction
+ STOKESSURFY    = {{config.wwminput_history_STOKESSURFY}}                  ! Surface Stokes drift in Y direction
+ STOKESBAROX    = {{config.wwminput_history_STOKESBAROX}}                  ! Barotropic Stokes drift in X direction
+ STOKESBAROY    = {{config.wwminput_history_STOKESBAROY}}                   ! Barotropic Stokes drift in Y direction
  RSXX           = F                  ! RSXX potential of LH
  RSXY           = F                  ! RSXY potential of LH
  RSYY           = F                  ! RSYY potential of LH
