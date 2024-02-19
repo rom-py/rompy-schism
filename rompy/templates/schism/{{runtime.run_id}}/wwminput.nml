@@ -383,7 +383,7 @@
                                      ! otherwise, for example for 86400
                                      ! daily output files are created.
  ! OUTSTYLE       = '{{config.outstyle}}'              ! output option - use 'NO' for no output
- OUTSTYLE       = 'NC'              ! Temporary until implemented
+ OUTSTYLE       = {{config.wwminput_history_outstyle}} ! output option - use 'NO' for no output
                                      ! 'NC' for netcdf output
                                      ! 'XFN' for XFN output (default)
                                      ! 'SHP' for DARKO SHP output
