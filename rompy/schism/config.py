@@ -284,14 +284,14 @@ class SchismCSIROConfig(BaseConfig):
     nadv: int = Field(1, description="TODO")
     drampwind: float = Field(1.0, description="TODO")
     dramp: float = Field(1.0, description="TODO")
-    TAUW: str = Field('F', description="TODO")
-    TAUHF: str = Field('T', description="TODO")
-    TAUTOT: str = Field('T', description="TODO")
-    STOKESSURFX: str = Field('T', description="TODO")
-    STOKESSURFY: str = Field('T', description="TODO")
-    STOKESBAROX: str = Field('T', description="TODO")
-    STOKESBAROY: str = Field('T', description="TODO")
-    
+    TAUW: str = Field("F", description="TODO")
+    TAUHF: str = Field("T", description="TODO")
+    TAUTOT: str = Field("T", description="TODO")
+    STOKESSURFX: str = Field("T", description="TODO")
+    STOKESSURFY: str = Field("T", description="TODO")
+    STOKESBAROX: str = Field("T", description="TODO")
+    STOKESBAROY: str = Field("T", description="TODO")
+
     # validator example - ensure the following
     # Bottom friction.
     #           nchi=0: drag coefficients specified in drag.gr3; nchi=-1: Manning's
@@ -337,17 +337,17 @@ class SchismCSIROConfig(BaseConfig):
         return ret
 
 
-class SCHISMConfig(BaseConfig):
-    model_type: Literal["schism"] = Field(
-        "schism", description="The model type for SCHISM."
-    )
-    param: Optional[PARAM] = Field(description="Model paramaters")
-    ice: Optional[ICE] = Field(description="Ice model parameters", default=None)
-    icm: Optional[ICM] = Field(description="Ice model parameters", default=None)
-    mice: Optional[ICM] = Field(description="Ice model parameters", default=None)
-    sediment: Optional[SEDIMENT] = Field(
-        description="Sediment model parameters", default=None
-    )
-    cosine: Optional[COSINE] = Field(
-        description="Sediment model parameters", default=None
-    )
+# class SCHISMConfig(BaseConfig):
+#     model_type: Literal["schism"] = Field(
+#         "schism", description="The model type for SCHISM."
+#     )
+#     param: Optional[PARAM] = Field(description="Model paramaters")
+#     ice: Optional[ICE] = Field(description="Ice model parameters", default=None)
+#     icm: Optional[ICM] = Field(description="Ice model parameters", default=None)
+#     mice: Optional[ICM] = Field(description="Ice model parameters", default=None)
+#     sediment: Optional[SEDIMENT] = Field(
+#         description="Sediment model parameters", default=None
+#     )
+#     cosine: Optional[COSINE] = Field(
+#         description="Sediment model parameters", default=None
+#     )
