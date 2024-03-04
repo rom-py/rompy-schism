@@ -54,8 +54,8 @@
 /
 
 &INIT
- LHOTR          = F                  ! Use hotstart file (see &HOTFILE section)
- LINID          = T                  ! Initial condition; F for default; use T if using WW3 as i.c. etc
+ LHOTR          = {{config.wwminput_LHOTR}}                  ! Use hotstart file (see &HOTFILE section)
+ LINID          = {{config.wwminput_LINID}}                ! Initial condition; F for default; use T if using WW3 as i.c. etc
  INITSTYLE      = 2                  ! 1 - Parametric Jonswap, 2 - Read from Global NETCDF files, work only if IBOUNDFORMAT=3/6
 /
 
@@ -383,7 +383,7 @@
                                      ! otherwise, for example for 86400
                                      ! daily output files are created.
  ! OUTSTYLE       = '{{config.outstyle}}'              ! output option - use 'NO' for no output
- OUTSTYLE       = 'NC'              ! Temporary until implemented
+ OUTSTYLE       = {{config.wwminput_history_OUTSTYLE}} ! output option - use 'NO' for no output
                                      ! 'NC' for netcdf output
                                      ! 'XFN' for XFN output (default)
                                      ! 'SHP' for DARKO SHP output
@@ -438,14 +438,14 @@
  WATLEV         = F                  ! water level
  WATLEVOLD      = F                  ! water level at previous time step
  DEPDT          = F                  ! change of water level in time
- DEP            = {{config.DEP}}                  ! depth
- TAUW           = {{config.TAUW}}                  ! surface stress from the wave
- TAUHF          = {{config.TAUHF}}                  ! high frequency surface stress
- TAUTOT         = {{config.TAUTOT}}                  ! total surface stress
- STOKESSURFX    = {{config.STOKESSURFX}}                 ! Surface Stokes drift in X direction
- STOKESSURFY    = {{config.STOKESSURFY}}                  ! Surface Stokes drift in Y direction
- STOKESBAROX    = {{config.STOKESBAROX}}                  ! Barotropic Stokes drift in X direction
- STOKESBAROY    = {{config.STOKESBAROY}}                   ! Barotropic Stokes drift in Y direction
+ DEP            = {{config.wwminput_history_DEP}}                  ! depth
+ TAUW           = {{config.wwminput_history_TAUW}}                  ! surface stress from the wave
+ TAUHF          = {{config.wwminput_history_TAUHF}}                  ! high frequency surface stress
+ TAUTOT         = {{config.wwminput_history_TAUTOT}}                  ! total surface stress
+ STOKESSURFX    = {{config.wwminput_history_STOKESSURFX}}                 ! Surface Stokes drift in X direction
+ STOKESSURFY    = {{config.wwminput_history_STOKESSURFY}}                  ! Surface Stokes drift in Y direction
+ STOKESBAROX    = {{config.wwminput_history_STOKESBAROX}}                  ! Barotropic Stokes drift in X direction
+ STOKESBAROY    = {{config.wwminput_history_STOKESBAROY}}                   ! Barotropic Stokes drift in Y direction
  RSXX           = F                  ! RSXX potential of LH
  RSXY           = F                  ! RSXY potential of LH
  RSYY           = F                  ! RSYY potential of LH
@@ -466,7 +466,7 @@
                                      ! then only one file is generated
                                      ! otherwise, for example for 86400
                                      ! daily output files are created.
- OUTSTYLE       = 'NO'               ! output option
+ OUTSTYLE       = '{{config.wwminput_station_OUTSTYLE}}'               ! output option
                                      ! 'NO' no output
                                      ! 'STE' classic station output (default)
                                      ! 'NC' for netcdf output
@@ -528,14 +528,14 @@
  WATLEV         = F                  ! water level
  WATLEVOLD      = F                  ! water level at previous time step
  DEPDT          = F                  ! change of water level in time
- DEP            = T                  ! depth
- TAUW           = T                  ! surface stress from the wave
- TAUHF          = T                  ! high frequency surface stress
- TAUTOT         = T                  ! total surface stress
- STOKESSURFX    = T                  ! Surface Stokes drift in X direction
- STOKESSURFY    = T                  ! Surface Stokes drift in X direction
- STOKESBAROX    = T                  ! Barotropic Stokes drift in X direction
- STOKESBAROY    = T                  ! Barotropic Stokes drift in Y direction
+ DEP            = {{config.wwminput_station_DEP}}                  ! depth
+ TAUW           = {{config.wwminput_station_TAUW}}                  ! surface stress from the wave
+ TAUHF          = {{config.wwminput_station_TAUHF}}                  ! high frequency surface stress
+ TAUTOT         = {{config.wwminput_station_TAUTOT}}                  ! total surface stress
+ STOKESSURFX    = {{config.wwminput_station_STOKESSURFX}}                 ! Surface Stokes drift in X direction
+ STOKESSURFY    = {{config.wwminput_station_STOKESSURFY}}                  ! Surface Stokes drift in Y direction
+ STOKESBAROX    = {{config.wwminput_station_STOKESBAROX}}                  ! Barotropic Stokes drift in X direction
+ STOKESBAROY    = {{config.wwminput_station_STOKESBAROY}}                   ! Barotropic Stokes drift in Y direction
  RSXX           = F                  ! RSXX potential of LH
  RSXY           = F                  ! RSXY potential of LH
  RSYY           = F                  ! RSYY potential of LH
@@ -545,7 +545,7 @@
 /
 
 &HOTFILE
- LHOTF          = F                  ! Write hotfile
+ LHOTF          = {{config.wwminput_LHOTF}}                  ! Write hotfile
  FILEHOT_OUT    = 'wwm_hot_out'      !'.nc' suffix will be added 
  BEGTC          = '{{runtime.period.start.strftime("%Y%m%d.%H%M%S")}}'  !Starting time of hotfile writing. With ihot!=0 in SCHISM,
                                      !this will be whatever the new hotstarted time is (even with ihot=2)
