@@ -340,7 +340,7 @@ class SchismCSIROConfig(BaseConfig):
     param_iof_hydro30: int = Field(0,  description="output 0: off; 1: on - Barotropic pressure gradient force vector (m.s-2) @side centers  {pressure_gradient}  2D vector  - Default 0")
     wwminput_history_OUTSTYLE: str = Field('NC', description="'output option - use 'NO' for no output")
     param_nspool_sta: int = Field(30, description="needed if iout_sta/=0; mod(nhot_write,nspool_sta) must=0 defaults to 30")
-    
+
     # validator example - ensure the following
     # Bottom friction.
     #           nchi=0: drag coefficients specified in drag.gr3; nchi=-1: Manning's
@@ -386,17 +386,17 @@ class SchismCSIROConfig(BaseConfig):
         return ret
 
 
-class SCHISMConfig(BaseConfig):
-    model_type: Literal["schism"] = Field(
-        "schism", description="The model type for SCHISM."
-    )
-    param: Optional[PARAM] = Field(description="Model paramaters")
-    ice: Optional[ICE] = Field(description="Ice model parameters", default=None)
-    icm: Optional[ICM] = Field(description="Ice model parameters", default=None)
-    mice: Optional[ICM] = Field(description="Ice model parameters", default=None)
-    sediment: Optional[SEDIMENT] = Field(
-        description="Sediment model parameters", default=None
-    )
-    cosine: Optional[COSINE] = Field(
-        description="Sediment model parameters", default=None
-    )
+# class SCHISMConfig(BaseConfig):
+#     model_type: Literal["schism"] = Field(
+#         "schism", description="The model type for SCHISM."
+#     )
+#     param: Optional[PARAM] = Field(description="Model paramaters")
+#     ice: Optional[ICE] = Field(description="Ice model parameters", default=None)
+#     icm: Optional[ICM] = Field(description="Ice model parameters", default=None)
+#     mice: Optional[ICM] = Field(description="Ice model parameters", default=None)
+#     sediment: Optional[SEDIMENT] = Field(
+#         description="Sediment model parameters", default=None
+#     )
+#     cosine: Optional[COSINE] = Field(
+#         description="Sediment model parameters", default=None
+#     )
