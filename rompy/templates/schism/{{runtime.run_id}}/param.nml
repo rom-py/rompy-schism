@@ -148,7 +148,7 @@
            !1-modified Grant-Madsen formulation; 2-Soulsby (1997)
   hmin_radstress = 1. !min. total water depth used only in radiation stress calculation [m]
   nrampwafo = 1       !ramp-up option for the wave forces (1: on; 0: off)
-  drampwafo = {{config.drampwafo}      !needed if nrampwafo=1; ramp-up period in days
+  drampwafo = {{config.drampwafo}}      !needed if nrampwafo=1; ramp-up period in days
   turbinj = 0.15      !% of depth-induced wave breaking energy injected in turbulence (default: 0.15 (15%), as proposed by Feddersen, 2012)
 
 !-----------------------------------------------------------------------
@@ -649,8 +649,8 @@
 !-----------------------------------------------------------------------
 ! Option for hotstart outputs
 !-----------------------------------------------------------------------
-  nhot = 0 !use 1 to write out hotstart: output *_hotstart every 'hotout_write' steps
-!  nhot_write = 22320.0 !must be a multiple of ihfskip if nhot=1
+  nhot = {{config.param_nhot}} !use 1 to write out hotstart: output *_hotstart every 'hotout_write' steps
+{{config.param_nhot_writeYN}}  nhot_write = {{config.param_nhot_write}} !must be a multiple of ihfskip if nhot=1
 
 !-----------------------------------------------------------------------
 ! Station output option. If iout_sta/=0, need output skip (nspool_sta) and
@@ -658,43 +658,43 @@
 ! and z (positive upward; not used for 2D variables). 
 !-----------------------------------------------------------------------
   iout_sta = {{config.iout_sta}}
-  nspool_sta = 30 !needed if iout_sta/=0; mod(nhot_write,nspool_sta) must=0
+  nspool_sta = {{config.param_nspool_sta}} !needed if iout_sta/=0; mod(nhot_write,nspool_sta) must=0
 
 !-----------------------------------------------------------------------
 ! Global output options
 ! The variable names that appear in nc output are shown in {}
 !-----------------------------------------------------------------------
-  iof_hydro(1) = 1 !0: off; 1: on - elev. [m]  {elev} 2D
-  iof_hydro(2) = 0 !air pressure [Pa]  {air_pressure} 2D
-  iof_hydro(3) = 0 !air temperature [C] {air_temperature} 2D
-  iof_hydro(4) = 0 !Specific humidity [-] {specific_humidity}  2D
-  iof_hydro(5) = 0 !solar (shortwave) radiation [W/m/m] {solar_radiation}  2D
-  iof_hydro(6) = 0 !sensible flux (positive upward) [W/m/m]  {sensible_flux}  2D
-  iof_hydro(7) = 0 !latent heat flux (positive upward) [W/m/m] {latent_heat}   2D
-  iof_hydro(8) = 0 !upward longwave radiation (positive upward) [W/m/m] {upward_longwave} 2D
-  iof_hydro(9) = 0 !downward longwave radiation (positive downward) [W/m/m] {downward_longwave}  2D
-  iof_hydro(10) = 0 !total flux=-flsu-fllu-(radu-radd) [W/m/m] {total_heat_flux}  2D
-  iof_hydro(11) = 0 !evaporation rate [kg/m/m/s] {evaporation}  2D
-  iof_hydro(12) = 0 !precipitation rate [kg/m/m/s] {precipitation}  2D
-  iof_hydro(13) = 0 !Bottom stress vector [kg/m/s^2(Pa)] {bottom_stress} 2D vector
-  iof_hydro(14) = 0 !wind velocity vector [m/s] {wind_speed}  2D vector
-  iof_hydro(15) = 0 !wind stress vector [m^2/s/s] {wind_stress}  2D vector
-  iof_hydro(16) = 1 !depth-averaged vel vector [m/s] {dahv}  2D vector
-  iof_hydro(17) = 0 !vertical velocity [m/s] {vertical_velocity}  3D
-  iof_hydro(18) = 0 !water temperature [C] {temp}  3D
-  iof_hydro(19) = 0 !water salinity [PSU] {salt}   3D
-  iof_hydro(20) = 0 !water density [kg/m^3] {water_density}   3D
-  iof_hydro(21) = 0 !eddy diffusivity [m^2/s] {diffusivity}   3D
-  iof_hydro(22) = 0 !eddy viscosity [m^2/s] {viscosity}      3D
-  iof_hydro(23) = 0 !turbulent kinetic energy {TKE}   3D
-  iof_hydro(24) = 0 !turbulent mixing length [m] {mixing_length}   3D
-  iof_hydro(25) = 0 !horizontal vel vector [m/s] {hvel}   3D vector
+  iof_hydro(1) = {{config.param_iof_hydro1}}  !0: off; 1: on - elev. [m]  {elev} 2D - Default 1
+  iof_hydro(2) = {{config.param_iof_hydro2}}  !air pressure [Pa]  {air_pressure} 2D - Default 0
+  iof_hydro(3) = {{config.param_iof_hydro3}}  !air temperature [C] {air_temperature} 2D - Default 0
+  iof_hydro(4) = {{config.param_iof_hydro4}}  !Specific humidity [-] {specific_humidity}  2D - Default 0
+  iof_hydro(5) = {{config.param_iof_hydro5}}  !solar (shortwave) radiation [W/m/m] {solar_radiation}  2D - Default 0
+  iof_hydro(6) = {{config.param_iof_hydro6}}  !sensible flux (positive upward) [W/m/m]  {sensible_flux}  2D - Default 0
+  iof_hydro(7) = {{config.param_iof_hydro7}}  !latent heat flux (positive upward) [W/m/m] {latent_heat}   2D - Default 0
+  iof_hydro(8) = {{config.param_iof_hydro8}}  !upward longwave radiation (positive upward) [W/m/m] {upward_longwave} 2D - Default 0
+  iof_hydro(9) = {{config.param_iof_hydro9}}  !downward longwave radiation (positive downward) [W/m/m] {downward_longwave}  2D - Default 0
+  iof_hydro(10) = {{config.param_iof_hydro10}}  !total flux=-flsu-fllu-(radu-radd) [W/m/m] {total_heat_flux}  2D - Default 0
+  iof_hydro(11) = {{config.param_iof_hydro11}}  !evaporation rate [kg/m/m/s] {evaporation}  2D - Default 0
+  iof_hydro(12) = {{config.param_iof_hydro12}}  !precipitation rate [kg/m/m/s] {precipitation}  2D - Default 0
+  iof_hydro(13) = {{config.param_iof_hydro13}}  !Bottom stress vector [kg/m/s^2(Pa)] {bottom_stress} 2D vector - Default 0
+  iof_hydro(14) = {{config.param_iof_hydro14}}  !wind velocity vector [m/s] {wind_speed}  2D vector - Default 0
+  iof_hydro(15) = {{config.param_iof_hydro15}}  !wind stress vector [m^2/s/s] {wind_stress}  2D vector - Default 0
+  iof_hydro(16) = {{config.param_iof_hydro16}}  !depth-averaged vel vector [m/s] {dahv}  2D vector - Default 1
+  iof_hydro(17) = {{config.param_iof_hydro17}}  !vertical velocity [m/s] {vertical_velocity}  3D - Default 0
+  iof_hydro(18) = {{config.param_iof_hydro18}}  !water temperature [C] {temp}  3D - Default 0
+  iof_hydro(19) = {{config.param_iof_hydro19}}  !water salinity [PSU] {salt}   3D - Default 0
+  iof_hydro(20) = {{config.param_iof_hydro20}}  !water density [kg/m^3] {water_density}   3D - Default 0
+  iof_hydro(21) = {{config.param_iof_hydro21}}  !eddy diffusivity [m^2/s] {diffusivity}   3D - Default 0
+  iof_hydro(22) = {{config.param_iof_hydro22}}  !eddy viscosity [m^2/s] {viscosity}      3D - Default 0
+  iof_hydro(23) = {{config.param_iof_hydro23}}  !turbulent kinetic energy {TKE}   3D - Default 0
+  iof_hydro(24) = {{config.param_iof_hydro24}}  !turbulent mixing length [m] {mixing_length}   3D - Default 0
+  iof_hydro(25) = {{config.param_iof_hydro25}}  !horizontal vel vector [m/s] {hvel}   3D vector - Default 0
 
-  iof_hydro(26) = 0 !horizontal vel vector defined @side [m/s] {hvel_side}   3D vector
-  iof_hydro(27) = 0 !vertical vel. @elem [m/s] {wvel_elem}   3D vector
-  iof_hydro(28) = 0 !T @prism centers [C] {temp_elem}   3D
-  iof_hydro(29) = 0 !S @prism centers [PSU] {salt_elem}   3D
-  iof_hydro(30) = 0 !Barotropic pressure gradient force vector (m.s-2) @side centers  {pressure_gradient}  2D vector
+  iof_hydro(26) = {{config.param_iof_hydro26}}  !horizontal vel vector defined @side [m/s] {hvel_side}   3D vector  - Default 0
+  iof_hydro(27) = {{config.param_iof_hydro27}}  !vertical vel. @elem [m/s] {wvel_elem}   3D vector  - Default 0
+  iof_hydro(28) = {{config.param_iof_hydro28}}  !T @prism centers [C] {temp_elem}   3D - Default 0
+  iof_hydro(29) = {{config.param_iof_hydro29}}  !S @prism centers [PSU] {salt_elem}   3D - Default 0
+  iof_hydro(30) = {{config.param_iof_hydro30}}  !Barotropic pressure gradient force vector (m.s-2) @side centers  {pressure_gradient}  2D vector  - Default 0
 
 !-----------------------------------------------------------------------
 ! Outputs from optional modules. Only uncomment these if the USE_* is on
