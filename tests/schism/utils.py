@@ -1,4 +1,5 @@
 import logging
+import tarfile
 from datetime import datetime
 from glob import glob
 from pathlib import Path
@@ -20,8 +21,7 @@ logging.basicConfig(
     format="[%(asctime)s] %(name)s %(levelname)s: %(message)s",
     force=True,
 )
-logger = logging.getLogger("pyschism")
-logger.setLevel(logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 def download_hycom(dest=Path("./"), hgrid=Path("./hgrid.gr3")):
@@ -48,3 +48,13 @@ def compare_files(file1, file2):
             for line1, line2 in zip(f1, f2):
                 if line1[0] != "$" and line2[0] != "$":
                     assert line1.rstrip() == line2.rstrip()
+
+
+def untar_file(file, dest=Path("./")):
+    logger.info(f"Extracting {file} to {dest}")
+    with tarfile.open(file) as tar:
+        tar.extractall(dest)
+
+
+if __name__ == "__main__":
+    untar_file("test_data/tpxo9-neaus.tar.gz", "test_data/")
