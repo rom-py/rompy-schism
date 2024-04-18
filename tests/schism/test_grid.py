@@ -54,7 +54,7 @@ def test_SCHISMGrid2D(tmpdir):
     assert staging_dir.joinpath("hgrid_WWM.gr3").is_symlink()
     assert staging_dir.joinpath("diffmin.gr3").exists()
     assert staging_dir.joinpath("diffmax.gr3").exists()
-    assert staging_dir.joinpath("tvprop.in").exists()
+    assert staging_dir.joinpath("tvd.prop").exists()
     assert staging_dir.joinpath("vgrid.in").exists()
 
 
