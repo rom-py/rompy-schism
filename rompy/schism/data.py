@@ -683,7 +683,7 @@ class SCHISMData(RompyBaseModel):
             data = getattr(self, datatype)
             if data is None:
                 continue
-            if isinstance(data, DataBlob):
+            if type(data) is DataBlob or type(data) is DataLink:
                 output = data.get(destdir)
             else:
                 output = data.get(destdir, grid, time)
