@@ -339,7 +339,8 @@ class SchismCSIROConfig(BaseConfig):
     param_iof_hydro29: int = Field(0,  description="output 0: off; 1: on - S @prism centers [PSU] {salt_elem}   3D - Default 0")
     param_iof_hydro30: int = Field(0,  description="output 0: off; 1: on - Barotropic pressure gradient force vector (m.s-2) @side centers  {pressure_gradient}  2D vector  - Default 0")
     wwminput_history_OUTSTYLE: str = Field('NC', description="'output option - use 'NO' for no output")
-    param_nspool_sta: int = Field(30, description="needed if iout_sta/=0; mod(nhot_write,nspool_sta) must=0 defaults to 30")
+    param_nspool_sta: int = Field(30, description="needed if iout_sta/=0; mod(nhot_write,nspool_sta) must=0 defaults to 30"),
+    ihot: int = Field(0, description="hotstart 0: off; 1: on - whether to expect hotstarts - Default - 0-")
 
     # validator example - ensure the following
     # Bottom friction.
