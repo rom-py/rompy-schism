@@ -549,7 +549,7 @@
  FILEHOT_OUT    = 'wwm_hot_out'      !'.nc' suffix will be added 
  BEGTC          = '{{runtime.period.start.strftime("%Y%m%d.%H%M%S")}}'  !Starting time of hotfile writing. With ihot!=0 in SCHISM,
                                      !this will be whatever the new hotstarted time is (even with ihot=2)
- DELTC          = {{config.deltc_out}}.             ! time between hotfile writes
+ DELTC          = {{config.wwminput_hotfile_deltc_out}}.             ! time between hotfile writes
  UNITC          = 'SEC'              ! unit used above
  ENDTC          = '{{runtime.period.end.strftime("%Y%m%d.%H%M%S")}}'  ! Ending time of hotfile writing (adjust with BEGTC)
  LCYCLEHOT      = T                  ! Applies only to netcdf
