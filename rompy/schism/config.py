@@ -341,6 +341,7 @@ class SchismCSIROConfig(BaseConfig):
     wwminput_history_OUTSTYLE: str = Field('NC', description="'output option - use 'NO' for no output")
     param_nspool_sta: int = Field(30, description="needed if iout_sta/=0; mod(nhot_write,nspool_sta) must=0 defaults to 30"),
     ihot: int = Field(0, description="hotstart 0: off; 1: on - whether to expect hotstarts - Default - 0-")
+    wwminput_hotfile_deltc_out: int = Field(3600, description="hotfile time in UNITC (typically seconds) when hotfile should be written, defaults to 3600")
 
     # validator example - ensure the following
     # Bottom friction.
