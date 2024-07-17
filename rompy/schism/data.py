@@ -4,7 +4,6 @@ from datetime import timedelta
 from pathlib import Path
 from typing import Literal, Optional, Union
 
-import appdirs
 import numpy as np
 import pandas as pd
 import xarray as xr
@@ -13,8 +12,12 @@ from pydantic import Field, field_validator, model_validator
 from pyschism.forcing.bctides import Bctides
 
 from rompy.core import DataGrid, RompyBaseModel
-from rompy.core.boundary import (BoundaryWaveStation, DataBoundary, SourceFile,
-                                 SourceWavespectra)
+from rompy.core.boundary import (
+    BoundaryWaveStation,
+    DataBoundary,
+    SourceFile,
+    SourceWavespectra,
+)
 from rompy.core.data import DATA_SOURCE_TYPES, DataBlob
 from rompy.core.time import TimeRange
 from rompy.schism.grid import SCHISMGrid
@@ -44,7 +47,8 @@ class SfluxSource(DataGrid):
     fail_if_missing: bool = Field(
         True, description="Fail if the source file is missing"
     )
-    id: str = Field(None, description="id of the source", choices=["air", "rad", "prc"])
+    id: str = Field(None, description="id of the source",
+                    choices=["air", "rad", "prc"])
     time_buffer: list[int] = Field(
         default=[0, 1],
         description="Number of source data timesteps to buffer the time range if `filter_time` is True",
@@ -71,7 +75,8 @@ class SfluxSource(DataGrid):
             variables=self.variables, filters=self.filter, coords=self.coords
         )
         # rename latitude and longitide to lat and lon
-        ds = ds.rename_dims({self.coords.y: "ny_grid", self.coords.x: "nx_grid"})
+        ds = ds.rename_dims(
+            {self.coords.y: "ny_grid", self.coords.x: "nx_grid"})
         lon, lat = np.meshgrid(ds[self.coords.x], ds[self.coords.y])
         ds["lon"] = (("ny_grid", "nx_grid"), lon)
         ds["lat"] = (("ny_grid", "nx_grid"), lat)
@@ -266,7 +271,8 @@ class SCHISMDataSflux(RompyBaseModel):
                 active = True
             if active and weight != 1.0:
                 raise ValueError(
-                    f"Relative weights for {variable} do not add to 1.0: {weight}"
+                    f"Relative weights for {
+                        variable} do not add to 1.0: {weight}"
                 )
             return v
 
@@ -400,7 +406,8 @@ class SCHISMDataBoundary(DataBoundary):
         # prepare xarray.Dataset and save forcing netCDF file
         outfile = Path(destdir) / f"{self.id}.th.nc"
         boundary_ds = self.boundary_ds(grid, time)
-        boundary_ds.to_netcdf(outfile, "w", "NETCDF3_CLASSIC", unlimited_dims="time")
+        boundary_ds.to_netcdf(
+            outfile, "w", "NETCDF3_CLASSIC", unlimited_dims="time")
         return outfile
 
     def boundary_ds(self, grid: SCHISMGrid, time: Optional[TimeRange]) -> xr.Dataset:
@@ -503,7 +510,8 @@ class SCHISMDataOcean(RompyBaseModel):
     def not_yet_implemented(cls, v):
         for variable in ["uv3D", "TEM_3D", "SAL_3D"]:
             if getattr(v, variable) is not None:
-                raise NotImplementedError(f"Variable {variable} is not yet implemented")
+                raise NotImplementedError(
+                    f"Variable {variable} is not yet implemented")
         return v
 
     @model_validator(mode="after")
@@ -581,9 +589,11 @@ class SCHISMDataTides(RompyBaseModel):
         50.0,
         description="cutoff depth for tides",
     )
-    flags: Optional[list] = Field([[5, 3, 0, 0]], description="nested list of bctypes")
+    flags: Optional[list] = Field(
+        [[5, 3, 0, 0]], description="nested list of bctypes")
     constituents: Union[str, list] = Field("major", description="constituents")
-    database: str = Field("tpxo", description="database", choices=["tpxo", "fes2014"])
+    database: str = Field("tpxo", description="database",
+                          choices=["tpxo", "fes2014"])
     add_earth_tidal: bool = Field(True, description="add_earth_tidal")
     ethconst: Optional[list] = Field(
         [], description="constant elevation value for each open boundary"
@@ -659,7 +669,8 @@ class SCHISMData(RompyBaseModel):
         default="schism",
         description="Model type discriminator",
     )
-    atmos: Optional[SCHISMDataSflux] = Field(None, description="atmospheric data")
+    atmos: Optional[SCHISMDataSflux] = Field(
+        None, description="atmospheric data")
     ocean: Optional[SCHISMDataOcean] = Field(None, description="ocean data")
     wave: Optional[SCHISMDataWave] = Field(None, description="wave data")
     tides: Optional[SCHISMDataTides] = Field(None, description="tidal data")
