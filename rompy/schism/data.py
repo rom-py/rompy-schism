@@ -1,21 +1,23 @@
 import logging
 import os
-from datetime import timedelta
 from pathlib import Path
 from typing import Literal, Optional, Union
 
-import appdirs
 import numpy as np
 import pandas as pd
 import xarray as xr
 from cloudpathlib import AnyPath
-from pydantic import Field, field_validator, model_validator
+from pydantic import Field, model_validator
 from pyschism.forcing.bctides import Bctides
 
 from rompy.core import DataGrid, RompyBaseModel
-from rompy.core.boundary import (BoundaryWaveStation, DataBoundary, SourceFile,
-                                 SourceWavespectra)
-from rompy.core.data import DATA_SOURCE_TYPES, DataBlob
+from rompy.core.boundary import (
+    BoundaryWaveStation,
+    DataBoundary,
+    SourceFile,
+    SourceWavespectra,
+)
+from rompy.core.data import DataBlob
 from rompy.core.time import TimeRange
 from rompy.schism.grid import SCHISMGrid
 from rompy.utils import total_seconds
@@ -199,7 +201,7 @@ class SfluxPrc(SfluxSource):
         self.variables = [self.prate_name]
 
 
-class SCHISMDataSflux(RompyBaseModel):
+class SCHISMDataSflux(eompyBaseModel):
     data_type: Literal["sflux"] = Field(
         default="sflux",
         description="Model type discriminator",
