@@ -201,7 +201,7 @@ class SfluxPrc(SfluxSource):
         self.variables = [self.prate_name]
 
 
-class SCHISMDataSflux(eompyBaseModel):
+class SCHISMDataSflux(RompyBaseModel):
     data_type: Literal["sflux"] = Field(
         default="sflux",
         description="Model type discriminator",
