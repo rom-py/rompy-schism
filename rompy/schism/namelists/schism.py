@@ -47,10 +47,7 @@ class NML(NamelistBaseModel):
         ]:
             attr = getattr(self, nml)
             if attr is not None:
-                try:
-                    attr.write_nml(workdir)
-                except Exception as e:
-                    __import__("ipdb").set_trace()
+                attr.write_nml(workdir)
 
 
 if __name__ == "__main__":
