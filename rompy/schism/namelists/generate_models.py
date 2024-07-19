@@ -78,6 +78,7 @@ def generate_pydantic_models(
     master_model_name=None,
     # basemodel="rompy.schism.basemodel.NamelistBaseModel",
     basemodel="rompy.schism.namelists.basemodel.NamelistBaseModel",
+    none_option=True,
 ):
     with open(filename, "w") as file:
         file.write(f"from pydantic import Field\n")
@@ -127,7 +128,14 @@ def generate_pydantic_models(
                     )
                     file.write(f'    """\n    {indented_text}\n    """\n')
                 else:
-                    file.write(f"    {key}: {key} | None = Field(default=None)\n")
+                    if none_option:
+                        file.write(
+                            f"    {key.lower()}: {key} | None = Field(default=None)\n"
+                        )
+                    else:
+                        file.write(
+                            f"    {key.lower()}: {key} = Field(default={key}())\n"
+                        )
     run(["black", filename])
 
 
@@ -135,7 +143,13 @@ def nml_to_models(file_in: str, file_out: str):
     # Load the input text file and extract sections
     nml_dict = nml_to_dict(file_in)
     master_model_name = os.path.basename(file_in).split(".")[0].upper()
-    generate_pydantic_models(nml_dict, file_out, master_model_name)
+    if os.path.basename(file_in).split(".")[0] == "param":
+        none_option = False
+    else:
+        none_option = True
+    generate_pydantic_models(
+        nml_dict, file_out, master_model_name, none_option=none_option
+    )
 
 
 def nml_to_dict(file_in: str):

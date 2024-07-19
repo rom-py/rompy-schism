@@ -281,6 +281,6 @@ class COSINE(NamelistBaseModel):
 
     """
 
-    MARCO: MARCO | None = Field(default=None)
-    CORE: CORE | None = Field(default=None)
-    MISC: MISC | None = Field(default=None)
+    marco: MARCO | None = Field(default=None)
+    core: CORE | None = Field(default=None)
+    misc: MISC | None = Field(default=None)
