@@ -144,10 +144,11 @@ def nml_to_models(file_in: str, file_out: str):
     # Load the input text file and extract sections
     nml_dict = nml_to_dict(file_in)
     master_model_name = os.path.basename(file_in).split(".")[0].upper()
-    if os.path.basename(file_in).split(".")[0] == "param":
-        none_option = False
-    else:
-        none_option = True
+    # if os.path.basename(file_in).split(".")[0] == "param":
+    #     none_option = False
+    # else:
+    #     none_option = True
+    none_option = True
     generate_pydantic_models(
         nml_dict, file_out, master_model_name, none_option=none_option
     )
