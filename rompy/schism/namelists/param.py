@@ -1566,7 +1566,7 @@ class PARAM(NamelistBaseModel):
 
     """
 
-    CORE: CORE | None = Field(default=None)
-    OPT: OPT | None = Field(default=None)
-    VERTICAL: VERTICAL | None = Field(default=None)
-    SCHOUT: SCHOUT | None = Field(default=None)
+    core: CORE = Field(default=CORE())
+    opt: OPT = Field(default=OPT())
+    vertical: VERTICAL = Field(default=VERTICAL())
+    schout: SCHOUT = Field(default=SCHOUT())

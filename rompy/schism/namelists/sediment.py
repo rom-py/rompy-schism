@@ -475,5 +475,5 @@ class SEDIMENT(NamelistBaseModel):
 
     """
 
-    SED_CORE: SED_CORE | None = Field(default=None)
-    SED_OPT: SED_OPT | None = Field(default=None)
+    sed_core: SED_CORE | None = Field(default=None)
+    sed_opt: SED_OPT | None = Field(default=None)

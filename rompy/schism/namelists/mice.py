@@ -83,4 +83,4 @@ class MICE(NamelistBaseModel):
 
     """
 
-    MICE_IN: MICE_IN | None = Field(default=None)
+    mice_in: MICE_IN | None = Field(default=None)

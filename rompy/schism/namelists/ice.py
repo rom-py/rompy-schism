@@ -126,4 +126,4 @@ class ICE(NamelistBaseModel):
 
     """
 
-    ICE_IN: ICE_IN | None = Field(default=None)
+    ice_in: ICE_IN | None = Field(default=None)

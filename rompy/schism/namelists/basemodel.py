@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from rompy.core.types import RompyBaseModel
 
 
@@ -24,7 +26,7 @@ class NamelistBaseModel(RompyBaseModel):
             ret += ["/"]
         return "\n".join(ret)
 
-    def write_nml(self, workdir: str) -> None:
+    def write_nml(self, workdir: Path) -> None:
         """Write the namelist to a file"""
         output = workdir / f"{self.__class__.__name__.lower()}.nml"
         with open(output, "w") as f:
