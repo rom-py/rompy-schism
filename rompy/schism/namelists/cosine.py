@@ -1,5 +1,4 @@
 from pydantic import Field
-
 from rompy.schism.namelists.basemodel import NamelistBaseModel
 
 
@@ -80,34 +79,34 @@ class CORE(NamelistBaseModel):
 
 
 class MISC(NamelistBaseModel):
-    iws: int = Field(0, description="TODO")
+    iws: int = Field(0, description="")
     NO3c: float = Field(2.0, description="mmol/m3")
-    ws1: float = Field(2.5, description="TODO")
-    ws2: float = Field(2.0, description="TODO")
-    iclam: int = Field(0, description="TODO")
+    ws1: float = Field(2.5, description="")
+    ws2: float = Field(2.0, description="")
+    iclam: int = Field(0, description="")
     deltaZ: int = Field(1, description="meter")
     kcex: float = Field(0.002, description="day-1")
     Nperclam: float = Field(0.39032, description="mmol[N]")
     Wclam: str = Field("5.45e-3", description="clam weigh (g)")
     Fclam: int = Field(40, description="L.g[AFDW]-1.day-1, filtration rate")
     nclam0: int = Field(2000, description="")
-    fS2: list = Field([0.1, 0.1, 0.8], description="TODO")
+    fS2: list = Field([0.1, 0.1, 0.8], description="")
     rkS2: list = Field(["4e-3", "1.0e-4", 0.0], description="time delay of 63 day")
-    mkS2: list = Field([0.1, 0.01, 0.0], description="TODO")
-    fDN: list = Field([0.15, 0.1, 0.75], description="TODO")
+    mkS2: list = Field([0.1, 0.01, 0.0], description="")
+    fDN: list = Field([0.15, 0.1, 0.75], description="")
     rkDN: list = Field(["4e-3", "1.0e-4", 0.0], description="time delay of 63 day")
-    mkDN: list = Field([0.1, 0.01, 0.0], description="TODO")
-    fDSi: list = Field([0.3, 0.3, 0.4], description="TODO")
+    mkDN: list = Field([0.1, 0.01, 0.0], description="")
+    fDSi: list = Field([0.3, 0.3, 0.4], description="")
     rkDSi: list = Field(
         [0.004, "1e-4", 0.0], description="time delay of about half a month"
     )
-    mkDSi: list = Field([0.1, 0.01, 0.0], description="TODO")
+    mkDSi: list = Field([0.1, 0.01, 0.0], description="")
 
 
 class COSINE(NamelistBaseModel):
     """
 
-    This file was auto generated from a schism namelist file on 2023-11-20.
+    This file was auto generated from a schism namelist file on 2024-07-19.
     The full contents of the namelist file are shown below providing
     associated documentation for the objects:
 
@@ -282,6 +281,6 @@ class COSINE(NamelistBaseModel):
 
     """
 
-    marco: MARCO = MARCO()
-    core: CORE = CORE()
-    misc: MISC = MISC()
+    MARCO: MARCO | None = Field(default=None)
+    CORE: CORE | None = Field(default=None)
+    MISC: MISC | None = Field(default=None)

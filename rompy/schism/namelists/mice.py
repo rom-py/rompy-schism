@@ -1,5 +1,4 @@
 from pydantic import Field
-
 from rompy.schism.namelists.basemodel import NamelistBaseModel
 
 
@@ -43,7 +42,7 @@ class MICE_IN(NamelistBaseModel):
 class MICE(NamelistBaseModel):
     """
 
-    This file was auto generated from a schism namelist file on 2023-11-20.
+    This file was auto generated from a schism namelist file on 2024-07-19.
     The full contents of the namelist file are shown below providing
     associated documentation for the objects:
 
@@ -84,4 +83,4 @@ class MICE(NamelistBaseModel):
 
     """
 
-    mice_in: MICE_IN = MICE_IN()
+    MICE_IN: MICE_IN | None = Field(default=None)

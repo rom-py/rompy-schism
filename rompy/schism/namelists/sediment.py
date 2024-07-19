@@ -1,5 +1,4 @@
 from pydantic import Field
-
 from rompy.schism.namelists.basemodel import NamelistBaseModel
 
 
@@ -85,7 +84,7 @@ class SED_OPT(NamelistBaseModel):
 class SEDIMENT(NamelistBaseModel):
     """
 
-    This file was auto generated from a schism namelist file on 2023-11-20.
+    This file was auto generated from a schism namelist file on 2024-07-19.
     The full contents of the namelist file are shown below providing
     associated documentation for the objects:
 
@@ -476,5 +475,5 @@ class SEDIMENT(NamelistBaseModel):
 
     """
 
-    set_core: SED_CORE = SED_CORE()
-    sed_opt: SED_OPT = SED_OPT()
+    SED_CORE: SED_CORE | None = Field(default=None)
+    SED_OPT: SED_OPT | None = Field(default=None)
