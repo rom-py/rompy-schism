@@ -4,8 +4,6 @@ import re
 from subprocess import run
 from typing import Any
 
-from pydantic import BaseModel, Field
-
 TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), "templates")
 
 
@@ -129,7 +127,8 @@ def generate_pydantic_models(
                     )
                     file.write(f'    """\n    {indented_text}\n    """\n')
                 else:
-                    file.write(f"    {key}: {key} = {key}()\n")
+                    file.write(f"    {key}: {key} | None = Field(default=None)\n")
+    run(["black", filename])
 
 
 def nml_to_models(file_in: str, file_out: str):

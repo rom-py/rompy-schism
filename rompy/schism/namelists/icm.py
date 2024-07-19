@@ -1,5 +1,4 @@
 from pydantic import Field
-
 from rompy.schism.namelists.basemodel import NamelistBaseModel
 
 
@@ -865,7 +864,7 @@ class POC(NamelistBaseModel):
 class ICM(NamelistBaseModel):
     """
 
-    This file was auto generated from a schism namelist file on 2023-11-20.
+    This file was auto generated from a schism namelist file on 2024-07-19.
     The full contents of the namelist file are shown below providing
     associated documentation for the objects:
 
@@ -1446,15 +1445,15 @@ class ICM(NamelistBaseModel):
 
     """
 
-    marco: MARCO = MARCO()
-    core: CORE = CORE()
-    sfm: SFM = SFM()
-    silica: SILICA = SILICA()
-    zb: ZB = ZB()
-    ph_icm: PH_ICM = PH_ICM()
-    sav: SAV = SAV()
-    stem: STEM = STEM()
-    veg: VEG = VEG()
-    bag: BAG = BAG()
-    ero: ERO = ERO()
-    poc: POC = POC()
+    MARCO: MARCO | None = Field(default=None)
+    CORE: CORE | None = Field(default=None)
+    SFM: SFM | None = Field(default=None)
+    SILICA: SILICA | None = Field(default=None)
+    ZB: ZB | None = Field(default=None)
+    PH_ICM: PH_ICM | None = Field(default=None)
+    SAV: SAV | None = Field(default=None)
+    STEM: STEM | None = Field(default=None)
+    VEG: VEG | None = Field(default=None)
+    BAG: BAG | None = Field(default=None)
+    ERO: ERO | None = Field(default=None)
+    POC: POC | None = Field(default=None)

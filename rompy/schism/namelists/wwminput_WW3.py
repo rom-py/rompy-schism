@@ -1,5 +1,4 @@
 from pydantic import Field
-
 from rompy.schism.namelists.basemodel import NamelistBaseModel
 
 
@@ -680,7 +679,7 @@ class NESTING(NamelistBaseModel):
 class WWMINPUT(NamelistBaseModel):
     """
 
-    This file was auto generated from a schism namelist file on 2023-11-20.
+    This file was auto generated from a schism namelist file on 2024-07-19.
     The full contents of the namelist file are shown below providing
     associated documentation for the objects:
 
@@ -1275,15 +1274,15 @@ class WWMINPUT(NamelistBaseModel):
 
     """
 
-    proc: PROC = PROC()
-    coupl: COUPL = COUPL()
-    grid: GRID = GRID()
-    init: INIT = INIT()
-    hotfile: HOTFILE = HOTFILE()
-    bouc: BOUC = BOUC()
-    engs: ENGS = ENGS()
-    nums: NUMS = NUMS()
-    history: HISTORY = HISTORY()
-    station: STATION = STATION()
-    petscoptions: PETSCOPTIONS = PETSCOPTIONS()
-    nesting: NESTING = NESTING()
+    PROC: PROC | None = Field(default=None)
+    COUPL: COUPL | None = Field(default=None)
+    GRID: GRID | None = Field(default=None)
+    INIT: INIT | None = Field(default=None)
+    HOTFILE: HOTFILE | None = Field(default=None)
+    BOUC: BOUC | None = Field(default=None)
+    ENGS: ENGS | None = Field(default=None)
+    NUMS: NUMS | None = Field(default=None)
+    HISTORY: HISTORY | None = Field(default=None)
+    STATION: STATION | None = Field(default=None)
+    PETSCOPTIONS: PETSCOPTIONS | None = Field(default=None)
+    NESTING: NESTING | None = Field(default=None)
