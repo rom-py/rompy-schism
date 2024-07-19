@@ -34,10 +34,23 @@ class NML(NamelistBaseModel):
         description="Wave model input parameters", default=None
     )
 
-
-def write_nml(self, workdir: Path):
-    for nml in self:
-        nml.write_nml(workdir)
+    def write_nml(self, workdir: Path):
+        for nml in [
+            "param",
+            "ice",
+            "icm",
+            "mice",
+            "sediment",
+            "cosine",
+            "wmminput_spectra",
+            "wwminput_WW3",
+        ]:
+            attr = getattr(self, nml)
+            if attr is not None:
+                try:
+                    attr.write_nml(workdir)
+                except Exception as e:
+                    __import__("ipdb").set_trace()
 
 
 if __name__ == "__main__":
