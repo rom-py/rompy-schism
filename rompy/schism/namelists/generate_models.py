@@ -136,6 +136,7 @@ def generate_pydantic_models(
                         file.write(
                             f"    {key.lower()}: {key} = Field(default={key}())\n"
                         )
+    run(["isort", filename])
     run(["black", filename])
 
 
@@ -196,6 +197,10 @@ def main():
                 nml_to_models(file_in, file_out)
                 classname = file_out.split(".")[0]
                 f.write(f"from .{classname} import {classname.split('_')[0].upper()}\n")
+        f.write(f"from .sflux import Sflux_Inputs\n")
+        f.write(f"from .schism import NML")
+    run(["isort", "__init__.py"])
+    run(["black", "__init__.py"])
 
 
 if __name__ == "__main__":
