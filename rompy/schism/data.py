@@ -274,7 +274,8 @@ class SCHISMDataSflux(RompyBaseModel):
 
 
 class SCHISMDataWave(BoundaryWaveStation):
-    """This class is used to write SCHISM data from a dataset."""
+    """This class is used to write wave spectral boundary data. Spectral data is extracted
+    from the nearest points along the grid boundary"""
 
     data_type: Literal["wave"] = Field(
         default="wave",
@@ -328,7 +329,7 @@ class SCHISMDataWave(BoundaryWaveStation):
 
 
 class SCHISMDataBoundary(DataBoundary):
-    """This class is used to extract ocean boundary data  griddd dataset at all open
+    """This class is used to extract ocean boundary data from a griddd dataset at all open
     boundary nodes."""
 
     data_type: Literal["boundary"] = Field(
@@ -480,6 +481,8 @@ def fill_tails(arr):
 
 
 class SCHISMDataOcean(RompyBaseModel):
+    """This class is used define all ocean boundary forcing"""
+
     data_type: Literal["ocean"] = Field(
         default="ocean",
         description="Model type discriminator",
@@ -548,6 +551,8 @@ class SCHISMDataOcean(RompyBaseModel):
 
 
 class TidalDataset(RompyBaseModel):
+    """This class is used to define the tidal dataset"""
+
     data_type: Literal["tidal_dataset"] = Field(
         default="tidal_dataset",
         description="Model type discriminator",
@@ -574,6 +579,8 @@ class TidalDataset(RompyBaseModel):
 
 
 class SCHISMDataTides(RompyBaseModel):
+    """This class is used to define the tidal forcing for SCHISM."""
+
     data_type: Literal["tides"] = Field(
         default="tide",
         description="Model type discriminator",
