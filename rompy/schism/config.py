@@ -1,14 +1,14 @@
 import logging
 from pathlib import Path
-from typing import Annotated, Literal, Optional, Union
+from typing import Literal, Optional, Union
 
-from pydantic import Field, PrivateAttr, model_validator
+from pydantic import Field, model_validator
 
 from rompy.core import BaseConfig, DataBlob, RompyBaseModel, Spectrum, TimeRange
 
 from .data import SCHISMData
 from .grid import SCHISMGrid
-from .namelists import COSINE, ICE, ICM, MICE, PARAM, SEDIMENT
+from .namelists import NML
 
 logger = logging.getLogger(__name__)
 
@@ -505,17 +505,15 @@ class SchismCSIROConfig(BaseConfig):
         return ret
 
 
-# class SCHISMConfig(BaseConfig):
-#     model_type: Literal["schism"] = Field(
-#         "schism", description="The model type for SCHISM."
-#     )
-#     param: Optional[PARAM] = Field(description="Model paramaters")
-#     ice: Optional[ICE] = Field(description="Ice model parameters", default=None)
-#     icm: Optional[ICM] = Field(description="Ice model parameters", default=None)
-#     mice: Optional[ICM] = Field(description="Ice model parameters", default=None)
-#     sediment: Optional[SEDIMENT] = Field(
-#         description="Sediment model parameters", default=None
-#     )
-#     cosine: Optional[COSINE] = Field(
-#         description="Sediment model parameters", default=None
-#     )
+class SCHISMConfig(BaseConfig):
+    model_type: Literal["schism"] = Field(
+        "schism", description="The model type for SCHISM."
+    )
+    grid: SCHISMGrid = Field(description="The model grid")
+    data: SCHISMData = Field(description="Model inputs")
+    nml: NML = Field(description="The namelist")
+
+    def __call__(self, runtime) -> str:
+        self.grid.get(runtime.staging_dir)
+        self.data.get(destdir=runtime.staging_dir, grid=self.grid, time=runtime.period)
+        self.nml.write_nml(runtime.staging_dir)
