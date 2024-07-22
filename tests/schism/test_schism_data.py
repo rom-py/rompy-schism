@@ -1,9 +1,9 @@
 import os
 from pathlib import Path
 
-import numpy as np
-import pandas as pd
 import pytest
+
+pytest.importorskip("rompy.schism")
 import xarray as xr
 
 from rompy.core import BaseGrid, DataBlob, DataGrid, TimeRange
