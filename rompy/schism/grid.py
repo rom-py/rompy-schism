@@ -491,7 +491,7 @@ if __name__ == "__main__":
     import cartopy.crs as ccrs
     import matplotlib.pyplot as plt
 
-    grid = SCHISMGrid2D(
+    grid = SCHISMGrid(
         hgrid=DataBlob(
             source="../../tests/schism/test_data/hgrid.gr3",
             id="hgrid",
