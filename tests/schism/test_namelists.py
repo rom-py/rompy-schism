@@ -2,6 +2,8 @@ from pathlib import Path
 
 import pytest
 
+pytest.importorskip("rompy.schism")
+
 from rompy.schism.namelists import ICE, ICM, MICE, PARAM, SEDIMENT
 from rompy.schism.namelists.generate_models import nml_to_dict
 
