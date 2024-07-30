@@ -11,6 +11,9 @@ from pydantic import Field, model_validator
 from pyschism.forcing.bctides import Bctides
 
 from rompy.core import DataGrid, RompyBaseModel
+from rompy.core.boundary import (BoundaryWaveStation, DataBoundary, SourceFile,
+                                 SourceWavespectra)
+from rompy.core.data import DATA_SOURCE_TYPES, DataBlob
 from rompy.core.boundary import (
     BoundaryWaveStation,
     DataBoundary,
@@ -206,12 +209,12 @@ class SCHISMDataSflux(RompyBaseModel):
         default="sflux",
         description="Model type discriminator",
     )
-    air_1: SfluxAir = Field(None, description="sflux air source 1")
-    air_2: SfluxAir = Field(None, description="sflux air source 2")
-    rad_1: SfluxRad = Field(None, description="sflux rad source 1")
-    rad_2: SfluxRad = Field(None, description="sflux rad source 2")
-    prc_1: SfluxPrc = Field(None, description="sflux prc source 1")
-    prc_2: SfluxPrc = Field(None, description="sflux prc source 2")
+    air_1: Union[DataBlob, SfluxAir, None] = Field(None, description="sflux air source 1")
+    air_2: Union[DataBlob, SfluxAir, None] = Field(None, description="sflux air source 2")
+    rad_1: Union[DataBlob, SfluxRad, None] = Field(None, description="sflux rad source 1")
+    rad_2: Union[DataBlob, SfluxRad, None] = Field(None, description="sflux rad source 2")
+    prc_1: Union[DataBlob, SfluxPrc, None] = Field(None, description="sflux prc source 1")
+    prc_2: Union[DataBlob, SfluxPrc, None] = Field(None, description="sflux prc source 2")
 
     def get(
         self,
@@ -487,19 +490,19 @@ class SCHISMDataOcean(RompyBaseModel):
         default="ocean",
         description="Model type discriminator",
     )
-    elev2D: Optional[SCHISMDataBoundary] = Field(
+    elev2D: Optional[Union[DataBlob, SCHISMDataBoundary]] = Field(
         None,
         description="elev2D",
     )
-    uv3D: Optional[SCHISMDataBoundary] = Field(
+    uv3D: Optional[Union[DataBlob, SCHISMDataBoundary]] = Field(
         None,
         description="uv3D",
     )
-    TEM_3D: Optional[SCHISMDataBoundary] = Field(
+    TEM_3D: Optional[Union[DataBlob, SCHISMDataBoundary]] = Field(
         None,
         description="TEM_3D",
     )
-    SAL_3D: Optional[SCHISMDataBoundary] = Field(
+    SAL_3D: Optional[Union[DataBlob, SCHISMDataBoundary]] = Field(
         None,
         description="SAL_3D",
     )
@@ -670,8 +673,8 @@ class SCHISMData(RompyBaseModel):
     )
     atmos: Optional[SCHISMDataSflux] = Field(None, description="atmospheric data")
     ocean: Optional[SCHISMDataOcean] = Field(None, description="ocean data")
-    wave: Optional[SCHISMDataWave] = Field(None, description="wave data")
-    tides: Optional[SCHISMDataTides] = Field(None, description="tidal data")
+    wave: Optional[Union[DataBlob, SCHISMDataWave]] = Field(None, description="wave data")
+    tides: Optional[Union[DataBlob, SCHISMDataTides]] = Field(None, description="tidal data")
 
     def get(
         self,
@@ -692,7 +695,10 @@ class SCHISMData(RompyBaseModel):
             data = getattr(self, datatype)
             if data is None:
                 continue
-            output = data.get(destdir, grid, time)
+            if type(data) is DataBlob:
+                output = data.get(destdir)
+            else:
+                output = data.get(destdir, grid, time)
             ret.update({datatype: output})
             # ret[
             #     "wave"
