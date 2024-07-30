@@ -3,6 +3,8 @@ from datetime import datetime
 from pathlib import Path
 
 import pytest
+
+pytest.importorskip("rompy.schism")
 from utils import compare_files
 
 from rompy.core import DataBlob, TimeRange
