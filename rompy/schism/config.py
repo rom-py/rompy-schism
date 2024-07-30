@@ -4,8 +4,7 @@ from typing import Annotated, Literal, Optional, Union
 
 from pydantic import Field, PrivateAttr, model_validator
 
-from rompy.core import (BaseConfig, DataBlob, RompyBaseModel, Spectrum,
-                        TimeRange)
+from rompy.core import BaseConfig, DataBlob, RompyBaseModel, Spectrum, TimeRange
 
 from .data import SCHISMData
 from .grid import SCHISMGrid
@@ -285,63 +284,179 @@ class SchismCSIROConfig(BaseConfig):
     nadv: int = Field(1, description="TODO")
     drampwind: float = Field(1.0, description="TODO")
     dramp: float = Field(1.0, description="TODO")
-    wwminput_history_DEP: str = Field('F', description="TODO")
-    wwminput_history_TAUW: str = Field('F', description="TODO")
-    wwminput_history_TAUHF: str = Field('T', description="TODO")
-    wwminput_history_TAUTOT: str = Field('T', description="TODO")
-    wwminput_history_STOKESSURFX: str = Field('T', description="TODO")
-    wwminput_history_STOKESSURFY: str = Field('T', description="TODO")
-    wwminput_history_STOKESBAROX: str = Field('T', description="TODO")
-    wwminput_history_STOKESBAROY: str = Field('T', description="TODO")
-    wwminput_station_DEP: str = Field('T', description="TODO")
-    wwminput_station_TAUW: str = Field('T', description="TODO")
-    wwminput_station_TAUHF: str = Field('T', description="TODO")
-    wwminput_station_TAUTOT: str = Field('T', description="TODO")
-    wwminput_station_STOKESSURFX: str = Field('T', description="TODO")
-    wwminput_station_STOKESSURFY: str = Field('T', description="TODO")
-    wwminput_station_STOKESBAROX: str = Field('T', description="TODO")
-    wwminput_station_STOKESBAROY: str = Field('T', description="TODO")
-    wwminput_station_OUTSTYLE: str = Field('NO', description="'NO' no output 'STE' classic station output (default) 'NC' for netcdf output")
-    wwminput_LHOTF: str = Field('F', description="wwminput Write hotfile")
-    param_nhot: int = Field(0, description="use 1 to write out hotstart: output *_hotstart every 'hotout_write' steps")
-    param_nhot_writeYN: str = Field('!', description="enables or disables (!) the nhot write field")
-    param_nhot_write: float = Field(22320.0, description="if enabled when nhot and nhotwriteYN enabled then must be a multiple of ihfskip if nhot=1")
-    wwminput_LHOTR: str = Field('F',  description="Use hotstart file (see &HOTFILE section)")
-    wwminput_LINID: str = Field('T',  description=" Initial condition; F for default; use T if using WW3 as i.c. etc")
-    param_iof_hydro1: int = Field(0,  description="output 0: off; 1: on - elev. [m]  {elev} 2D - Default 1")
-    param_iof_hydro2: int = Field(0,  description="output 0: off; 1: on - air pressure [Pa]  {air_pressure} 2D - Default 0")
-    param_iof_hydro3: int = Field(0,  description="output 0: off; 1: on - air temperature [C] {air_temperature} 2D - Default 0")
-    param_iof_hydro4: int = Field(0,  description="output 0: off; 1: on - Specific humidity [-] {specific_humidity}  2D - Default 0")
-    param_iof_hydro5: int = Field(0,  description="output 0: off; 1: on - solar (shortwave) radiation [W/m/m] {solar_radiation}  2D - Default 0")
-    param_iof_hydro6: int = Field(0,  description="output 0: off; 1: on - sensible flux (positive upward) [W/m/m]  {sensible_flux}  2D - Default 0")
-    param_iof_hydro7: int = Field(0,  description="output 0: off; 1: on - latent heat flux (positive upward) [W/m/m] {latent_heat}   2D - Default 0")
-    param_iof_hydro8: int = Field(0,  description="output 0: off; 1: on - upward longwave radiation (positive upward) [W/m/m] {upward_longwave} 2D - Default 0")
-    param_iof_hydro9: int = Field(0,  description="output 0: off; 1: on - downward longwave radiation (positive downward) [W/m/m] {downward_longwave}  2D - Default 0")
-    param_iof_hydro10: int = Field(0,  description="output 0: off; 1: on - total flux=-flsu-fllu-(radu-radd) [W/m/m] {total_heat_flux}  2D - Default 0")
-    param_iof_hydro11: int = Field(0,  description="output 0: off; 1: on - evaporation rate [kg/m/m/s] {evaporation}  2D - Default 0")
-    param_iof_hydro12: int = Field(0,  description="output 0: off; 1: on - precipitation rate [kg/m/m/s] {precipitation}  2D - Default 0")
-    param_iof_hydro13: int = Field(0,  description="output 0: off; 1: on - Bottom stress vector [kg/m/s^2(Pa)] {bottom_stress} 2D vector - Default 0")
-    param_iof_hydro14: int = Field(0,  description="output 0: off; 1: on - wind velocity vector [m/s] {wind_speed}  2D vector - Default 0")
-    param_iof_hydro15: int = Field(0,  description="output 0: off; 1: on - wind stress vector [m^2/s/s] {wind_stress}  2D vector - Default 0")
-    param_iof_hydro16: int = Field(1,  description="output 0: off; 1: on - depth-averaged vel vector [m/s] {dahv}  2D vector - Default 1")
-    param_iof_hydro17: int = Field(0,  description="output 0: off; 1: on - vertical velocity [m/s] {vertical_velocity}  3D - Default 0")
-    param_iof_hydro18: int = Field(0,  description="output 0: off; 1: on - water temperature [C] {temp}  3D - Default 0")
-    param_iof_hydro19: int = Field(0,  description="output 0: off; 1: on - water salinity [PSU] {salt}   3D - Default 0")
-    param_iof_hydro20: int = Field(0,  description="output 0: off; 1: on - water density [kg/m^3] {water_density}   3D - Default 0")
-    param_iof_hydro21: int = Field(0,  description="output 0: off; 1: on - eddy diffusivity [m^2/s] {diffusivity}   3D - Default 0")
-    param_iof_hydro22: int = Field(0,  description="output 0: off; 1: on - eddy viscosity [m^2/s] {viscosity}      3D - Default 0")
-    param_iof_hydro23: int = Field(0,  description="output 0: off; 1: on - turbulent kinetic energy {TKE}   3D - Default 0")
-    param_iof_hydro24: int = Field(0,  description="output 0: off; 1: on - turbulent mixing length [m] {mixing_length}   3D - Default 0")
-    param_iof_hydro25: int = Field(0,  description="output 0: off; 1: on - horizontal vel vector [m/s] {hvel}   3D vector - Default 0")
-    param_iof_hydro26: int = Field(0,  description="output 0: off; 1: on - horizontal vel vector defined @side [m/s] {hvel_side}   3D vector  - Default 0")
-    param_iof_hydro27: int = Field(0,  description="output 0: off; 1: on - vertical vel. @elem [m/s] {wvel_elem}   3D vector  - Default 0")
-    param_iof_hydro28: int = Field(0,  description="output 0: off; 1: on - T @prism centers [C] {temp_elem}   3D - Default 0")
-    param_iof_hydro29: int = Field(0,  description="output 0: off; 1: on - S @prism centers [PSU] {salt_elem}   3D - Default 0")
-    param_iof_hydro30: int = Field(0,  description="output 0: off; 1: on - Barotropic pressure gradient force vector (m.s-2) @side centers  {pressure_gradient}  2D vector  - Default 0")
-    wwminput_history_OUTSTYLE: str = Field('NC', description="'output option - use 'NO' for no output")
-    param_nspool_sta: int = Field(30, description="needed if iout_sta/=0; mod(nhot_write,nspool_sta) must=0 defaults to 30"),
-    ihot: int = Field(0, description="hotstart 0: off; 1: on - whether to expect hotstarts - Default - 0-")
-    wwminput_hotfile_deltc_out: int = Field(3600, description="hotfile time in UNITC (typically seconds) when hotfile should be written, defaults to 3600")
+    wwminput_history_DEP: str = Field("F", description="TODO")
+    wwminput_history_TAUW: str = Field("F", description="TODO")
+    wwminput_history_TAUHF: str = Field("T", description="TODO")
+    wwminput_history_TAUTOT: str = Field("T", description="TODO")
+    wwminput_history_STOKESSURFX: str = Field("T", description="TODO")
+    wwminput_history_STOKESSURFY: str = Field("T", description="TODO")
+    wwminput_history_STOKESBAROX: str = Field("T", description="TODO")
+    wwminput_history_STOKESBAROY: str = Field("T", description="TODO")
+    wwminput_station_DEP: str = Field("T", description="TODO")
+    wwminput_station_TAUW: str = Field("T", description="TODO")
+    wwminput_station_TAUHF: str = Field("T", description="TODO")
+    wwminput_station_TAUTOT: str = Field("T", description="TODO")
+    wwminput_station_STOKESSURFX: str = Field("T", description="TODO")
+    wwminput_station_STOKESSURFY: str = Field("T", description="TODO")
+    wwminput_station_STOKESBAROX: str = Field("T", description="TODO")
+    wwminput_station_STOKESBAROY: str = Field("T", description="TODO")
+    wwminput_station_OUTSTYLE: str = Field(
+        "NO",
+        description="'NO' no output 'STE' classic station output (default) 'NC' for netcdf output",
+    )
+    wwminput_LHOTF: str = Field("F", description="wwminput Write hotfile")
+    param_nhot: int = Field(
+        0,
+        description="use 1 to write out hotstart: output *_hotstart every 'hotout_write' steps",
+    )
+    param_nhot_writeYN: str = Field(
+        "!", description="enables or disables (!) the nhot write field"
+    )
+    param_nhot_write: float = Field(
+        22320.0,
+        description="if enabled when nhot and nhotwriteYN enabled then must be a multiple of ihfskip if nhot=1",
+    )
+    wwminput_LHOTR: str = Field(
+        "F", description="Use hotstart file (see &HOTFILE section)"
+    )
+    wwminput_LINID: str = Field(
+        "T",
+        description=" Initial condition; F for default; use T if using WW3 as i.c. etc",
+    )
+    param_iof_hydro1: int = Field(
+        0, description="output 0: off; 1: on - elev. [m]  {elev} 2D - Default 1"
+    )
+    param_iof_hydro2: int = Field(
+        0,
+        description="output 0: off; 1: on - air pressure [Pa]  {air_pressure} 2D - Default 0",
+    )
+    param_iof_hydro3: int = Field(
+        0,
+        description="output 0: off; 1: on - air temperature [C] {air_temperature} 2D - Default 0",
+    )
+    param_iof_hydro4: int = Field(
+        0,
+        description="output 0: off; 1: on - Specific humidity [-] {specific_humidity}  2D - Default 0",
+    )
+    param_iof_hydro5: int = Field(
+        0,
+        description="output 0: off; 1: on - solar (shortwave) radiation [W/m/m] {solar_radiation}  2D - Default 0",
+    )
+    param_iof_hydro6: int = Field(
+        0,
+        description="output 0: off; 1: on - sensible flux (positive upward) [W/m/m]  {sensible_flux}  2D - Default 0",
+    )
+    param_iof_hydro7: int = Field(
+        0,
+        description="output 0: off; 1: on - latent heat flux (positive upward) [W/m/m] {latent_heat}   2D - Default 0",
+    )
+    param_iof_hydro8: int = Field(
+        0,
+        description="output 0: off; 1: on - upward longwave radiation (positive upward) [W/m/m] {upward_longwave} 2D - Default 0",
+    )
+    param_iof_hydro9: int = Field(
+        0,
+        description="output 0: off; 1: on - downward longwave radiation (positive downward) [W/m/m] {downward_longwave}  2D - Default 0",
+    )
+    param_iof_hydro10: int = Field(
+        0,
+        description="output 0: off; 1: on - total flux=-flsu-fllu-(radu-radd) [W/m/m] {total_heat_flux}  2D - Default 0",
+    )
+    param_iof_hydro11: int = Field(
+        0,
+        description="output 0: off; 1: on - evaporation rate [kg/m/m/s] {evaporation}  2D - Default 0",
+    )
+    param_iof_hydro12: int = Field(
+        0,
+        description="output 0: off; 1: on - precipitation rate [kg/m/m/s] {precipitation}  2D - Default 0",
+    )
+    param_iof_hydro13: int = Field(
+        0,
+        description="output 0: off; 1: on - Bottom stress vector [kg/m/s^2(Pa)] {bottom_stress} 2D vector - Default 0",
+    )
+    param_iof_hydro14: int = Field(
+        0,
+        description="output 0: off; 1: on - wind velocity vector [m/s] {wind_speed}  2D vector - Default 0",
+    )
+    param_iof_hydro15: int = Field(
+        0,
+        description="output 0: off; 1: on - wind stress vector [m^2/s/s] {wind_stress}  2D vector - Default 0",
+    )
+    param_iof_hydro16: int = Field(
+        1,
+        description="output 0: off; 1: on - depth-averaged vel vector [m/s] {dahv}  2D vector - Default 1",
+    )
+    param_iof_hydro17: int = Field(
+        0,
+        description="output 0: off; 1: on - vertical velocity [m/s] {vertical_velocity}  3D - Default 0",
+    )
+    param_iof_hydro18: int = Field(
+        0,
+        description="output 0: off; 1: on - water temperature [C] {temp}  3D - Default 0",
+    )
+    param_iof_hydro19: int = Field(
+        0,
+        description="output 0: off; 1: on - water salinity [PSU] {salt}   3D - Default 0",
+    )
+    param_iof_hydro20: int = Field(
+        0,
+        description="output 0: off; 1: on - water density [kg/m^3] {water_density}   3D - Default 0",
+    )
+    param_iof_hydro21: int = Field(
+        0,
+        description="output 0: off; 1: on - eddy diffusivity [m^2/s] {diffusivity}   3D - Default 0",
+    )
+    param_iof_hydro22: int = Field(
+        0,
+        description="output 0: off; 1: on - eddy viscosity [m^2/s] {viscosity}      3D - Default 0",
+    )
+    param_iof_hydro23: int = Field(
+        0,
+        description="output 0: off; 1: on - turbulent kinetic energy {TKE}   3D - Default 0",
+    )
+    param_iof_hydro24: int = Field(
+        0,
+        description="output 0: off; 1: on - turbulent mixing length [m] {mixing_length}   3D - Default 0",
+    )
+    param_iof_hydro25: int = Field(
+        0,
+        description="output 0: off; 1: on - horizontal vel vector [m/s] {hvel}   3D vector - Default 0",
+    )
+    param_iof_hydro26: int = Field(
+        0,
+        description="output 0: off; 1: on - horizontal vel vector defined @side [m/s] {hvel_side}   3D vector  - Default 0",
+    )
+    param_iof_hydro27: int = Field(
+        0,
+        description="output 0: off; 1: on - vertical vel. @elem [m/s] {wvel_elem}   3D vector  - Default 0",
+    )
+    param_iof_hydro28: int = Field(
+        0,
+        description="output 0: off; 1: on - T @prism centers [C] {temp_elem}   3D - Default 0",
+    )
+    param_iof_hydro29: int = Field(
+        0,
+        description="output 0: off; 1: on - S @prism centers [PSU] {salt_elem}   3D - Default 0",
+    )
+    param_iof_hydro30: int = Field(
+        0,
+        description="output 0: off; 1: on - Barotropic pressure gradient force vector (m.s-2) @side centers  {pressure_gradient}  2D vector  - Default 0",
+    )
+    wwminput_history_OUTSTYLE: str = Field(
+        "NC", description="'output option - use 'NO' for no output"
+    )
+    param_nspool_sta: int = Field(
+        30,
+        description="needed if iout_sta/=0; mod(nhot_write,nspool_sta) must=0 defaults to 30",
+    )
+    ihot: int = Field(
+        0,
+        description="hotstart 0: off; 1: on - whether to expect hotstarts - Default - 0-",
+    )
+    wwminput_hotfile_deltc_out: int = Field(
+        3600,
+        description="hotfile time in UNITC (typically seconds) when hotfile should be written, defaults to 3600",
+    )
 
     # validator example - ensure the following
     # Bottom friction.

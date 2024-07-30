@@ -2,6 +2,9 @@ from pathlib import Path
 
 import pytest
 
+pytest.importorskip("rompy.schism")
+
+from rompy import installed
 from rompy.core import DataBlob
 from rompy.core.grid import BaseGrid
 from rompy.schism import SCHISMGrid
@@ -10,6 +13,7 @@ from rompy.schism.grid import WWMBNDGR3Generator
 here = Path(__file__).parent
 
 
+@pytest.mark.skipif(not installed("schism"), reason="requires SCHISM")
 def test_SCHISMGrid2D(tmpdir):
     hgrid = DataBlob(source=here / "test_data/hgrid.gr3")
     # drag = DataBlob(source=here / "test_data/drag.gr3")
