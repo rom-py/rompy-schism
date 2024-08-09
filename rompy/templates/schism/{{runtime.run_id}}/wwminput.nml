@@ -373,7 +373,7 @@
  BEGTC          = '{{runtime.period.start.strftime("%Y%m%d.%H%M%S")}}'  ! Start output time, yyyymmdd. hhmmss;
                                      ! must fit the simulation time otherwise no output.
                                      ! Default is same as PROC%BEGTC
- DELTC          = {{config.deltc_out}}  ! Time step for output; if smaller than simulation time step, the latter is used (output every step for better 1D 2D spectra analysis)
+ DELTC          = {{config.wwminput_history_DELTC}}  ! Time step for output; if smaller than simulation time step, the latter is used (output every step for better 1D 2D spectra analysis)
  UNITC          = 'SEC'              ! Unit
  ENDTC          = '{{runtime.period.end.strftime("%Y%m%d.%H%M%S")}}'  ! Stop time output, yyyymmdd. hhmmss
                                      ! Default is same as PROC%ENDC
@@ -457,7 +457,7 @@
 &STATION
  BEGTC          = '{{runtime.period.start.strftime("%Y%m%d.%H%M%S")}}'  ! Start simulation time, yyyymmdd. hhmmss; must fit the simulation time otherwise no output
                                      ! Default is same as PROC%BEGTC
- DELTC          = {{config.deltc_out}}                ! Time step for output; if smaller than simulation time step, the latter is used (output every step for better 1D 2D spectra analysis)
+ DELTC          = {{config.wwminput_station_DELTC}}                ! Time step for output; if smaller than simulation time step, the latter is used (output every step for better 1D 2D spectra analysis)
  UNITC          = 'SEC'              ! Unit
  ENDTC          = '{{runtime.period.end.strftime("%Y%m%d.%H%M%S")}}'  ! Stop time simulation, yyyymmdd. hhmmss
                                      ! Default is same as PROC%ENDC
@@ -549,7 +549,7 @@
  FILEHOT_OUT    = 'wwm_hot_out'      !'.nc' suffix will be added 
  BEGTC          = '{{runtime.period.start.strftime("%Y%m%d.%H%M%S")}}'  !Starting time of hotfile writing. With ihot!=0 in SCHISM,
                                      !this will be whatever the new hotstarted time is (even with ihot=2)
- DELTC          = {{config.wwminput_hotfile_deltc_out}}.             ! time between hotfile writes
+ DELTC          = {{config.wwminput_hotfile_DELTC}}.             ! time between hotfile writes
  UNITC          = 'SEC'              ! unit used above
  ENDTC          = '{{runtime.period.end.strftime("%Y%m%d.%H%M%S")}}'  ! Ending time of hotfile writing (adjust with BEGTC)
  LCYCLEHOT      = T                  ! Applies only to netcdf
