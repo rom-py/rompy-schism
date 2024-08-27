@@ -81,6 +81,9 @@ def generate_pydantic_models(
     none_option=True,
 ):
     with open(filename, "w") as file:
+        file.write(
+            f"# This file was auto generated from a schism namelist file on {datetime.datetime.now().strftime('%Y-%m-%d')}.\n\n"
+        )
         file.write(f"from pydantic import Field\n")
         basemodellist = basemodel.split(".")
         file.write(
@@ -161,7 +164,6 @@ def nml_to_dict(file_in: str):
     sections = extract_sections_from_text(input_text)
     nml_dict = {}
     blurb = "\n"
-    blurb += f"This file was auto generated from a schism namelist file on {datetime.datetime.now().strftime('%Y-%m-%d')}.\n"
     blurb += "The full contents of the namelist file are shown below providing\n"
     blurb += "associated documentation for the objects:\n\n"
     for section, text in sections.items():
