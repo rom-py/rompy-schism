@@ -13,7 +13,7 @@ from rompy.schism.grid import WWMBNDGR3Generator
 here = Path(__file__).parent
 
 
-@pytest.mark.skipif(not installed("schism"), reason="requires SCHISM")
+@pytest.mark.skipif("schism" not in installed, reason="requires SCHISM")
 def test_SCHISMGrid2D(tmpdir):
     hgrid = DataBlob(source=here / "test_data/hgrid.gr3")
     # drag = DataBlob(source=here / "test_data/drag.gr3")
