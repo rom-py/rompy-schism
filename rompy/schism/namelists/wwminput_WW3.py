@@ -1,3 +1,5 @@
+# This file was auto generated from a schism namelist file on 2024-08-28.
+
 from pydantic import Field
 from rompy.schism.namelists.basemodel import NamelistBaseModel
 
@@ -679,7 +681,6 @@ class NESTING(NamelistBaseModel):
 class WWMINPUT(NamelistBaseModel):
     """
 
-    This file was auto generated from a schism namelist file on 2024-07-19.
     The full contents of the namelist file are shown below providing
     associated documentation for the objects:
 
