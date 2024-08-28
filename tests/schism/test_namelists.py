@@ -38,13 +38,9 @@ def compare_nmls(nml1, nml2):
     compare_nmls_values(d1, d2)
 
 
-@pytest.mark.skip(reason="Fix when namelist are fully implemented to fix")
 def test_namelists(tmp_path):
     for nml in [ICM, PARAM, SEDIMENT, MICE, ICE]:
         instance = nml()
         instance.write_nml(tmp_path)
         name = instance.__class__.__name__.lower()
         compare_nmls(tmp_path / f"{name}.nml", SAMPLE_DIR / f"{name}.nml")
-    # ice = ICE()
-    # ice.write_nml(tmp_path)
-    # compare_nmls(tmp_path / "ice.nml", SAMPLE_DIR / "ice.nml")
