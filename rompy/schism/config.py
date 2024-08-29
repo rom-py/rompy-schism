@@ -8,6 +8,7 @@ from rompy.core import BaseConfig, DataBlob, RompyBaseModel, Spectrum, TimeRange
 
 from .data import SCHISMData
 from .grid import SCHISMGrid
+from .interface import TimeInterface
 from .namelists import NML, PARAM
 
 logger = logging.getLogger(__name__)
@@ -531,6 +532,6 @@ class SCHISMConfig(BaseConfig):
             self.data.get(
                 destdir=runtime.staging_dir, grid=self.grid, time=runtime.period
             )
-        if self.nml is None:
-            self.nml = NML(param=PARAM(start_day="dummy"))
+        time_interface = TimeInterface(nml=self.nml, period=runtime.period)
+        self.nml = time_interface.update()
         self.nml.write_nml(runtime.staging_dir)
