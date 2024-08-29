@@ -1,3 +1,3 @@
-from .config import Inputs, SchismCSIROConfig
+from .config import Inputs, SCHISMConfig, SchismCSIROConfig
 from .data import SCHISMDataOcean, SCHISMDataSflux, SCHISMDataWave
 from .grid import SCHISMGrid
