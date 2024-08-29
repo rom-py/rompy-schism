@@ -4,7 +4,8 @@ from typing import Literal, Optional, Union
 
 from pydantic import Field, model_validator
 
-from rompy.core import BaseConfig, DataBlob, RompyBaseModel, Spectrum, TimeRange
+from rompy.core import (BaseConfig, DataBlob, RompyBaseModel, Spectrum,
+                        TimeRange)
 
 from .data import SCHISMData
 from .grid import SCHISMGrid
@@ -14,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 HERE = Path(__file__).parent
 
-CSIRO_TEMPLATE = str(Path(__file__).parent.parent / "templates" / "schism")
+CSIRO_TEMPLATE = str(Path(__file__).parent.parent / "templates" / "schismcsiro")
 
 
 class Inputs(RompyBaseModel):
