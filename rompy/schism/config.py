@@ -4,18 +4,18 @@ from typing import Literal, Optional, Union
 
 from pydantic import Field, model_validator
 
-from rompy.core import (BaseConfig, DataBlob, RompyBaseModel, Spectrum,
-                        TimeRange)
+from rompy.core import BaseConfig, DataBlob, RompyBaseModel, Spectrum, TimeRange
 
 from .data import SCHISMData
 from .grid import SCHISMGrid
-from .namelists import NML
+from .namelists import NML, PARAM
 
 logger = logging.getLogger(__name__)
 
 HERE = Path(__file__).parent
 
 CSIRO_TEMPLATE = str(Path(__file__).parent.parent / "templates" / "schismcsiro")
+SCHISM_TEMPLATE = str(Path(__file__).parent.parent / "templates" / "schism")
 
 
 class Inputs(RompyBaseModel):
@@ -517,10 +517,20 @@ class SCHISMConfig(BaseConfig):
         "schism", description="The model type for SCHISM."
     )
     grid: SCHISMGrid = Field(description="The model grid")
-    data: SCHISMData = Field(description="Model inputs")
-    nml: NML = Field(description="The namelist")
+    data: Optional[SCHISMData] = Field(None, description="Model inputs")
+    nml: Optional[NML] = Field(None, description="The namelist")
+    template: Optional[str] = Field(
+        description="The path to the model template",
+        default=SCHISM_TEMPLATE,
+    )
 
     def __call__(self, runtime) -> str:
-        self.grid.get(runtime.staging_dir)
-        self.data.get(destdir=runtime.staging_dir, grid=self.grid, time=runtime.period)
+        if self.grid is not None:
+            self.grid.get(runtime.staging_dir)
+        if self.data is not None:
+            self.data.get(
+                destdir=runtime.staging_dir, grid=self.grid, time=runtime.period
+            )
+        if self.nml is None:
+            self.nml = NML(param=PARAM(start_day="dummy"))
         self.nml.write_nml(runtime.staging_dir)
