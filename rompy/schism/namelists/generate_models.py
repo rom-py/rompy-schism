@@ -48,7 +48,7 @@ def extract_variables(section):
         if "=" in pair:
             var, value = pair.split("=")[0], "=".join(pair.split("=")[1:])
             for ii in range(50):
-                var = var.replace(f"({ii})", f"__{ii}")
+                var = var.replace(f"({ii})", f"__{ii}").lower()
             values = []
             if "," in value:
                 items = value.split(",")
@@ -172,7 +172,7 @@ def nml_to_dict(file_in: str):
         else:
             input_dict = extract_variables(text)
             if input_dict:
-                nml_dict.update({section.upper(): extract_variables(text)})
+                nml_dict.update({section.lower(): input_dict})
     nml_dict["description"] = blurb + input_text
     return nml_dict
 

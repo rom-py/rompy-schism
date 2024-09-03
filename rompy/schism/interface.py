@@ -65,7 +65,7 @@ class TimeInterface(RompyBaseModel):
     period: TimeRange = Field(..., description="Time period to write the output over")
 
     def __call__(self):
-        """Update the params namelist."""
+        """Update the namelists."""
         update = {
             "param": {
                 "opt": {
@@ -82,7 +82,7 @@ class TimeInterface(RompyBaseModel):
             return NML(**update)
 
         date_format = "%Y-%m-%d %H:%M:%S"
-        if hasattr(self.nml, "wwminput"):
+        if hasattr(self.nml, "WWMINPUT"):
             if hasattr(self.nml.wwminput, "proc"):
                 # TODO these are currently all the same, but they could be different
                 update.update(
