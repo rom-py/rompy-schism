@@ -4,12 +4,13 @@ from typing import Literal, Optional, Union
 
 from pydantic import Field, model_validator
 
-from rompy.core import BaseConfig, DataBlob, RompyBaseModel, Spectrum, TimeRange
+from rompy.core import (BaseConfig, DataBlob, RompyBaseModel, Spectrum,
+                        TimeRange)
 
 from .data import SCHISMData
 from .grid import SCHISMGrid
 from .interface import TimeInterface
-from .namelists import NML, PARAM
+from .namelists import NML, PARAM, WWMINPUT
 
 logger = logging.getLogger(__name__)
 
@@ -532,6 +533,149 @@ class SCHISMConfig(BaseConfig):
             self.data.get(
                 destdir=runtime.staging_dir, grid=self.grid, time=runtime.period
             )
-        time_interface = TimeInterface(nml=self.nml, period=runtime.period)
-        self.nml = time_interface.update()
+        self.nml = TimeInterface(nml=self.nml, period=runtime.period)()
         self.nml.write_nml(runtime.staging_dir)
+
+
+class SchismCSIROMigrationConfig(SchismCSIROConfig):
+    model_type: Literal["schismcsiromigration"] = Field(
+        "schismcsiromigration", description="The model type for SCHISM."
+    )
+    template: Optional[str] = Field(
+        description="The path to the model template",
+        default=SCHISM_TEMPLATE,
+    )
+
+    def __call__(self, runtime) -> str:
+        # Create translation dictionary
+        config_dict = {
+            "param": {
+                "opt": {
+                    "ihot": self.ihot,
+                    "project": self.project,
+                    "utc_start": self.utc_start,
+                    "time_step": self.time_step,
+                    "msc2": self.msc2,
+                    "mdc2": self.mdc2,
+                    "ihfskip": self.ihfskip,
+                    "icou_elfe_wwm": self.icou_elfe_wwm,
+                    "nstep_wwm": self.nstep_wwm,
+                    "deltc": self.deltc,
+                    "h1_bcc": self.h1_bcc,
+                    "h2_bcc": self.h2_bcc,
+                    "h_bcc1": self.h_bcc1,
+                    "thetai": self.thetai,
+                    "iwbl": self.iwbl,
+                    "slam0": self.slam0,
+                    "sfea0": self.sfea0,
+                    "nchi": self.nchi,
+                    "dzb_decayYN": self.dzb_decayYN,
+                    "rlatitude": self.rlatitude,
+                    "ic_elev": self.ic_elev,
+                    "inv_atm_bnd": self.inv_atm_bnd,
+                    "ibtrack_openbndYN": self.ibtrack_openbndYN,
+                    "iwindoffYN": self.iwindoffYN,
+                    "iwind_form": self.iwind_form,
+                    "param_nhot": self.param_nhot,
+                    "param_nhot_writeYN": self.param_nhot_writeYN,
+                    "param_nhot_write": self.param_nhot_write,
+                },
+                "schout": {
+                    "param_nspool_sta": self.param_nspool_sta,
+                    "param_iof_hydro1": self.param_iof_hydro1,
+                    "param_iof_hydro2": self.param_iof_hydro2,
+                    "param_iof_hydro3": self.param_iof_hydro3,
+                    "param_iof_hydro4": self.param_iof_hydro4,
+                    "param_iof_hydro5": self.param_iof_hydro5,
+                    "param_iof_hydro6": self.param_iof_hydro6,
+                    "param_iof_hydro7": self.param_iof_hydro7,
+                    "param_iof_hydro8": self.param_iof_hydro8,
+                    "param_iof_hydro9": self.param_iof_hydro9,
+                    "param_iof_hydro10": self.param_iof_hydro10,
+                    "param_iof_hydro11": self.param_iof_hydro11,
+                    "param_iof_hydro12": self.param_iof_hydro12,
+                    "param_iof_hydro13": self.param_iof_hydro13,
+                    "param_iof_hydro14": self.param_iof_hydro14,
+                    "param_iof_hydro15": self.param_iof_hydro15,
+                    "param_iof_hydro16": self.param_iof_hydro16,
+                    "param_iof_hydro17": self.param_iof_hydro17,
+                    "param_iof_hydro18": self.param_iof_hydro18,
+                    "param_iof_hydro19": self.param_iof_hydro19,
+                    "param_iof_hydro20": self.param_iof_hydro20,
+                    "param_iof_hydro21": self.param_iof_hydro21,
+                    "param_iof_hydro22": self.param_iof_hydro22,
+                    "param_iof_hydro23": self.param_iof_hydro23,
+                    "param_iof_hydro24": self.param_iof_hydro24,
+                    "param_iof_hydro25": self.param_iof_hydro25,
+                    "param_iof_hydro26": self.param_iof_hydro26,
+                    "param_iof_hydro27": self.param_iof_hydro27,
+                    "param_iof_hydro28": self.param_iof_hydro28,
+                    "param_iof_hydro29": self.param_iof_hydro29,
+                    "param_iof_hydro30": self.param_iof_hydro30,
+                },
+            },
+            "wwminput_WW3": {
+                "proc": {
+                    "PROCNAME": self.project,
+                },
+                "history": {
+                    "HS": self.HS,
+                    "TM01": self.TM01,
+                    "TM02": self.TM02,
+                    "DM": self.DM,
+                    "DSPR": self.DSPR,
+                    "TPP": self.TPP,
+                    "TPPD": self.TPPD,
+                    "CPP": self.CPP,
+                    "WNPP": self.WNPP,
+                    "CGPP": self.CGPP,
+                    "KPP": self.KPP,
+                    "LPP": self.LPP,
+                    "PEAKD": self.PEAKD,
+                    "DPEAK": self.DPEAK,
+                    "PEAKDSPR": self.PEAKDSPR,
+                    "UBOT": self.UBOT,
+                    "ORBITAL": self.ORBITAL,
+                    "DEP": self.wwminput_history_DEP,
+                    "TAUW": self.wwminput_history_TAUW,
+                    "TAUHF": self.wwminput_history_TAUHF,
+                    "TAUTOT": self.wwminput_history_TAUTOT,
+                    "STOKESSURFX": self.wwminput_history_STOKESSURFX,
+                    "STOKESSURFY": self.wwminput_history_STOKESSURFY,
+                    "STOKESBAROX": self.wwminput_history_STOKESBAROX,
+                    "STOKESBAROY": self.wwminput_history_STOKESBAROY,
+                    "DELTC": self.wwminput_history_DELTC,
+                    "OUTSTYLE": self.wwminput_history_OUTSTYLE,
+                },
+                "station": {
+                    "iouts": self.iouts,
+                    "nouts": self.nouts,
+                    "xouts": self.xouts,
+                    "youts": self.youts,
+                    "lsp2d": self.lsp2d,
+                    "ac": self.ac,
+                    "drampwafo": self.drampwafo,
+                    "nadv": self.nadv,
+                    "drampwind": self.drampwind,
+                    "dramp": self.dramp,
+                    "DEP": self.wwminput_station_DEP,
+                    "TAUW": self.wwminput_station_TAUW,
+                    "TAUHF": self.wwminput_station_TAUHF,
+                    "TAUTOT": self.wwminput_station_TAUTOT,
+                    "STOKESSURFX": self.wwminput_station_STOKESSURFX,
+                    "STOKESSURFY": self.wwminput_station_STOKESSURFY,
+                    "STOKESBAROX": self.wwminput_station_STOKESBAROX,
+                    "STOKESBAROY": self.wwminput_station_STOKESBAROY,
+                    "OUTSTYLE": self.wwminput_station_OUTSTYLE,
+                    "DELTC": self.wwminput_station_DELTC,
+                },
+                "hotfile": {
+                    "LHOTF": self.wwminput_LHOTF,
+                    "hotfile_DELTC": self.wwminput_hotfile_DELTC,
+                },
+            },
+        }
+        schism_config = SCHISMConfig(
+            grid=self.grid, data=self.data, nml=NML(**config_dict)
+        )
+        schism_config.__call__(runtime)

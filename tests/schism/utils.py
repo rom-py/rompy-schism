@@ -10,6 +10,8 @@ from matplotlib.transforms import Bbox
 from pyschism.forcing.hycom.hycom2schism import DownloadHycom
 from pyschism.mesh.hgrid import Hgrid
 
+from rompy.schism.namelists.generate_models import nml_to_dict
+
 """
 Download hycom data for Fortran scripts.
 Default is to download data for generating initial condition (use hgrid 
@@ -54,6 +56,34 @@ def untar_file(file, dest=Path("./")):
     logger.info(f"Extracting {file} to {dest}")
     with tarfile.open(file) as tar:
         tar.extractall(dest)
+
+
+# funcition to step through the namelist and compare the values
+def compare_nmls_values(nml1, nml2, raise_missing=False):
+    for key, value in nml1.items():
+        if key == "description":
+            continue
+        if not key in nml2:
+            if raise_missing:
+                raise KeyError(f"Key {key} not found in nml2")
+            print(f"Key {key} not found in nml2")
+            continue
+        if isinstance(value, dict):
+            # if size of dictionary is 2, extract value from 'default' key
+            if len(value) == 2:
+                var = value["default"]
+                if var != nml2[key]["default"]:
+                    print(key, var, nml2[key]["default"])
+            else:
+                compare_nmls_values(value, nml2[key], raise_missing=raise_missing)
+
+
+def compare_nmls(nml1, nml2):
+    d1 = nml_to_dict(nml1)
+    d2 = nml_to_dict(nml2)
+    d1.pop("description")
+    d2.pop("description")
+    compare_nmls_values(d1, d2)
 
 
 if __name__ == "__main__":

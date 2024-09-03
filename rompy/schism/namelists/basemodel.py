@@ -22,7 +22,7 @@ class NamelistBaseModel(RompyBaseModel):
                     if isinstance(value, bool):
                         value = ".true." if value else ".false."
                     if isinstance(value, str):
-                        value = f"'{value}'"
+                        value = f"{value}"
                     ret += [f"{variable} = {value}"]
                 ret += ["/"]
         return "\n".join(ret)
