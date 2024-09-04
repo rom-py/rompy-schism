@@ -19,8 +19,8 @@ class ClaudeClient:
         prompt = f"""
         Analyze the following namelist file content from {filename} and provide:
         1. Improved descriptions for each variable
-        2. Potential Pydantic validators for each variable
-        3. Any cross-variable validators that might be necessary
+        2. Pydantic validators for each variable (use the new @field_validator decorator)
+        3. Any cross-variable validators that might be necessary (use the new @root_validator decorator)
 
         Namelist content:
         {content}
@@ -29,7 +29,7 @@ class ClaudeClient:
         {{
             "variable_name": {{
                 "description": "Improved description",
-                "validators": ["List of potential validators"],
+                "validators": ["List of validators"],
                 "cross_validators": ["List of potential cross-variable validators"]
             }},
             ...
@@ -38,7 +38,7 @@ class ClaudeClient:
 
         message = self.client.messages.create(
             model="claude-3-5-sonnet-20240620",
-            max_tokens=1024,
+            max_tokens=2048,
             messages=[{"role": "user", "content": prompt}],
         )
 
@@ -52,8 +52,10 @@ class ClaudeClient:
 
         try:
             return json.loads(content)
-        except json.JSONDecodeError:
+        except json.JSONDecodeError as e:
             print(f"Warning: Could not parse Claude's response for {filename}")
+            print(f"Response: {content}")
+            print(f"Error: {e}")
             return {}
 
 
@@ -243,7 +245,7 @@ def nml_to_dict(file_in: str):
 
 def main():
     with open("__init__.py", "w") as f:
-        for file in os.listdir("sample_inputs"):
+        for file in os.listdir("sample_inputs")[5:7]:
             components = file.split(".")
             if len(components) < 2:
                 continue
