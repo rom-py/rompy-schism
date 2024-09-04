@@ -6,14 +6,12 @@ import pytest
 pytest.importorskip("rompy.schism")
 import xarray as xr
 
-from rompy.core import BaseGrid, DataBlob, DataGrid, TimeRange
-from rompy.core.data import (SourceDatamesh, SourceDataset, SourceFile,
-                             SourceIntake)
+from rompy.core import DataBlob, TimeRange
+from rompy.core.source import SourceFile, SourceIntake
 from rompy.schism import SCHISMGrid
 from rompy.schism.data import (SCHISMDataBoundary, SCHISMDataOcean,
                                SCHISMDataSflux, SCHISMDataTides, SfluxAir,
                                TidalDataset)
-from rompy.schism.namelists import Sflux_Inputs
 
 HERE = Path(__file__).parent
 DATAMESH_TOKEN = os.environ.get("DATAMESH_TOKEN")
