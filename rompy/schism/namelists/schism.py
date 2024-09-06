@@ -56,42 +56,43 @@ class NML(NamelistBaseModel):
                 }
             }
         }
-        print(self)
-        print(self.update(update))
 
-        # date_format = "%Y-%m-%d %H:%M:%S"
-        # if hasattr(self.nml, "WWMINPUT"):
-        #     # TODO these are currently all the same, but they could be different
-        #     update.update(
-        #         {
-        #             "wwminput": {
-        #                 "proc": {
-        #                     "BEGTC": self.period.start.strftime(date_format),
-        #                     "ENDTC": self.period.end.strftime(date_format),
-        #                 },
-        #                 "wind": {
-        #                     "BEGTC": self.period.start.strftime(date_format),
-        #                     "ENDTC": self.period.end.strftime(date_format),
-        #                 },
-        #                 "curr": {
-        #                     "BEGTC": self.period.start.strftime(date_format),
-        #                     "ENDTC": self.period.end.strftime(date_format),
-        #                 },
-        #                 "walv": {
-        #                     "BEGTC": self.period.start.strftime(date_format),
-        #                     "ENDTC": self.period.end.strftime(date_format),
-        #                 },
-        #                 "station": {
-        #                     "BEGTC": self.period.start.strftime(date_format),
-        #                     "ENDTC": self.period.end.strftime(date_format),
-        #                 },
-        #                 "hotfile": {
-        #                     "BEGTC": self.period.start.strftime(date_format),
-        #                     "ENDTC": self.period.end.strftime(date_format),
-        #                 },
-        #             }
-        #         }
-        #     )
+        date_format = "%Y-%m-%d %H:%M:%S"
+        if hasattr(
+            self, "wwminput_WW3"
+        ):  # TODO change this check to the actual flag value
+            # TODO these are currently all the same, but they could be different
+            update.update(
+                {
+                    "wwminput_WW3": {
+                        "proc": {
+                            "begtc": period.start.strftime(date_format),
+                            "endtc": period.end.strftime(date_format),
+                        },
+                        "wind": {
+                            "begtc": period.start.strftime(date_format),
+                            "endtc": period.end.strftime(date_format),
+                        },
+                        "curr": {
+                            "begtc": period.start.strftime(date_format),
+                            "endtc": period.end.strftime(date_format),
+                        },
+                        "walv": {
+                            "begtc": period.start.strftime(date_format),
+                            "endtc": period.end.strftime(date_format),
+                        },
+                        "station": {
+                            "begtc": period.start.strftime(date_format),
+                            "endtc": period.end.strftime(date_format),
+                        },
+                        "hotfile": {
+                            "begtc": period.start.strftime(date_format),
+                            "endtc": period.end.strftime(date_format),
+                        },
+                    }
+                }
+            )
+        self.update(update)
 
     def write_nml(self, workdir: Path):
         for nml in [

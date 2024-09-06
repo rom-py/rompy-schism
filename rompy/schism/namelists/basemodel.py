@@ -1,4 +1,3 @@
-import collections.abc
 from pathlib import Path
 from typing import Any, Dict, Optional, Type, Union, get_type_hints
 
@@ -57,7 +56,6 @@ class NamelistBaseModel(RompyBaseModel):
         print(f"Before update: {self}")
         updated_self = recursive_update(self, update)
         updated_instance = self.__init__(**updated_self.dict())
-        print(f"Updated self: {self}")
         return updated_instance
 
     def render(self) -> str:
