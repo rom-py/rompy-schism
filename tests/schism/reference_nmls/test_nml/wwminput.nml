@@ -1,0 +1,15 @@
+! SCHISM rompy.schism.namelists.wwminput_WW3 namelist rendered from Rompy
+
+&proc
+dimmode = 1
+begtc = 2021-08-01 00:00:00
+endtc = 2021-11-29 00:00:00
+/
+&hotfile
+begtc = 2021-08-01 00:00:00
+endtc = 2021-11-29 00:00:00
+/
+&station
+begtc = 2021-08-01 00:00:00
+endtc = 2021-11-29 00:00:00
+/

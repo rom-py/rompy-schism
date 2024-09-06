@@ -1,0 +1,11 @@
+! SCHISM rompy.schism.namelists.param namelist rendered from Rompy
+
+&core
+ipre = 1
+/
+&opt
+start_year = 2021
+start_month = 8
+start_day = 1
+start_hour = 0
+/
