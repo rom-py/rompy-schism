@@ -1,111 +1,115 @@
-# This file was auto generated from a schism namelist file on 2024-08-28.
+# This file was auto generated from a schism namelist file on 2024-09-06.
+
+from typing import Optional
 
 from pydantic import Field
 from rompy.schism.namelists.basemodel import NamelistBaseModel
 
 
-class MARCO(NamelistBaseModel):
-    idelay: int = Field(0, description="")
-    ndelay: int = Field(7, description="")
-    ibgraze: int = Field(0, description="")
-    idapt: int = Field(0, description="")
-    alpha_corr: float = Field(1.25, description="")
-    zeptic: float = Field(10.0, description="")
-    iz2graze: int = Field(1, description="")
-    iout_cosine: int = Field(0, description="")
-    nspool_cosine: int = Field(30, description="")
-    ico2s: int = Field(0, description="")
-    ispm: int = Field(0, description="")
-    spm0: float = Field(20.0, description="")
-    ised: int = Field(1, description="")
+class Marco(NamelistBaseModel):
+    idelay: Optional[int] = Field(None, description="")
+    ndelay: Optional[int] = Field(None, description="")
+    ibgraze: Optional[int] = Field(None, description="")
+    idapt: Optional[int] = Field(None, description="")
+    alpha_corr: Optional[float] = Field(None, description="")
+    zeptic: Optional[float] = Field(None, description="")
+    iz2graze: Optional[int] = Field(None, description="")
+    iout_cosine: Optional[int] = Field(None, description="")
+    nspool_cosine: Optional[int] = Field(None, description="")
+    ico2s: Optional[int] = Field(None, description="")
+    ispm: Optional[int] = Field(None, description="")
+    spm0: Optional[float] = Field(None, description="")
+    ised: Optional[int] = Field(None, description="")
 
 
-class CORE(NamelistBaseModel):
-    gmaxs: list = Field([2.0, 2.5], description="maximum growth rate")
-    gammas: list = Field([0.2, 0.075], description="mortality rate")
-    pis: list = Field([1.5, 1.5], description="ammonium inhibition")
-    kno3s: list = Field([1.0, 3.0], description="NO3 half saturation")
-    knh4s: list = Field([0.15, 0.45], description="NH4 half saturation")
-    kpo4s: list = Field([0.1, 0.1], description="PO4 half saturation")
-    kco2s: list = Field([50.0, 50.0], description="CO2 half saturation")
-    ksio4: float = Field(4.5, description="SiO4 half saturation for diatom")
-    kns: list = Field([0.0, 0.0], description="nighttime uptake rate of NH4")
-    alphas: list = Field([0.1, 0.1], description="initial slopes of P-I curve")
-    betas: list = Field([0.0, 0.0], description="slope for photo-inhibition")
-    aks: list = Field(
-        [0.75, 0.03, 0.066],
-        description="light extinction coefficients: rKe=ak1+ak2*(S1+S2)+ak3*SPM",
+class Core(NamelistBaseModel):
+    gmaxs: Optional[list] = Field(None, description="maximum growth rate")
+    gammas: Optional[list] = Field(None, description="mortality rate")
+    pis: Optional[list] = Field(None, description="ammonium inhibition")
+    kno3s: Optional[list] = Field(None, description="NO3 half saturation")
+    knh4s: Optional[list] = Field(None, description="NH4 half saturation")
+    kpo4s: Optional[list] = Field(None, description="PO4 half saturation")
+    kco2s: Optional[list] = Field(None, description="CO2 half saturation")
+    ksio4: Optional[float] = Field(None, description="SiO4 half saturation for diatom")
+    kns: Optional[list] = Field(None, description="nighttime uptake rate of NH4")
+    alphas: Optional[list] = Field(None, description="initial slopes of P-I curve")
+    betas: Optional[list] = Field(None, description="slope for photo-inhibition")
+    aks: Optional[list] = Field(
+        None, description="light extinction coefficients: rKe=ak1+ak2*(S1+S2)+ak3*SPM"
     )
-    betaz: list = Field([1.35, 0.4], description="maximum grazing rate")
-    alphaz: list = Field([0.75, 0.75], description="assimilation rate")
-    gammaz: list = Field([0.2, 0.2], description="mortality rate")
-    kez: list = Field([0.2, 0.2], description="excretion rate")
-    kgz: list = Field(
-        [0.5, 0.25], description="reference prey concentration for grazing"
+    betaz: Optional[list] = Field(None, description="maximum grazing rate")
+    alphaz: Optional[list] = Field(None, description="assimilation rate")
+    gammaz: Optional[list] = Field(None, description="mortality rate")
+    kez: Optional[list] = Field(None, description="excretion rate")
+    kgz: Optional[list] = Field(
+        None, description="reference prey concentration for grazing"
     )
-    rhoz: list = Field(
-        [0.6, 0.3, 0.1], description="prey preference factors of Z2 on (S2,Z1,DN)"
+    rhoz: Optional[list] = Field(
+        None, description="prey preference factors of Z2 on (S2,Z1,DN)"
     )
-    ipo4: int = Field(
-        1, description="add additional PO4 from biogenic silica dissolution"
+    ipo4: Optional[int] = Field(
+        None, description="add additional PO4 from biogenic silica dissolution"
     )
-    TR: float = Field(
-        20.0,
+    tr: Optional[float] = Field(
+        None,
         description="Reference temperature for temperature adjust for CoSiNE sink and source",
     )
-    kox: float = Field(30.0, description="reference oxygen concentration for oxidation")
-    wss2: float = Field(0.2, description="settling velocity of S2")
-    wsdn: float = Field(1.0, description="settling velocity of DN")
-    wsdsi: float = Field(1.0, description="settling velocity of DSi")
-    si2n: float = Field(1.2, description="silica to nitrogen conversion coefficient")
-    p2n: float = Field(
-        0.0625, description="phosphorus to nitrogen conversion coefficient (1/16)"
+    kox: Optional[float] = Field(
+        None, description="reference oxygen concentration for oxidation"
     )
-    o2no: float = Field(
-        8.625, description="oxygen to nitrogen (NO3) conversion coefficient (138/16)"
+    wss2: Optional[float] = Field(None, description="settling velocity of S2")
+    wsdn: Optional[float] = Field(None, description="settling velocity of DN")
+    wsdsi: Optional[float] = Field(None, description="settling velocity of DSi")
+    si2n: Optional[float] = Field(
+        None, description="silica to nitrogen conversion coefficient"
     )
-    o2nh: float = Field(
-        6.625, description="oxygen to nitrogen (NH4) conversion coefficient (106/16)"
+    p2n: Optional[float] = Field(
+        None, description="phosphorus to nitrogen conversion coefficient (1/16)"
     )
-    c2n: float = Field(7.3, description="carbon to nitrogen conversion coefficient")
-    gamman: float = Field(0.07, description="nitrification coefficent")
-    pco2a: float = Field(391.63, description="atmospheric CO2 concentration")
-    kmdn: list = Field(
-        [0.009, 0.075],
-        description="remineralization coefficients for DN: rate=kmdn(1)*T+kmdn(2)",
+    o2no: Optional[float] = Field(
+        None, description="oxygen to nitrogen (NO3) conversion coefficient (138/16)"
     )
-    kmdsi: list = Field(
-        [0.0114, 0.015],
+    o2nh: Optional[float] = Field(
+        None, description="oxygen to nitrogen (NH4) conversion coefficient (106/16)"
+    )
+    c2n: Optional[float] = Field(
+        None, description="carbon to nitrogen conversion coefficient"
+    )
+    gamman: Optional[float] = Field(None, description="nitrification coefficent")
+    pco2a: Optional[float] = Field(None, description="atmospheric CO2 concentration")
+    kmdn: Optional[list] = Field(
+        None, description="remineralization coefficients for DN: rate=kmdn(1)*T+kmdn(2)"
+    )
+    kmdsi: Optional[list] = Field(
+        None,
         description="remineralization coefficients for DSi: rate=kmdsi(1)*T+kmdsi(2)",
     )
 
 
-class MISC(NamelistBaseModel):
-    iws: int = Field(0, description="")
-    NO3c: float = Field(2.0, description="mmol/m3")
-    ws1: float = Field(2.5, description="")
-    ws2: float = Field(2.0, description="")
-    iclam: int = Field(0, description="")
-    deltaZ: int = Field(1, description="meter")
-    kcex: float = Field(0.002, description="day-1")
-    Nperclam: float = Field(0.39032, description="mmol[N]")
-    Wclam: str = Field("5.45e-3", description="clam weigh (g)")
-    Fclam: int = Field(40, description="L.g[AFDW]-1.day-1, filtration rate")
-    nclam0: int = Field(2000, description="")
-    fS2: list = Field([0.1, 0.1, 0.8], description="")
-    rkS2: list = Field(["4e-3", "1.0e-4", 0.0], description="time delay of 63 day")
-    mkS2: list = Field([0.1, 0.01, 0.0], description="")
-    fDN: list = Field([0.15, 0.1, 0.75], description="")
-    rkDN: list = Field(["4e-3", "1.0e-4", 0.0], description="time delay of 63 day")
-    mkDN: list = Field([0.1, 0.01, 0.0], description="")
-    fDSi: list = Field([0.3, 0.3, 0.4], description="")
-    rkDSi: list = Field(
-        [0.004, "1e-4", 0.0], description="time delay of about half a month"
-    )
-    mkDSi: list = Field([0.1, 0.01, 0.0], description="")
+class Misc(NamelistBaseModel):
+    iws: Optional[int] = Field(None, description="")
+    no3c: Optional[float] = Field(None, description="mmol/m3")
+    ws1: Optional[float] = Field(None, description="")
+    ws2: Optional[float] = Field(None, description="")
+    iclam: Optional[int] = Field(None, description="")
+    deltaz: Optional[int] = Field(None, description="meter")
+    kcex: Optional[float] = Field(None, description="day-1")
+    nperclam: Optional[float] = Field(None, description="mmol[N]")
+    wclam: Optional[str] = Field(None, description="clam weigh (g)")
+    fclam: Optional[int] = Field(None, description="L.g[AFDW]-1.day-1, filtration rate")
+    nclam0: Optional[int] = Field(None, description="")
+    fs2: Optional[list] = Field(None, description="")
+    rks2: Optional[list] = Field(None, description="time delay of 63 day")
+    mks2: Optional[list] = Field(None, description="")
+    fdn: Optional[list] = Field(None, description="")
+    rkdn: Optional[list] = Field(None, description="time delay of 63 day")
+    mkdn: Optional[list] = Field(None, description="")
+    fdsi: Optional[list] = Field(None, description="")
+    rkdsi: Optional[list] = Field(None, description="time delay of about half a month")
+    mkdsi: Optional[list] = Field(None, description="")
 
 
-class COSINE(NamelistBaseModel):
+class Cosine(NamelistBaseModel):
     """
 
     The full contents of the namelist file are shown below providing
@@ -282,6 +286,6 @@ class COSINE(NamelistBaseModel):
 
     """
 
-    marco: MARCO | None = Field(default=None)
-    core: CORE | None = Field(default=None)
-    misc: MISC | None = Field(default=None)
+    marco: Optional[Marco] = Field(default=None)
+    core: Optional[Core] = Field(default=None)
+    misc: Optional[Misc] = Field(default=None)

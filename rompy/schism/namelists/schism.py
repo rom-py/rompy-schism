@@ -1,38 +1,97 @@
+import logging
 from pathlib import Path
 from typing import Optional
 
 from pydantic import Field
 
+from rompy.core import TimeRange
 from rompy.schism.namelists.basemodel import NamelistBaseModel
 
-from .cosine import COSINE
-from .example import EXAMPLE
-from .ice import ICE
-from .icm import ICM
-from .mice import MICE
-from .param import PARAM
-from .sediment import SEDIMENT
-from .wwminput_spectra import WWMINPUT as WWMINPUT_SPECSTRA
-from .wwminput_WW3 import WWMINPUT as WWMINPUT_WW3
+from .cosine import Cosine
+from .example import Example
+from .ice import Ice
+from .icm import Icm
+from .mice import Mice
+from .param import Param
+from .sediment import Sediment
+from .wwminput_spectra import Wwminput as Wwminput_specstra
+from .wwminput_WW3 import Wwminput as Wwminput_ww3
+
+logger = logging.getLogger(__name__)
 
 
 class NML(NamelistBaseModel):
-    param: PARAM = Field(description="Model paramaters")
-    ice: Optional[ICE] = Field(description="Ice model parameters", default=None)
-    icm: Optional[ICM] = Field(description="Ice model parameters", default=None)
-    mice: Optional[MICE] = Field(description="Ice model parameters", default=None)
-    sediment: Optional[SEDIMENT] = Field(
+    param: Optional[Param] = Field(description="Model paramaters", default=None)
+    ice: Optional[Ice] = Field(description="Ice model parameters", default=None)
+    icm: Optional[Icm] = Field(description="Ice model parameters", default=None)
+    mice: Optional[Mice] = Field(description="Ice model parameters", default=None)
+    sediment: Optional[Sediment] = Field(
         description="Sediment model parameters", default=None
     )
-    cosine: Optional[COSINE] = Field(
+    cosine: Optional[Cosine] = Field(
         description="Sediment model parameters", default=None
     )
-    wmminput_spectra: Optional[WWMINPUT_SPECSTRA] = Field(
+    wmminput_spectra: Optional[Wwminput_specstra] = Field(
         description="Wave model input parameters", default=None
     )
-    wwminput_WW3: Optional[WWMINPUT_WW3] = Field(
+    wwminput_WW3: Optional[Wwminput_ww3] = Field(
         description="Wave model input parameters", default=None
     )
+
+    def update_times(self, period=TimeRange):
+        """
+        This class is used to set consistent time parameters in a group component by
+        redefining existing `times` component attribute based on the `period` field.
+
+        """
+
+        update = {
+            "param": {
+                "opt": {
+                    "start_year": period.start.year,
+                    "start_month": period.start.month,
+                    "start_day": period.start.day,
+                    "start_hour": period.start.hour,
+                    "rnday": period.duration.total_seconds() / 86400,
+                }
+            }
+        }
+        print(self)
+        print(self.update(update))
+
+        # date_format = "%Y-%m-%d %H:%M:%S"
+        # if hasattr(self.nml, "WWMINPUT"):
+        #     # TODO these are currently all the same, but they could be different
+        #     update.update(
+        #         {
+        #             "wwminput": {
+        #                 "proc": {
+        #                     "BEGTC": self.period.start.strftime(date_format),
+        #                     "ENDTC": self.period.end.strftime(date_format),
+        #                 },
+        #                 "wind": {
+        #                     "BEGTC": self.period.start.strftime(date_format),
+        #                     "ENDTC": self.period.end.strftime(date_format),
+        #                 },
+        #                 "curr": {
+        #                     "BEGTC": self.period.start.strftime(date_format),
+        #                     "ENDTC": self.period.end.strftime(date_format),
+        #                 },
+        #                 "walv": {
+        #                     "BEGTC": self.period.start.strftime(date_format),
+        #                     "ENDTC": self.period.end.strftime(date_format),
+        #                 },
+        #                 "station": {
+        #                     "BEGTC": self.period.start.strftime(date_format),
+        #                     "ENDTC": self.period.end.strftime(date_format),
+        #                 },
+        #                 "hotfile": {
+        #                     "BEGTC": self.period.start.strftime(date_format),
+        #                     "ENDTC": self.period.end.strftime(date_format),
+        #                 },
+        #             }
+        #         }
+        #     )
 
     def write_nml(self, workdir: Path):
         for nml in [

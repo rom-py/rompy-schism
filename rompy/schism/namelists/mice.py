@@ -1,47 +1,61 @@
-# This file was auto generated from a schism namelist file on 2024-08-28.
+# This file was auto generated from a schism namelist file on 2024-09-06.
+
+from typing import Optional
 
 from pydantic import Field
 from rompy.schism.namelists.basemodel import NamelistBaseModel
 
 
-class MICE_IN(NamelistBaseModel):
-    ice_tests: int = Field(0, description="box test flag")
-    ihot_mice: int = Field(
-        1, description="0: cold start 1: restart 2: hotstart_from_HYCOM"
+class Mice_in(NamelistBaseModel):
+    ice_tests: Optional[int] = Field(None, description="box test flag")
+    ihot_mice: Optional[int] = Field(
+        None, description="0: cold start 1: restart 2: hotstart_from_HYCOM"
     )
-    ice_advection: int = Field(
-        6,
+    ice_advection: Optional[int] = Field(
+        None,
         description="advection on/off 3: upwind 4: center-difference 5: tvd 6: tvd-up 7: TVD_Casulli",
     )
-    ice_therm_on: int = Field(1, description="ice thermodynamics on/off flag")
-    ievp: int = Field(2, description="1: EVP; 2: mEVP")
-    ice_cutoff: float = Field(
-        0.001,
+    ice_therm_on: Optional[int] = Field(
+        None, description="ice thermodynamics on/off flag"
+    )
+    ievp: Optional[int] = Field(None, description="1: EVP; 2: mEVP")
+    ice_cutoff: Optional[float] = Field(
+        None,
         description="cut-off thickness [m] or fraction for ice. No ice velocity if *<=ice_cuttoff",
     )
-    evp_rheol_steps: int = Field(
-        500, description="the number of sybcycling steps in EVP"
+    evp_rheol_steps: Optional[int] = Field(
+        None, description="the number of sybcycling steps in EVP"
     )
-    mevp_rheol_steps: int = Field(500, description="the number of iterations in mEVP")
-    delta_min: str = Field(
-        "1.0e-11", description="(1/s) Limit for minimum divergence (Hibler, Hunke"
+    mevp_rheol_steps: Optional[int] = Field(
+        None, description="the number of iterations in mEVP"
     )
-    theta_io: float = Field(0.0, description="ice/ocean rotation angle. [degr]")
-    mevp_alpha1: float = Field(
-        200.0, description="const used in mEVP (constitutive eq)"
+    delta_min: Optional[str] = Field(
+        None, description="(1/s) Limit for minimum divergence (Hibler, Hunke"
     )
-    mevp_alpha2: float = Field(200.0, description="const used in mEVP for momentum eq")
-    pstar: float = Field(27500.0, description="[N/m^2]")
-    ellipse: float = Field(2.0, description="ellipticity")
-    c_pressure: float = Field(20.0, description="C [-]")
-    niter_fct: int = Field(3, description="# of iterartions in higher-order solve")
-    ice_gamma_fct: float = Field(0.25, description="smoothing parameter")
-    h_ml0: float = Field(0.1, description="ocean mixed layer depth [m]")
-    salt_ice: float = Field(5.0, description="salinity for ice [PSU] (>=0)")
-    salt_water: float = Field(34.0, description="salinity for water [PSU] (>=0)")
+    theta_io: Optional[float] = Field(
+        None, description="ice/ocean rotation angle. [degr]"
+    )
+    mevp_alpha1: Optional[float] = Field(
+        None, description="const used in mEVP (constitutive eq)"
+    )
+    mevp_alpha2: Optional[float] = Field(
+        None, description="const used in mEVP for momentum eq"
+    )
+    pstar: Optional[float] = Field(None, description="[N/m^2]")
+    ellipse: Optional[float] = Field(None, description="ellipticity")
+    c_pressure: Optional[float] = Field(None, description="C [-]")
+    niter_fct: Optional[int] = Field(
+        None, description="# of iterartions in higher-order solve"
+    )
+    ice_gamma_fct: Optional[float] = Field(None, description="smoothing parameter")
+    h_ml0: Optional[float] = Field(None, description="ocean mixed layer depth [m]")
+    salt_ice: Optional[float] = Field(None, description="salinity for ice [PSU] (>=0)")
+    salt_water: Optional[float] = Field(
+        None, description="salinity for water [PSU] (>=0)"
+    )
 
 
-class MICE(NamelistBaseModel):
+class Mice(NamelistBaseModel):
     """
 
     The full contents of the namelist file are shown below providing
@@ -84,4 +98,4 @@ class MICE(NamelistBaseModel):
 
     """
 
-    mice_in: MICE_IN | None = Field(default=None)
+    mice_in: Optional[Mice_in] = Field(default=None)

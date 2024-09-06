@@ -4,13 +4,12 @@ from typing import Literal, Optional, Union
 
 from pydantic import Field, model_validator
 
-from rompy.core import (BaseConfig, DataBlob, RompyBaseModel, Spectrum,
-                        TimeRange)
+from rompy.core import BaseConfig, DataBlob, RompyBaseModel, Spectrum, TimeRange
 
 from .data import SCHISMData
 from .grid import SCHISMGrid
 from .interface import TimeInterface
-from .namelists import NML, PARAM, WWMINPUT
+from .namelists import NML
 
 logger = logging.getLogger(__name__)
 
@@ -520,7 +519,7 @@ class SCHISMConfig(BaseConfig):
     )
     grid: SCHISMGrid = Field(description="The model grid")
     data: Optional[SCHISMData] = Field(None, description="Model inputs")
-    nml: Optional[NML] = Field(None, description="The namelist")
+    nml: Optional[NML] = Field(NML(), description="The namelist")
     template: Optional[str] = Field(
         description="The path to the model template",
         default=SCHISM_TEMPLATE,
@@ -533,7 +532,7 @@ class SCHISMConfig(BaseConfig):
             self.data.get(
                 destdir=runtime.staging_dir, grid=self.grid, time=runtime.period
             )
-        self.nml = TimeInterface(nml=self.nml, period=runtime.period)()
+        self.nml.update_times(period=runtime.period)
         self.nml.write_nml(runtime.staging_dir)
 
 

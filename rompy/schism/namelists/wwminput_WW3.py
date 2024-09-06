@@ -1,684 +1,728 @@
-# This file was auto generated from a schism namelist file on 2024-08-28.
+# This file was auto generated from a schism namelist file on 2024-09-06.
+
+from typing import Optional
 
 from pydantic import Field
 from rompy.schism.namelists.basemodel import NamelistBaseModel
 
 
-class PROC(NamelistBaseModel):
-    PROCNAME: str = Field("'Isabel'", description="Project Name")
-    DIMMODE: int = Field(
-        2,
+class Proc(NamelistBaseModel):
+    procname: Optional[str] = Field(None, description="Project Name")
+    dimmode: Optional[int] = Field(
+        None,
         description="Mode of run (ex: 1 = 1D, 2 = 2D) always 2D when coupled to SCHISM",
     )
-    LSTEA: str = Field("F", description="steady mode; under development")
-    LQSTEA: str = Field(
-        "F",
+    lstea: Optional[str] = Field(None, description="steady mode; under development")
+    lqstea: Optional[str] = Field(
+        None,
         description="Quasi-Steady Mode; In this case WWM-II is doing subiterations defined as DELTC/NQSITER unless QSCONVI is not reached",
     )
-    LSPHE: str = Field("T", description="Spherical coordinates (lon/lat)")
-    LNAUTIN: str = Field(
-        "T",
+    lsphe: Optional[str] = Field(None, description="Spherical coordinates (lon/lat)")
+    lnautin: Optional[str] = Field(
+        None,
         description="Nautical convention for all inputs given in degrees (suggestion: T)",
     )
-    LNAUTOUT: str = Field("T", description="Output in Nautical convention")
-    LMONO_IN: str = Field(
-        "F",
+    lnautout: Optional[str] = Field(None, description="Output in Nautical convention")
+    lmono_in: Optional[str] = Field(
+        None,
         description="For prescribing monochromatic wave height Hmono as a boundary conditions; incident wave is defined as monochromatic wave height, which is Hmono = sqrt(2) * Hs",
     )
-    LMONO_OUT: str = Field("F", description="Output wave heights in terms of Lmono")
-    BEGTC: str = Field(
-        "'20030908.000000'",
-        description="Time for start the simulation, ex:yyyymmdd. hhmmss",
+    lmono_out: Optional[str] = Field(
+        None, description="Output wave heights in terms of Lmono"
     )
-    DELTC: int = Field(
-        600, description="Time step (MUST match dt*nstep_wwm in SCHISM!)"
+    begtc: Optional[str] = Field(
+        None, description="Time for start the simulation, ex:yyyymmdd. hhmmss"
     )
-    UNITC: str = Field("'SEC'", description="Unity of time step")
-    ENDTC: str = Field(
-        "'20031008.000000'",
-        description="Time for stop the simulation, ex:yyyymmdd. hhmmss",
+    deltc: Optional[int] = Field(
+        None, description="Time step (MUST match dt*nstep_wwm in SCHISM!)"
     )
-    DMIN: float = Field(
-        0.01, description="Minimum water depth. This must be the same as h0 in SCHISM"
+    unitc: Optional[str] = Field(None, description="Unity of time step")
+    endtc: Optional[str] = Field(
+        None, description="Time for stop the simulation, ex:yyyymmdd. hhmmss"
+    )
+    dmin: Optional[float] = Field(
+        None, description="Minimum water depth. This must be the same as h0 in SCHISM"
     )
 
 
-class COUPL(NamelistBaseModel):
-    LCPL: str = Field(
-        "T",
+class Coupl(NamelistBaseModel):
+    lcpl: Optional[str] = Field(
+        None,
         description="Couple with current model ... main switch - keep it on for SCHISM-WWM",
     )
-    RADFLAG: str = Field(
-        "'LON'", description="LON: Longuet-Higgin; VOR: vortex formulation"
+    radflag: Optional[str] = Field(
+        None, description="LON: Longuet-Higgin; VOR: vortex formulation"
     )
-    LETOT: str = Field(
-        "F",
+    letot: Optional[str] = Field(
+        None,
         description="Option to compute the wave induced radiation stress. If .T. the radiation stress is based on the integrated wave spectrum",
     )
-    NLVT: int = Field(10, description="Number of vertical Layers; not used with SCHISM")
-    DTCOUP: float = Field(
-        600.0, description="Couple time step - not used when coupled to SCHISM"
+    nlvt: Optional[int] = Field(
+        None, description="Number of vertical Layers; not used with SCHISM"
+    )
+    dtcoup: Optional[float] = Field(
+        None, description="Couple time step - not used when coupled to SCHISM"
     )
 
 
-class GRID(NamelistBaseModel):
-    LCIRD: str = Field("T", description="Full circle in directional space")
-    LSTAG: str = Field(
-        "F",
+class Grid(NamelistBaseModel):
+    lcird: Optional[str] = Field(None, description="Full circle in directional space")
+    lstag: Optional[str] = Field(
+        None,
         description="Stagger directional bins with a half Dtheta; may use T only for regular grid to avoid char. line aligning with grid line",
     )
-    MINDIR: float = Field(
-        0.0,
+    mindir: Optional[float] = Field(
+        None,
         description="Minimum direction for simulation (unit: degrees; nautical convention; 0: from N; 90: from E); not used if LCIRD = .T.",
     )
-    MAXDIR: float = Field(
-        360.0,
+    maxdir: Optional[float] = Field(
+        None,
         description="Maximum direction for simulation (unit: degrees); may be < MINDIR; not used if LCIRD = .T.",
     )
-    MDC: int = Field(36, description="Number of directional bins")
-    FRLOW: float = Field(
-        0.04,
+    mdc: Optional[int] = Field(None, description="Number of directional bins")
+    frlow: Optional[float] = Field(
+        None,
         description="Low frequency limit of the discrete wave period (Hz; 1/period)",
     )
-    FRHIGH: float = Field(
-        1.0, description="High frequency limit of the discrete wave period."
+    frhigh: Optional[float] = Field(
+        None, description="High frequency limit of the discrete wave period."
     )
-    MSC: int = Field(36, description="Number of frequency bins")
-    FILEGRID: str = Field(
-        "'hgrid_WWM.gr3'",
+    msc: Optional[int] = Field(None, description="Number of frequency bins")
+    filegrid: Optional[str] = Field(
+        None,
         description="Name of the grid file. hgridi_WWM.gr3 if IGRIDTYPE = 3 (SCHISM)",
     )
-    IGRIDTYPE: int = Field(3, description="Gridtype used.")
-    LSLOP: str = Field("F", description="Bottom Slope limiter (default=F)")
-    SLMAX: float = Field(0.2, description="Max Slope;")
-    LVAR1D: str = Field(
-        "F", description="For 1d-mode if variable dx is used; not used with SCHISM"
+    igridtype: Optional[int] = Field(None, description="Gridtype used.")
+    lslop: Optional[str] = Field(None, description="Bottom Slope limiter (default=F)")
+    slmax: Optional[float] = Field(None, description="Max Slope;")
+    lvar1d: Optional[str] = Field(
+        None, description="For 1d-mode if variable dx is used; not used with SCHISM"
     )
-    LOPTSIG: str = Field(
-        "F",
+    loptsig: Optional[str] = Field(
+        None,
         description="Use optimal distributions of freq. in spectral space ... fi+1 = fi * 1.1. Take care what you high freq. limit is!",
     )
 
 
-class INIT(NamelistBaseModel):
-    FILEHOT_IN: str = Field(
-        "'hotfile_in_WWM.nc'",
+class Init(NamelistBaseModel):
+    filehot_in: Optional[str] = Field(
+        None,
         description="(Full) hot file name for input (which can be copied from FILEHOT_OUT above)",
     )
-    HOTSTYLE_IN: int = Field(2, description="1: binary hotfile of data as input")
-    IHOTPOS_IN: int = Field(1, description="Position in hotfile (only for netcdf)")
-    MULTIPLEIN: int = Field(0, description="0: read hotfile from one single file")
-
-
-class HOTFILE(NamelistBaseModel):
-    LHOTF: str = Field("T", description="Write hotfile")
-    FILEHOT_OUT: str = Field("'hotfile_out_WWM.nc'", description="name of output")
-    BEGTC: str = Field(
-        "'20030908.000000'",
-        description="Starting time of hotfile writing. With ihot!=0 in SCHISM,",
+    hotstyle_in: Optional[int] = Field(
+        None, description="1: binary hotfile of data as input"
     )
-    DELTC: float = Field(86400.0, description="time between hotfile writes")
-    UNITC: str = Field("'SEC'", description="unit used above")
-    ENDTC: str = Field(
-        "'20031008.000000'",
-        description="Ending time of hotfile writing (adjust with BEGTC)",
+    ihotpos_in: Optional[int] = Field(
+        None, description="Position in hotfile (only for netcdf)"
     )
-    LCYCLEHOT: str = Field("T", description="Applies only to netcdf")
-    HOTSTYLE_OUT: int = Field(2, description="1: binary hotfile of data as output")
-    MULTIPLEOUT: int = Field(
-        0, description="0: hotfile in a single file (binary or netcdf)"
+    multiplein: Optional[int] = Field(
+        None, description="0: read hotfile from one single file"
     )
 
 
-class BOUC(NamelistBaseModel):
-    LBCSE: str = Field("T", description="The wave boundary data is time dependent")
-    LBINTER: str = Field(
-        "T",
+class Hotfile(NamelistBaseModel):
+    lhotf: Optional[str] = Field(None, description="Write hotfile")
+    filehot_out: Optional[str] = Field(None, description="name of output")
+    begtc: Optional[str] = Field(
+        None, description="Starting time of hotfile writing. With ihot!=0 in SCHISM,"
+    )
+    deltc: Optional[float] = Field(None, description="time between hotfile writes")
+    unitc: Optional[str] = Field(None, description="unit used above")
+    endtc: Optional[str] = Field(
+        None, description="Ending time of hotfile writing (adjust with BEGTC)"
+    )
+    lcyclehot: Optional[str] = Field(None, description="Applies only to netcdf")
+    hotstyle_out: Optional[int] = Field(
+        None, description="1: binary hotfile of data as output"
+    )
+    multipleout: Optional[int] = Field(
+        None, description="0: hotfile in a single file (binary or netcdf)"
+    )
+
+
+class Bouc(NamelistBaseModel):
+    lbcse: Optional[str] = Field(
+        None, description="The wave boundary data is time dependent"
+    )
+    lbinter: Optional[str] = Field(
+        None,
         description="Do interpolation in time if LBCSE=T (not available for quasi-steady mode within the subtime steps)",
     )
-    LBCWA: str = Field("T", description="Parametric Wave Spectra")
-    LBCSP: str = Field(
-        "F",
+    lbcwa: Optional[str] = Field(None, description="Parametric Wave Spectra")
+    lbcsp: Optional[str] = Field(
+        None,
         description="Specify (non-parametric) wave spectra, specified in 'FILEWAVE' below",
     )
-    LINHOM: str = Field("T", description="Non-uniform wave b.c. in space")
-    LBSP1D: str = Field(
-        "F",
+    linhom: Optional[str] = Field(None, description="Non-uniform wave b.c. in space")
+    lbsp1d: Optional[str] = Field(
+        None,
         description="1D (freq. space only) format for FILEWAVE if LBCSP=T and LINHOM=F",
     )
-    LBSP2D: str = Field(
-        "F", description="2D format for FILEWAVE if LBCSP=T and LINHOM=F"
+    lbsp2d: Optional[str] = Field(
+        None, description="2D format for FILEWAVE if LBCSP=T and LINHOM=F"
     )
-    BEGTC: str = Field(
-        "'20030908.000000'",
-        description="Begin time of the wave boundary file (FILEWAVE)",
+    begtc: Optional[str] = Field(
+        None, description="Begin time of the wave boundary file (FILEWAVE)"
     )
-    DELTC: int = Field(1, description="Time step in FILEWAVE")
-    UNITC: str = Field("'HR'", description="Unit can be HR, MIN, SEC")
-    ENDTC: str = Field("'20031008.000000'", description="End time")
-    FILEBOUND: str = Field(
-        "'wwmbnd.gr3'",
+    deltc: Optional[int] = Field(None, description="Time step in FILEWAVE")
+    unitc: Optional[str] = Field(None, description="Unit can be HR, MIN, SEC")
+    endtc: Optional[str] = Field(None, description="End time")
+    filebound: Optional[str] = Field(
+        None,
         description="Boundary file defining boundary conditions and Neumann nodes.",
     )
-    IBOUNDFORMAT: int = Field(
-        3, description="1 ~ WWM, 3 ~ WW3 (2D spectra in netcdf format only - LBCWA=T)."
+    iboundformat: Optional[int] = Field(
+        None,
+        description="1 ~ WWM, 3 ~ WW3 (2D spectra in netcdf format only - LBCWA=T).",
     )
-    FILEWAVE: str = Field(
-        "'bndfiles.dat'", description="Boundary file defining boundary input from WW3"
+    filewave: Optional[str] = Field(
+        None, description="Boundary file defining boundary input from WW3"
     )
-    LINDSPRDEG: str = Field(
-        "F",
+    lindsprdeg: Optional[str] = Field(
+        None,
         description="If 1-d wave spectra are read this flag defines whether the input for the directional spreading is in degrees (true) or exponent (false)",
     )
-    LPARMDIR: str = Field(
-        "F",
+    lparmdir: Optional[str] = Field(
+        None,
         description="If LPARMDIR is true then directional spreading is read from WBDS and must be in exponential format at this time, only valid for 1d Spectra",
     )
-    WBHS: float = Field(2.0, description="Hs at the boundary for parametric spectra")
-    WBSS: int = Field(
-        2,
+    wbhs: Optional[float] = Field(
+        None, description="Hs at the boundary for parametric spectra"
+    )
+    wbss: Optional[int] = Field(
+        None,
         description="1 or -1: Pierson-Moskowitz, 2 or -2: JONSWAP, 3 or -3: all in one BIN,",
     )
-    WBTP: float = Field(
-        8.0,
+    wbtp: Optional[float] = Field(
+        None,
         description="Tp at the boundary (sec); mean or peak depending on the sign of WBSS",
     )
-    WBDM: float = Field(90.0, description="Avg. Wave Direction at the boundary")
-    WBDSMS: int = Field(
-        1, description="Directional spreading value in degrees (1) or as exponent (2)"
+    wbdm: Optional[float] = Field(
+        None, description="Avg. Wave Direction at the boundary"
     )
-    WBDS: float = Field(
-        10.0, description="Directional spreading at the boundary (degrees/exponent)"
+    wbdsms: Optional[int] = Field(
+        None,
+        description="Directional spreading value in degrees (1) or as exponent (2)",
     )
-    WBGAUSS: float = Field(
-        0.1, description="factor for gaussian distribution if WBSS=1"
+    wbds: Optional[float] = Field(
+        None, description="Directional spreading at the boundary (degrees/exponent)"
     )
-    WBPKEN: float = Field(
-        3.3, description="Peak enhancement factor for Jonswap Spectra if WBSS=2"
+    wbgauss: Optional[float] = Field(
+        None, description="factor for gaussian distribution if WBSS=1"
+    )
+    wbpken: Optional[float] = Field(
+        None, description="Peak enhancement factor for Jonswap Spectra if WBSS=2"
     )
 
 
-class ENGS(NamelistBaseModel):
-    MESNL: int = Field(
-        1,
+class Engs(NamelistBaseModel):
+    mesnl: Optional[int] = Field(
+        None,
         description="Nonlinear Interaction NL4 , 1 ~ on, 0 ~ off (Discrete Interaction approx.)",
     )
-    MESIN: int = Field(
-        1, description="Wind input: Ardhuin et al. (1) (use LSOURCESWAM = F);"
+    mesin: Optional[int] = Field(
+        None, description="Wind input: Ardhuin et al. (1) (use LSOURCESWAM = F);"
     )
-    IFRIC: int = Field(
-        1,
+    ifric: Optional[int] = Field(
+        None,
         description="Formulation for atmospheric boundary layer, (IFRIC = 1 for MESIN = 1, IFRIC = 4 for MESIN=3);",
     )
-    MESBF: int = Field(
-        1,
+    mesbf: Optional[int] = Field(
+        None,
         description="Bottom friction: 1 - JONSWAP (Default); 2 - Madsen et al. (1989); 3 - SHOWEX",
     )
-    FRICC: float = Field(
-        0.067,
+    fricc: Optional[float] = Field(
+        None,
         description="if MESBF=1: JONSWAP bottom friction coefficient [0.038,0.067]. If MESBF=2: physical bottom roughness (ignored if given in rough.gr3). If MESBF=3: D50 (if negative read from SHOWEX_D50.gr3)",
     )
-    MESBR: int = Field(1, description="Shallow water wave breaking; 0: off; 1: on")
-    IBREAK: int = Field(
-        1, description="Wave breaking formulation: 1 - Battjes and Janssen (1978)"
+    mesbr: Optional[int] = Field(
+        None, description="Shallow water wave breaking; 0: off; 1: on"
     )
-    ICRIT: int = Field(
-        1,
+    ibreak: Optional[int] = Field(
+        None, description="Wave breaking formulation: 1 - Battjes and Janssen (1978)"
+    )
+    icrit: Optional[int] = Field(
+        None,
         description="Wave breaking criterion: 1   - Constant breaker index (gamma) or gamma_TG defined with BRCR",
     )
-    BRCR: float = Field(
-        0.78,
+    brcr: Optional[float] = Field(
+        None,
         description="either gamma, default is 0.73 for IBREAK=1,5 or gamma_TG, default is 0.42 for IBREAK=2,3 or biphase_ref, default is -4pi/9 = -1.3963 for IBREAK=4",
     )
-    a_BRCR: float = Field(0.76, description="cf ICRIT = 4, 5")
-    b_BRCR: float = Field(0.29, description="cf ICRIT = 4, 5")
-    min_BRCR: float = Field(0.25, description="cf ICRIT = 4, 5")
-    max_BRCR: float = Field(0.8, description="cf ICRIT = 4, 5")
-    a_BIPH: float = Field(
-        0.2, description="Biphase coefficient, default 0.2 (intended for IBREAK=3)"
+    a_brcr: Optional[float] = Field(None, description="cf ICRIT = 4, 5")
+    b_brcr: Optional[float] = Field(None, description="cf ICRIT = 4, 5")
+    min_brcr: Optional[float] = Field(None, description="cf ICRIT = 4, 5")
+    max_brcr: Optional[float] = Field(None, description="cf ICRIT = 4, 5")
+    a_biph: Optional[float] = Field(
+        None, description="Biphase coefficient, default 0.2 (intended for IBREAK=3)"
     )
-    BR_COEF_METHOD: int = Field(
-        1, description="Method for the breaking coefficient: 1 - constant, 2 - adaptive"
+    br_coef_method: Optional[int] = Field(
+        None,
+        description="Method for the breaking coefficient: 1 - constant, 2 - adaptive",
     )
-    B_ALP: float = Field(
-        0.5, description="breaking coefficient. If BR_COEF_METHOD = 2, B_ALP ~ 40"
+    b_alp: Optional[float] = Field(
+        None, description="breaking coefficient. If BR_COEF_METHOD = 2, B_ALP ~ 40"
     )
-    ZPROF_BREAK: int = Field(
-        2,
+    zprof_break: Optional[int] = Field(
+        None,
         description="Vertical distribution function of wave breaking source term, only used in 3D run",
     )
-    BC_BREAK: int = Field(
-        1, description="Apply depth-limited breaking at the boundaries: 1 - On; 0 - Off"
+    bc_break: Optional[int] = Field(
+        None,
+        description="Apply depth-limited breaking at the boundaries: 1 - On; 0 - Off",
     )
-    IROLLER: int = Field(
-        0,
+    iroller: Optional[int] = Field(
+        None,
         description="Wave roller model (e.g., see Uchiyama et al., 2010): 1 - On; 0 - Off; not used at the moment",
     )
-    ALPROL: float = Field(
-        0.85,
+    alprol: Optional[float] = Field(
+        None,
         description="Alpha coefficient for the wave roller model (between 0 and 1): 1 - full conversion; 0 - no energy transferred to the roller",
     )
-    MEVEG: int = Field(
-        0, description="Vegetation on/off. If on, isav must = 1 in param.nml"
+    meveg: Optional[int] = Field(
+        None, description="Vegetation on/off. If on, isav must = 1 in param.nml"
     )
-    LMAXETOT: str = Field(
-        "T",
+    lmaxetot: Optional[str] = Field(
+        None,
         description="Limit shallow water wave height by wave breaking limiter (default=T)",
     )
-    MESDS: int = Field(
-        1,
+    mesds: Optional[int] = Field(
+        None,
         description="Formulation for the whitecapping source function; same value as MESIN",
     )
-    MESTR: int = Field(
-        1,
+    mestr: Optional[int] = Field(
+        None,
         description="Formulation for the triad 3 wave interactions (MESTR = 0 (off), MESTR = 1 (Lumped Triad Approx. (LTA)), MESTR = 2 (corrected version of LTA by Salmon et al. (2016)))",
     )
-    TRICO: float = Field(
-        0.1, description="proportionality const. (\alpha_EB); default is 0.1"
+    trico: Optional[float] = Field(
+        None, description="proportionality const. (\alpha_EB); default is 0.1"
     )
-    TRIRA: float = Field(
-        2.5,
+    trira: Optional[float] = Field(
+        None,
         description="ratio of max. freq. considered in triads over mean freq.; 2.5 is suggested",
     )
-    TRIURS: float = Field(
-        0.1,
+    triurs: Optional[float] = Field(
+        None,
         description="critical Ursell number; if Ursell # < TRIURS; triads are not computed",
     )
 
 
-class NUMS(NamelistBaseModel):
-    ICOMP: int = Field(3, description="")
-    AMETHOD: int = Field(7, description="")
-    SMETHOD: int = Field(1, description="")
-    DMETHOD: int = Field(2, description="")
-    RTHETA: float = Field(
-        0.5,
+class Nums(NamelistBaseModel):
+    icomp: Optional[int] = Field(None, description="")
+    amethod: Optional[int] = Field(None, description="")
+    smethod: Optional[int] = Field(None, description="")
+    dmethod: Optional[int] = Field(None, description="")
+    rtheta: Optional[float] = Field(
+        None,
         description="Weighing factor for DMETHOD = 1, not really useful since Crank Nicholson integration can only be monotone for CFL .le. 2",
     )
-    LITERSPLIT: str = Field(
-        "F",
+    litersplit: Optional[str] = Field(
+        None,
         description="T: double Strang split; F: simple split (more efficient). Default: F",
     )
-    LFILTERTH: str = Field("F", description="")
-    MAXCFLTH: float = Field(
-        1.0, description="Max Cfl in Theta space; used only if LFILTERTH=T"
+    lfilterth: Optional[str] = Field(None, description="")
+    maxcflth: Optional[float] = Field(
+        None, description="Max Cfl in Theta space; used only if LFILTERTH=T"
     )
-    FMETHOD: int = Field(1, description="")
-    LFILTERSIG: str = Field(
-        "F", description="Limit the advection velocity in freq. space (usually F)"
+    fmethod: Optional[int] = Field(None, description="")
+    lfiltersig: Optional[str] = Field(
+        None, description="Limit the advection velocity in freq. space (usually F)"
     )
-    MAXCFLSIG: float = Field(
-        1.0, description="Max Cfl in freq. space; used only if LFILTERSIG=T"
+    maxcflsig: Optional[float] = Field(
+        None, description="Max Cfl in freq. space; used only if LFILTERSIG=T"
     )
-    LLIMT: str = Field(
-        "T",
+    llimt: Optional[str] = Field(
+        None,
         description="Switch on/off Action limiter, Action limiter must mostly be turned on.",
     )
-    MELIM: int = Field(1, description="Formulation for the action limiter")
-    LIMFAK: float = Field(
-        0.1,
+    melim: Optional[int] = Field(None, description="Formulation for the action limiter")
+    limfak: Optional[float] = Field(
+        None,
         description="Proportionality coefficient for the action limiter MAX_DAC_DT = Limfak * Limiter; see notes above for value",
     )
-    LDIFR: str = Field(
-        "F",
+    ldifr: Optional[str] = Field(
+        None,
         description="Use phase decoupled diffraction approximation according to Holthuijsen et al. (2003) (usually T; if crash, use F)",
     )
-    IDIFFR: int = Field(
-        1,
+    idiffr: Optional[int] = Field(
+        None,
         description="Extended WAE accounting for higher order effects WAE becomes nonlinear; 1: Holthuijsen et al. ; 2: Liau et al. ; 3: Toledo et al. (in preparation)",
     )
-    LCONV: str = Field(
-        "F",
+    lconv: Optional[str] = Field(
+        None,
         description="Estimate convergence criterian and write disk (quasi-steady - qstea.out)",
     )
-    LCFL: str = Field("F", description="Write out CFL numbers; use F to save time")
-    NQSITER: int = Field(
-        1,
+    lcfl: Optional[str] = Field(
+        None, description="Write out CFL numbers; use F to save time"
+    )
+    nqsiter: Optional[int] = Field(
+        None,
         description="# of quasi-steady (Q-S) sub-divisions within each WWM time step (trial and errors)",
     )
-    QSCONV1: float = Field(
-        0.98,
+    qsconv1: Optional[float] = Field(
+        None,
         description="Number of grid points [%/100] that have to fulfill abs. wave height criteria EPSH1",
     )
-    QSCONV2: float = Field(
-        0.98,
+    qsconv2: Optional[float] = Field(
+        None,
         description="Number of grid points [%/100] that have to fulfill rel. wave height criteria EPSH2",
     )
-    QSCONV3: float = Field(
-        0.98,
+    qsconv3: Optional[float] = Field(
+        None,
         description="Number of grid points [%/100] that have to fulfill sum. rel. wave action criteria EPSH3",
     )
-    QSCONV4: float = Field(
-        0.98,
+    qsconv4: Optional[float] = Field(
+        None,
         description="Number of grid points [%/100] that have to fulfill rel. avg. wave steepness criteria EPSH4",
     )
-    QSCONV5: float = Field(
-        0.98,
+    qsconv5: Optional[float] = Field(
+        None,
         description="Number of grid points [%/100] that have to fulfill avg. rel. wave period criteria EPSH5",
     )
-    LEXPIMP: str = Field(
-        "F",
+    lexpimp: Optional[str] = Field(
+        None,
         description="Use implicit schemes for freq. lower than given below by FREQEXP; used only if ICOMP=0",
     )
-    FREQEXP: float = Field(
-        0.1,
+    freqexp: Optional[float] = Field(
+        None,
         description="Minimum frequency for explicit schemes; only used if LEXPIMP=T and ICOMP=0",
     )
-    EPSH1: float = Field(
-        0.01,
+    epsh1: Optional[float] = Field(
+        None,
         description="Convergence criteria for rel. wave height ! EPSH1 < CONVK1 = REAL(ABS(HSOLD(IP)-HS2)/HS2)",
     )
-    EPSH2: float = Field(
-        0.01,
+    epsh2: Optional[float] = Field(
+        None,
         description="Convergence criteria for abs. wave height ! EPSH2 < CONVK2 = REAL(ABS(HS2-HSOLD(IP)))",
     )
-    EPSH3: float = Field(
-        0.01,
+    epsh3: Optional[float] = Field(
+        None,
         description="Convergence criteria for the rel. sum of wave action ! EPSH3 < CONVK3 = REAL(ABS(SUMACOLD(IP)-SUMAC)/SUMAC)",
     )
-    EPSH4: float = Field(
-        0.01,
+    epsh4: Optional[float] = Field(
+        None,
         description="Convergence criteria for the rel. avg. wave steepness criteria ! EPSH4 < CONVK4 = REAL(ABS(KHS2-KHSOLD(IP))/KHSOLD(IP))",
     )
-    EPSH5: float = Field(
-        0.01,
+    epsh5: Optional[float] = Field(
+        None,
         description="Convergence criteria for the rel. avg. waveperiod ! EPSH5 < REAL(ABS(TM02-TM02OLD(IP))/TM02OLD(IP))",
     )
-    LVECTOR: str = Field(
-        "F",
+    lvector: Optional[str] = Field(
+        None,
         description="Use optmized propagation routines for large high performance computers e.g. at least more than 128 CPU. Try LVECTOR=F first.",
     )
-    IVECTOR: int = Field(
-        2, description="USed if LVECTOR=T; Different flavours of communications"
+    ivector: Optional[int] = Field(
+        None, description="USed if LVECTOR=T; Different flavours of communications"
     )
-    LADVTEST: str = Field(
-        "F",
+    ladvtest: Optional[str] = Field(
+        None,
         description="for testing the advection schemes, testcase will be added soon",
     )
-    LCHKCONV: str = Field(
-        "F",
+    lchkconv: Optional[str] = Field(
+        None,
         description="needs to set to .true. for quasi-steady mode. in order to compute the QSCONVi criteria and check them",
     )
-    DTMIN_DYN: float = Field(
-        1.0,
+    dtmin_dyn: Optional[float] = Field(
+        None,
         description="min. time step (sec?) for dynamic integration, this controls in SMETHOD the smallest time step for the triads, DT = 1.s is found to work well.",
     )
-    NDYNITER: list = Field(
-        [100, ""],
+    ndyniter: Optional[list] = Field(
+        None,
         description="max. iteration for dyn. scheme afterwards the limiter is applied in the last step, for SMETHOD .eq. this controls the integration of the triad interaction terms, which is done dynamically.",
     )
-    DTMIN_SIN: float = Field(
-        1.0,
+    dtmin_sin: Optional[float] = Field(
+        None,
         description="min. time steps for the full fractional step method, where each source term is integrated with its own fractional step",
     )
-    DTMIN_SNL4: float = Field(1.0, description="")
-    DTMIN_SDS: float = Field(1.0, description="")
-    DTMIN_SNL3: float = Field(1.0, description="")
-    DTMIN_SBR: float = Field(0.1, description="")
-    DTMIN_SBF: float = Field(1.0, description="")
-    NDYNITER_SIN: list = Field(
-        [10, ""],
+    dtmin_snl4: Optional[float] = Field(None, description="")
+    dtmin_sds: Optional[float] = Field(None, description="")
+    dtmin_snl3: Optional[float] = Field(None, description="")
+    dtmin_sbr: Optional[float] = Field(None, description="")
+    dtmin_sbf: Optional[float] = Field(None, description="")
+    ndyniter_sin: Optional[list] = Field(
+        None,
         description="max. iterations for each source term in the fractional step approach.",
     )
-    NDYNITER_SNL4: list = Field([10, ""], description="")
-    NDYNITER_SDS: list = Field([10, ""], description="")
-    NDYNITER_SBR: list = Field([10, ""], description="")
-    NDYNITER_SNL3: list = Field([10, ""], description="")
-    NDYNITER_SBF: list = Field([10, ""], description="")
-    LSOUBOUND: str = Field(
-        "F",
+    ndyniter_snl4: Optional[list] = Field(None, description="")
+    ndyniter_sds: Optional[list] = Field(None, description="")
+    ndyniter_sbr: Optional[list] = Field(None, description="")
+    ndyniter_snl3: Optional[list] = Field(None, description="")
+    ndyniter_sbf: Optional[list] = Field(None, description="")
+    lsoubound: Optional[str] = Field(
+        None,
         description="Do source terms on boundary, this is possible as long only dissipative processes are governing the spectral evolution, otherwise, with wind u will get the max. possible wave height",
     )
-    WAE_SOLVERTHR: list = Field(
-        ["1.e-6", ""],
-        description="Threshold for the Block-Jacobi or Block-Gauss-Seider solver",
+    wae_solverthr: Optional[list] = Field(
+        None, description="Threshold for the Block-Jacobi or Block-Gauss-Seider solver"
     )
-    MAXITER: list = Field([1000, ""], description="Max. number of iterations")
-    PMIN: list = Field(
-        [1.0, ""], description="Max. percentage of non-converged grid points"
+    maxiter: Optional[list] = Field(None, description="Max. number of iterations")
+    pmin: Optional[list] = Field(
+        None, description="Max. percentage of non-converged grid points"
     )
-    LNANINFCHK: list = Field(
-        ["F", ""],
-        description="Check for NaN and INF; usually turned off for efficiency",
+    lnaninfchk: Optional[list] = Field(
+        None, description="Check for NaN and INF; usually turned off for efficiency"
     )
-    LZETA_SETUP: list = Field(
-        ["F", ""], description="Compute wave setup (simple momentum eq.)"
+    lzeta_setup: Optional[list] = Field(
+        None, description="Compute wave setup (simple momentum eq.)"
     )
-    ZETA_METH: list = Field(
-        [0, ""], description="Method for wave setup, Mathieu please explain!"
+    zeta_meth: Optional[list] = Field(
+        None, description="Method for wave setup, Mathieu please explain!"
     )
-    LSOURCESWAM: list = Field(
-        ["F", ""], description="Use ECMWF WAM formualtion for deep water physics."
+    lsourceswam: Optional[list] = Field(
+        None, description="Use ECMWF WAM formualtion for deep water physics."
     )
-    BLOCK_GAUSS_SEIDEL: list = Field(
-        ["T", ""], description="Use the Gauss Seidel on each"
+    block_gauss_seidel: Optional[list] = Field(
+        None, description="Use the Gauss Seidel on each"
     )
-    LNONL: str = Field(
-        "F", description="Solve the nonlinear system using simpler algorithm (Patankar)"
+    lnonl: Optional[str] = Field(
+        None,
+        description="Solve the nonlinear system using simpler algorithm (Patankar)",
     )
-    ASPAR_LOCAL_LEVEL: int = Field(0, description="Aspar locality level")
-    L_SOLVER_NORM: str = Field(
-        "F", description="Compute solver norm ||A*x-b|| as termination"
+    aspar_local_level: Optional[int] = Field(None, description="Aspar locality level")
+    l_solver_norm: Optional[str] = Field(
+        None, description="Compute solver norm ||A*x-b|| as termination"
     )
-    LACCEL: str = Field("F", description="")
+    laccel: Optional[str] = Field(None, description="")
 
 
-class HISTORY(NamelistBaseModel):
-    BEGTC: str = Field(
-        "'20030908.000000'", description="Start output time, yyyymmdd. hhmmss;"
+class History(NamelistBaseModel):
+    begtc: Optional[str] = Field(
+        None, description="Start output time, yyyymmdd. hhmmss;"
     )
-    DELTC: int = Field(
-        1,
+    deltc: Optional[int] = Field(
+        None,
         description="Time step for output; if smaller than simulation time step, the latter is used (output every step for better 1D 2D spectra analysis)",
     )
-    UNITC: str = Field("'SEC'", description="Unit")
-    ENDTC: str = Field(
-        "'20031008.000000'", description="Stop time output, yyyymmdd. hhmmss"
+    unitc: Optional[str] = Field(None, description="Unit")
+    endtc: Optional[str] = Field(None, description="Stop time output, yyyymmdd. hhmmss")
+    definetc: Optional[int] = Field(
+        None, description="Time scoop (sec) for history files"
     )
-    DEFINETC: int = Field(86400, description="Time scoop (sec) for history files")
-    OUTSTYLE: str = Field("'NO'", description="output option - use 'NO' for no output")
-    MULTIPLEOUT: int = Field(0, description="0: output in a single netcdf file")
-    USE_SINGLE_OUT: str = Field("T", description="T: Use single precision in the")
-    PARAMWRITE: str = Field("T", description="T: Write the physical parametrization")
-    GRIDWRITE: str = Field(
-        "T", description="T/F: Write the grid in the netcdf history file (default T)"
+    outstyle: Optional[str] = Field(
+        None, description="output option - use 'NO' for no output"
     )
-    PRINTMMA: str = Field("F", description="T/F: Print minimum, maximum and average")
-    FILEOUT: str = Field("'wwm_hist.dat'", description="")
-    HS: str = Field("F", description="significant wave height")
-    TM01: str = Field("F", description="mean period")
-    TM02: str = Field("F", description="zero-crossing mean period")
-    KLM: str = Field("F", description="mean wave number")
-    WLM: str = Field("F", description="mean wave length")
-    ETOTC: str = Field("F", description="Variable ETOTC")
-    ETOTS: str = Field("F", description="Variable ETOTS")
-    DM: str = Field("F", description="mean wave direction")
-    DSPR: str = Field("F", description="directional spreading")
-    TPPD: str = Field("F", description="direaction of the peak ... check source code")
-    TPP: str = Field("F", description="peak period")
-    CPP: str = Field("F", description="peak phase vel.")
-    WNPP: str = Field("F", description="peak wave number")
-    CGPP: str = Field("F", description="peak group speed")
-    KPP: str = Field("F", description="peak wave number")
-    LPP: str = Field("F", description="peak wave length")
-    PEAKD: str = Field("F", description="peak direction")
-    PEAKDSPR: str = Field("F", description="peak directional spreading")
-    DPEAK: str = Field("F", description="peak direction")
-    UBOT: str = Field("F", description="bottom exc. vel.")
-    ORBITAL: str = Field("F", description="bottom orbital vel.")
-    BOTEXPER: str = Field("F", description="bottom exc.")
-    TMBOT: str = Field("F", description="bottom period")
-    URSELL: str = Field("F", description="Ursell number")
-    UFRIC: str = Field("F", description="air friction velocity")
-    Z0: str = Field("F", description="air roughness length")
-    ALPHA_CH: str = Field("F", description="Charnoch coefficient for air")
-    WINDX: str = Field("F", description="Wind in X direction")
-    WINDY: str = Field("F", description="Wind in Y direction")
-    CD: str = Field("F", description="Drag coefficient")
-    CURRTX: str = Field("F", description="current in X direction")
-    CURRTY: str = Field("F", description="current in Y direction")
-    WATLEV: str = Field("F", description="water level")
-    WATLEVOLD: str = Field("F", description="water level at previous time step")
-    DEPDT: str = Field("F", description="change of water level in time")
-    DEP: str = Field("F", description="depth")
-    TAUW: str = Field("F", description="surface stress from the wave")
-    TAUHF: str = Field("F", description="high frequency surface stress")
-    TAUTOT: str = Field("F", description="total surface stress")
-    STOKESSURFX: str = Field("F", description="Surface Stokes drift in X direction")
-    STOKESSURFY: str = Field("F", description="Surface Stokes drift in X direction")
-    STOKESBAROX: str = Field("F", description="Barotropic Stokes drift in X direction")
-    STOKESBAROY: str = Field("F", description="Barotropic Stokes drift in Y direction")
-    RSXX: str = Field("F", description="RSXX potential of LH")
-    RSXY: str = Field("F", description="RSXY potential of LH")
-    RSYY: str = Field("F", description="RSYY potential of LH")
-    CFL1: str = Field("F", description="CFL number 1")
-    CFL2: str = Field("F", description="CFL number 2")
-    CFL3: str = Field("F", description="CFL number 3")
+    multipleout: Optional[int] = Field(
+        None, description="0: output in a single netcdf file"
+    )
+    use_single_out: Optional[str] = Field(
+        None, description="T: Use single precision in the"
+    )
+    paramwrite: Optional[str] = Field(
+        None, description="T: Write the physical parametrization"
+    )
+    gridwrite: Optional[str] = Field(
+        None, description="T/F: Write the grid in the netcdf history file (default T)"
+    )
+    printmma: Optional[str] = Field(
+        None, description="T/F: Print minimum, maximum and average"
+    )
+    fileout: Optional[str] = Field(None, description="")
+    hs: Optional[str] = Field(None, description="significant wave height")
+    tm01: Optional[str] = Field(None, description="mean period")
+    tm02: Optional[str] = Field(None, description="zero-crossing mean period")
+    klm: Optional[str] = Field(None, description="mean wave number")
+    wlm: Optional[str] = Field(None, description="mean wave length")
+    etotc: Optional[str] = Field(None, description="Variable ETOTC")
+    etots: Optional[str] = Field(None, description="Variable ETOTS")
+    dm: Optional[str] = Field(None, description="mean wave direction")
+    dspr: Optional[str] = Field(None, description="directional spreading")
+    tppd: Optional[str] = Field(
+        None, description="direaction of the peak ... check source code"
+    )
+    tpp: Optional[str] = Field(None, description="peak period")
+    cpp: Optional[str] = Field(None, description="peak phase vel.")
+    wnpp: Optional[str] = Field(None, description="peak wave number")
+    cgpp: Optional[str] = Field(None, description="peak group speed")
+    kpp: Optional[str] = Field(None, description="peak wave number")
+    lpp: Optional[str] = Field(None, description="peak wave length")
+    peakd: Optional[str] = Field(None, description="peak direction")
+    peakdspr: Optional[str] = Field(None, description="peak directional spreading")
+    dpeak: Optional[str] = Field(None, description="peak direction")
+    ubot: Optional[str] = Field(None, description="bottom exc. vel.")
+    orbital: Optional[str] = Field(None, description="bottom orbital vel.")
+    botexper: Optional[str] = Field(None, description="bottom exc.")
+    tmbot: Optional[str] = Field(None, description="bottom period")
+    ursell: Optional[str] = Field(None, description="Ursell number")
+    ufric: Optional[str] = Field(None, description="air friction velocity")
+    z0: Optional[str] = Field(None, description="air roughness length")
+    alpha_ch: Optional[str] = Field(None, description="Charnoch coefficient for air")
+    windx: Optional[str] = Field(None, description="Wind in X direction")
+    windy: Optional[str] = Field(None, description="Wind in Y direction")
+    cd: Optional[str] = Field(None, description="Drag coefficient")
+    currtx: Optional[str] = Field(None, description="current in X direction")
+    currty: Optional[str] = Field(None, description="current in Y direction")
+    watlev: Optional[str] = Field(None, description="water level")
+    watlevold: Optional[str] = Field(
+        None, description="water level at previous time step"
+    )
+    depdt: Optional[str] = Field(None, description="change of water level in time")
+    dep: Optional[str] = Field(None, description="depth")
+    tauw: Optional[str] = Field(None, description="surface stress from the wave")
+    tauhf: Optional[str] = Field(None, description="high frequency surface stress")
+    tautot: Optional[str] = Field(None, description="total surface stress")
+    stokessurfx: Optional[str] = Field(
+        None, description="Surface Stokes drift in X direction"
+    )
+    stokessurfy: Optional[str] = Field(
+        None, description="Surface Stokes drift in X direction"
+    )
+    stokesbarox: Optional[str] = Field(
+        None, description="Barotropic Stokes drift in X direction"
+    )
+    stokesbaroy: Optional[str] = Field(
+        None, description="Barotropic Stokes drift in Y direction"
+    )
+    rsxx: Optional[str] = Field(None, description="RSXX potential of LH")
+    rsxy: Optional[str] = Field(None, description="RSXY potential of LH")
+    rsyy: Optional[str] = Field(None, description="RSYY potential of LH")
+    cfl1: Optional[str] = Field(None, description="CFL number 1")
+    cfl2: Optional[str] = Field(None, description="CFL number 2")
+    cfl3: Optional[str] = Field(None, description="CFL number 3")
 
 
-class STATION(NamelistBaseModel):
-    BEGTC: str = Field(
-        "'20030908.000000'",
+class Station(NamelistBaseModel):
+    begtc: Optional[str] = Field(
+        None,
         description="Start simulation time, yyyymmdd. hhmmss; must fit the simulation time otherwise no output",
     )
-    DELTC: int = Field(
-        600,
+    deltc: Optional[int] = Field(
+        None,
         description="Time step for output; if smaller than simulation time step, the latter is used (output every step for better 1D 2D spectra analysis)",
     )
-    UNITC: str = Field("'SEC'", description="Unit")
-    ENDTC: str = Field(
-        "'20031008.000000'", description="Stop time simulation, yyyymmdd. hhmmss"
+    unitc: Optional[str] = Field(None, description="Unit")
+    endtc: Optional[str] = Field(
+        None, description="Stop time simulation, yyyymmdd. hhmmss"
     )
-    DEFINETC: int = Field(86400, description="Time for definition of station files")
-    OUTSTYLE: str = Field("'NO'", description="output option")
-    MULTIPLEOUT: int = Field(0, description="0: output in a single netcdf file")
-    USE_SINGLE_OUT: str = Field("T", description="T: Use single precision in the")
-    PARAMWRITE: str = Field("T", description="T: Write the physical parametrization")
-    FILEOUT: str = Field("'wwm_sta.dat'", description="not used")
-    LOUTITER: str = Field("F", description="")
-    IOUTS: list = Field([15, ""], description="")
-    NOUTS: list = Field(
-        [
-            "'P-1'",
-            "'P-2'",
-            "'P-3'",
-            "'P-4'",
-            "'P-5'",
-            "'P-6'",
-            "'P-7'",
-            "'P-8'",
-            "'P-9'",
-            "'P-10'",
-            "'P-11'",
-            "'P-12'",
-            "'P-13'",
-            "'P-14'",
-            "'P-15'",
-        ],
-        description="",
+    definetc: Optional[int] = Field(
+        None, description="Time for definition of station files"
     )
-    XOUTS: list = Field([-76.046, -76.778, -75.81, -75.72, -74.842, ""], description="")
-    YOUTS: list = Field([39.152, 38.556, 38.033, 37.551, ""], description="")
-    CUTOFF: str = Field(
-        "15*0.44",
-        description="cutoff freq (Hz) for each station - consistent with buoys",
+    outstyle: Optional[str] = Field(None, description="output option")
+    multipleout: Optional[int] = Field(
+        None, description="0: output in a single netcdf file"
     )
-    LSP1D: str = Field("T", description="1D spectral station output")
-    LSP2D: str = Field("F", description="2D spectral station output")
-    LSIGMAX: str = Field(
-        "T",
+    use_single_out: Optional[str] = Field(
+        None, description="T: Use single precision in the"
+    )
+    paramwrite: Optional[str] = Field(
+        None, description="T: Write the physical parametrization"
+    )
+    fileout: Optional[str] = Field(None, description="not used")
+    loutiter: Optional[str] = Field(None, description="")
+    iouts: Optional[list] = Field(None, description="")
+    nouts: Optional[list] = Field(None, description="")
+    xouts: Optional[list] = Field(None, description="")
+    youts: Optional[list] = Field(None, description="")
+    cutoff: Optional[str] = Field(
+        None, description="cutoff freq (Hz) for each station - consistent with buoys"
+    )
+    lsp1d: Optional[str] = Field(None, description="1D spectral station output")
+    lsp2d: Optional[str] = Field(None, description="2D spectral station output")
+    lsigmax: Optional[str] = Field(
+        None,
         description="Adjust the cut-freq. for the output (e.g. consistent with buoy cut-off freq.)",
     )
-    AC: str = Field("F", description="spectrum")
-    WK: str = Field("F", description="variable WK")
-    ACOUT_1D: str = Field("F", description="variable ACOUT_1D")
-    ACOUT_2D: str = Field("F", description="variable ACOUT_2D")
-    HS: str = Field("F", description="significant wave height")
-    TM01: str = Field("F", description="mean period")
-    TM02: str = Field("F", description="zero-crossing mean period")
-    KLM: str = Field("F", description="mean wave number")
-    WLM: str = Field("F", description="mean wave length")
-    ETOTC: str = Field("F", description="Variable ETOTC")
-    ETOTS: str = Field("F", description="Variable ETOTS")
-    DM: str = Field("F", description="mean wave direction")
-    DSPR: str = Field("F", description="directional spreading")
-    TPPD: str = Field("F", description="Discrete Peak Period")
-    TPP: str = Field("F", description="Peak Period")
-    CPP: str = Field("F", description="")
-    WNPP: str = Field("F", description="peak wave number")
-    CGPP: str = Field("F", description="peak group speed")
-    KPP: str = Field("F", description="peak wave number")
-    LPP: str = Field("F", description="peak")
-    PEAKD: str = Field("F", description="peak direction")
-    PEAKDSPR: str = Field("F", description="peak directional spreading")
-    DPEAK: str = Field("F", description="")
-    UBOT: str = Field("F", description="")
-    ORBITAL: str = Field("F", description="")
-    BOTEXPER: str = Field("F", description="")
-    TMBOT: str = Field("F", description="")
-    URSELL: str = Field("F", description="Ursell number")
-    UFRIC: str = Field("F", description="air friction velocity")
-    Z0: str = Field("F", description="air roughness length")
-    ALPHA_CH: str = Field("F", description="Charnoch coefficient for air")
-    WINDX: str = Field("F", description="Wind in X direction")
-    WINDY: str = Field("F", description="Wind in Y direction")
-    CD: str = Field("F", description="Drag coefficient")
-    CURRTX: str = Field("F", description="current in X direction")
-    CURRTY: str = Field("F", description="current in Y direction")
-    WATLEV: str = Field("F", description="water level")
-    WATLEVOLD: str = Field("F", description="water level at previous time step")
-    DEPDT: str = Field("F", description="change of water level in time")
-    DEP: str = Field("F", description="depth")
-    TAUW: str = Field("F", description="surface stress from the wave")
-    TAUHF: str = Field("F", description="high frequency surface stress")
-    TAUTOT: str = Field("F", description="total surface stress")
-    STOKESSURFX: str = Field("F", description="Surface Stokes drift in X direction")
-    STOKESSURFY: str = Field("F", description="Surface Stokes drift in X direction")
-    STOKESBAROX: str = Field("F", description="Barotropic Stokes drift in X direction")
-    STOKESBAROY: str = Field("F", description="Barotropic Stokes drift in Y direction")
-    RSXX: str = Field("F", description="RSXX potential of LH")
-    RSXY: str = Field("F", description="RSXY potential of LH")
-    RSYY: str = Field("F", description="RSYY potential of LH")
-    CFL1: str = Field("F", description="CFL number 1")
-    CFL2: str = Field("F", description="CFL number 2")
-    CFL3: str = Field("F", description="CFL number 3")
+    ac: Optional[str] = Field(None, description="spectrum")
+    wk: Optional[str] = Field(None, description="variable WK")
+    acout_1d: Optional[str] = Field(None, description="variable ACOUT_1D")
+    acout_2d: Optional[str] = Field(None, description="variable ACOUT_2D")
+    hs: Optional[str] = Field(None, description="significant wave height")
+    tm01: Optional[str] = Field(None, description="mean period")
+    tm02: Optional[str] = Field(None, description="zero-crossing mean period")
+    klm: Optional[str] = Field(None, description="mean wave number")
+    wlm: Optional[str] = Field(None, description="mean wave length")
+    etotc: Optional[str] = Field(None, description="Variable ETOTC")
+    etots: Optional[str] = Field(None, description="Variable ETOTS")
+    dm: Optional[str] = Field(None, description="mean wave direction")
+    dspr: Optional[str] = Field(None, description="directional spreading")
+    tppd: Optional[str] = Field(None, description="Discrete Peak Period")
+    tpp: Optional[str] = Field(None, description="Peak Period")
+    cpp: Optional[str] = Field(None, description="")
+    wnpp: Optional[str] = Field(None, description="peak wave number")
+    cgpp: Optional[str] = Field(None, description="peak group speed")
+    kpp: Optional[str] = Field(None, description="peak wave number")
+    lpp: Optional[str] = Field(None, description="peak")
+    peakd: Optional[str] = Field(None, description="peak direction")
+    peakdspr: Optional[str] = Field(None, description="peak directional spreading")
+    dpeak: Optional[str] = Field(None, description="")
+    ubot: Optional[str] = Field(None, description="")
+    orbital: Optional[str] = Field(None, description="")
+    botexper: Optional[str] = Field(None, description="")
+    tmbot: Optional[str] = Field(None, description="")
+    ursell: Optional[str] = Field(None, description="Ursell number")
+    ufric: Optional[str] = Field(None, description="air friction velocity")
+    z0: Optional[str] = Field(None, description="air roughness length")
+    alpha_ch: Optional[str] = Field(None, description="Charnoch coefficient for air")
+    windx: Optional[str] = Field(None, description="Wind in X direction")
+    windy: Optional[str] = Field(None, description="Wind in Y direction")
+    cd: Optional[str] = Field(None, description="Drag coefficient")
+    currtx: Optional[str] = Field(None, description="current in X direction")
+    currty: Optional[str] = Field(None, description="current in Y direction")
+    watlev: Optional[str] = Field(None, description="water level")
+    watlevold: Optional[str] = Field(
+        None, description="water level at previous time step"
+    )
+    depdt: Optional[str] = Field(None, description="change of water level in time")
+    dep: Optional[str] = Field(None, description="depth")
+    tauw: Optional[str] = Field(None, description="surface stress from the wave")
+    tauhf: Optional[str] = Field(None, description="high frequency surface stress")
+    tautot: Optional[str] = Field(None, description="total surface stress")
+    stokessurfx: Optional[str] = Field(
+        None, description="Surface Stokes drift in X direction"
+    )
+    stokessurfy: Optional[str] = Field(
+        None, description="Surface Stokes drift in X direction"
+    )
+    stokesbarox: Optional[str] = Field(
+        None, description="Barotropic Stokes drift in X direction"
+    )
+    stokesbaroy: Optional[str] = Field(
+        None, description="Barotropic Stokes drift in Y direction"
+    )
+    rsxx: Optional[str] = Field(None, description="RSXX potential of LH")
+    rsxy: Optional[str] = Field(None, description="RSXY potential of LH")
+    rsyy: Optional[str] = Field(None, description="RSYY potential of LH")
+    cfl1: Optional[str] = Field(None, description="CFL number 1")
+    cfl2: Optional[str] = Field(None, description="CFL number 2")
+    cfl3: Optional[str] = Field(None, description="CFL number 3")
 
 
-class PETSCOPTIONS(NamelistBaseModel):
-    KSPTYPE: str = Field("'LGMRES'", description="")
-    RTOL: str = Field(
-        "1.E-20",
+class Petscoptions(NamelistBaseModel):
+    ksptype: Optional[str] = Field(None, description="")
+    rtol: Optional[str] = Field(
+        None,
         description="the relative convergence tolerance (relative decrease in the residual norm)",
     )
-    ABSTOL: str = Field(
-        "1.E-20",
+    abstol: Optional[str] = Field(
+        None,
         description="the absolute convergence tolerance (absolute size of the residual norm)",
     )
-    DTOL: float = Field(10000.0, description="the divergence tolerance")
-    MAXITS: int = Field(1000, description="maximum number of iterations to use")
-    INITIALGUESSNONZERO: str = Field(
-        "F",
+    dtol: Optional[float] = Field(None, description="the divergence tolerance")
+    maxits: Optional[int] = Field(
+        None, description="maximum number of iterations to use"
+    )
+    initialguessnonzero: Optional[str] = Field(
+        None,
         description="Tells the iterative solver that the initial guess is nonzero; otherwise KSP assumes the initial guess is to be zero",
     )
-    GMRESPREALLOCATE: str = Field(
-        "T",
+    gmrespreallocate: Optional[str] = Field(
+        None,
         description="Causes GMRES and FGMRES to preallocate all its needed work vectors at initial setup rather than the default, which is to allocate them in chunks when needed.",
     )
-    PCTYPE: str = Field("'SOR'", description="")
+    pctype: Optional[str] = Field(None, description="")
 
 
-class NESTING(NamelistBaseModel):
-    ListBEGTC: str = Field("''", description="")
-    ListDELTC: str = Field("ZERO", description="")
-    ListUNITC: str = Field("''", description="")
-    ListENDTC: str = Field("''", description="")
-    ListIGRIDTYPE: int = Field(0, description="")
-    ListFILEGRID: str = Field("''", description="")
-    ListFILEBOUND: str = Field("''", description="")
-    ListPrefix: str = Field("''", description="")
+class Nesting(NamelistBaseModel):
+    listbegtc: Optional[str] = Field(None, description="")
+    listdeltc: Optional[str] = Field(None, description="")
+    listunitc: Optional[str] = Field(None, description="")
+    listendtc: Optional[str] = Field(None, description="")
+    listigridtype: Optional[int] = Field(None, description="")
+    listfilegrid: Optional[str] = Field(None, description="")
+    listfilebound: Optional[str] = Field(None, description="")
+    listprefix: Optional[str] = Field(None, description="")
 
 
-class WWMINPUT(NamelistBaseModel):
+class Wwminput(NamelistBaseModel):
     """
 
     The full contents of the namelist file are shown below providing
@@ -1275,15 +1319,15 @@ class WWMINPUT(NamelistBaseModel):
 
     """
 
-    proc: PROC | None = Field(default=None)
-    coupl: COUPL | None = Field(default=None)
-    grid: GRID | None = Field(default=None)
-    init: INIT | None = Field(default=None)
-    hotfile: HOTFILE | None = Field(default=None)
-    bouc: BOUC | None = Field(default=None)
-    engs: ENGS | None = Field(default=None)
-    nums: NUMS | None = Field(default=None)
-    history: HISTORY | None = Field(default=None)
-    station: STATION | None = Field(default=None)
-    petscoptions: PETSCOPTIONS | None = Field(default=None)
-    nesting: NESTING | None = Field(default=None)
+    proc: Optional[Proc] = Field(default=None)
+    coupl: Optional[Coupl] = Field(default=None)
+    grid: Optional[Grid] = Field(default=None)
+    init: Optional[Init] = Field(default=None)
+    hotfile: Optional[Hotfile] = Field(default=None)
+    bouc: Optional[Bouc] = Field(default=None)
+    engs: Optional[Engs] = Field(default=None)
+    nums: Optional[Nums] = Field(default=None)
+    history: Optional[History] = Field(default=None)
+    station: Optional[Station] = Field(default=None)
+    petscoptions: Optional[Petscoptions] = Field(default=None)
+    nesting: Optional[Nesting] = Field(default=None)
