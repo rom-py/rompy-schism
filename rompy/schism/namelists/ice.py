@@ -1,68 +1,80 @@
-# This file was auto generated from a schism namelist file on 2024-08-28.
+# This file was auto generated from a schism namelist file on 2024-09-06.
+
+from typing import Optional
 
 from pydantic import Field
 from rompy.schism.namelists.basemodel import NamelistBaseModel
 
 
-class ICE_IN(NamelistBaseModel):
-    ice_tests: int = Field(0, description="box test flag")
-    ice_advection: int = Field(1, description="advection on/off")
-    ice_therm_on: int = Field(1, description="ice thermodynamics on/off flag")
-    ievp: int = Field(2, description="1: EVP; 2: mEVP")
-    ice_cutoff: str = Field(
-        "1.e-3",
+class Ice_in(NamelistBaseModel):
+    ice_tests: Optional[int] = Field(None, description="box test flag")
+    ice_advection: Optional[int] = Field(None, description="advection on/off")
+    ice_therm_on: Optional[int] = Field(
+        None, description="ice thermodynamics on/off flag"
+    )
+    ievp: Optional[int] = Field(None, description="1: EVP; 2: mEVP")
+    ice_cutoff: Optional[str] = Field(
+        None,
         description="cut-off thickness [m] or fraction for ice. No ice velocity if *<=ice_cuttoff",
     )
-    evp_rheol_steps: int = Field(
-        200, description="the number of sybcycling steps in EVP"
+    evp_rheol_steps: Optional[int] = Field(
+        None, description="the number of sybcycling steps in EVP"
     )
-    mevp_rheol_steps: int = Field(200, description="the number of iterations in mEVP")
-    ice_atmos_stress_form: int = Field(1, description="")
-    cdwin0: str = Field(
-        "2.e-3", description="needed if ice_atmos_stress_form=0 (const Cdw)"
+    mevp_rheol_steps: Optional[int] = Field(
+        None, description="the number of iterations in mEVP"
     )
-    delta_min: str = Field(
-        "2.0e-9", description="(1/s) Limit for minimum divergence (Hibler, Hunke"
+    ice_atmos_stress_form: Optional[int] = Field(None, description="")
+    cdwin0: Optional[str] = Field(
+        None, description="needed if ice_atmos_stress_form=0 (const Cdw)"
     )
-    theta_io: float = Field(
-        0.0,
+    delta_min: Optional[str] = Field(
+        None, description="(1/s) Limit for minimum divergence (Hibler, Hunke"
+    )
+    theta_io: Optional[float] = Field(
+        None,
         description="ice/ocean rotation angle. [degr]. Usually 0 unless vgrid is too coarse",
     )
-    mevp_coef: int = Field(0, description="")
-    mevp_alpha1: float = Field(
-        200.0, description="const used in mEVP (constitutive eq), if mevp_coef=0"
+    mevp_coef: Optional[int] = Field(None, description="")
+    mevp_alpha1: Optional[float] = Field(
+        None, description="const used in mEVP (constitutive eq), if mevp_coef=0"
     )
-    mevp_alpha2: float = Field(
-        200.0, description="const used in mEVP for momentum eq, if mevp_coef=0"
+    mevp_alpha2: Optional[float] = Field(
+        None, description="const used in mEVP for momentum eq, if mevp_coef=0"
     )
-    mevp_alpha3: float = Field(200.0, description="if mevp_coef=1")
-    mevp_alpha4: str = Field("2.e-2", description="if mevp_coef=1")
-    pstar: float = Field(15000.0, description="[N/m^2]")
-    ellipse: float = Field(2.0, description="ellipticity")
-    c_pressure: float = Field(20.0, description="C [-]")
-    ncyc_fct: int = Field(1, description="# of subcycling in transport")
-    niter_fct: int = Field(3, description="# of iterartions in higher-order solve")
-    ice_gamma_fct: float = Field(
-        0.25, description="smoothing parameter; 1 for max positivity preserving"
+    mevp_alpha3: Optional[float] = Field(None, description="if mevp_coef=1")
+    mevp_alpha4: Optional[str] = Field(None, description="if mevp_coef=1")
+    pstar: Optional[float] = Field(None, description="[N/m^2]")
+    ellipse: Optional[float] = Field(None, description="ellipticity")
+    c_pressure: Optional[float] = Field(None, description="C [-]")
+    ncyc_fct: Optional[int] = Field(None, description="# of subcycling in transport")
+    niter_fct: Optional[int] = Field(
+        None, description="# of iterartions in higher-order solve"
     )
-    depth_ice_fct: float = Field(5.0, description="cut off depth (m) for non-FCT")
-    h_ml0: float = Field(0.1, description="ocean mixed layer depth [m]")
-    salt_ice: float = Field(5.0, description="salinity for ice [PSU] (>=0)")
-    salt_water: float = Field(34.0, description="salinity for water [PSU] (>=0)")
-    lead_closing: float = Field(
-        0.5,
+    ice_gamma_fct: Optional[float] = Field(
+        None, description="smoothing parameter; 1 for max positivity preserving"
+    )
+    depth_ice_fct: Optional[float] = Field(
+        None, description="cut off depth (m) for non-FCT"
+    )
+    h_ml0: Optional[float] = Field(None, description="ocean mixed layer depth [m]")
+    salt_ice: Optional[float] = Field(None, description="salinity for ice [PSU] (>=0)")
+    salt_water: Optional[float] = Field(
+        None, description="salinity for water [PSU] (>=0)"
+    )
+    lead_closing: Optional[float] = Field(
+        None,
         description="lead closing parameter [m] - larger values slow down freezing-up but increase sea ice thickness",
     )
-    Saterm: float = Field(
-        0.5, description="Semter const -smaller value could slow down melting"
+    saterm: Optional[float] = Field(
+        None, description="Semter const -smaller value could slow down melting"
     )
-    albsn: float = Field(0.85, description="Albedo: frozen snow")
-    albsnm: float = Field(0.75, description="melting snow (<=albsn)")
-    albi: float = Field(0.75, description="frozen ice (<=albsn)")
-    albm: float = Field(0.66, description="melting ice (<=albi)")
+    albsn: Optional[float] = Field(None, description="Albedo: frozen snow")
+    albsnm: Optional[float] = Field(None, description="melting snow (<=albsn)")
+    albi: Optional[float] = Field(None, description="frozen ice (<=albsn)")
+    albm: Optional[float] = Field(None, description="melting ice (<=albi)")
 
 
-class ICE(NamelistBaseModel):
+class Ice(NamelistBaseModel):
     """
 
     The full contents of the namelist file are shown below providing
@@ -127,4 +139,4 @@ class ICE(NamelistBaseModel):
 
     """
 
-    ice_in: ICE_IN | None = Field(default=None)
+    ice_in: Optional[Ice_in] = Field(default=None)

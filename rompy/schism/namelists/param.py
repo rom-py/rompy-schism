@@ -1,447 +1,486 @@
-# This file was auto generated from a schism namelist file on 2024-08-28.
+# This file was auto generated from a schism namelist file on 2024-09-06.
+
+from typing import Optional
 
 from pydantic import Field
 from rompy.schism.namelists.basemodel import NamelistBaseModel
 
 
-class CORE(NamelistBaseModel):
-    ipre: int = Field(0, description="Pre-processor flag (1: on; 0: off)")
-    ibc: int = Field(0, description="Baroclinic option")
-    ibtp: int = Field(1, description="")
-    rnday: int = Field(30, description="total run time in days")
-    dt: float = Field(100.0, description="Time step in sec")
-    msc2: int = Field(
-        24,
+class Core(NamelistBaseModel):
+    ipre: Optional[int] = Field(None, description="Pre-processor flag (1: on; 0: off)")
+    ibc: Optional[int] = Field(None, description="Baroclinic option")
+    ibtp: Optional[int] = Field(None, description="")
+    rnday: Optional[int] = Field(None, description="total run time in days")
+    dt: Optional[float] = Field(None, description="Time step in sec")
+    msc2: Optional[int] = Field(
+        None,
         description="same as msc in .nml ... for consitency check between SCHISM and WWM",
     )
-    mdc2: int = Field(30, description="same as mdc in .nml")
-    ntracer_gen: int = Field(2, description="user defined module (USE_GEN)")
-    ntracer_age: int = Field(
-        4,
+    mdc2: Optional[int] = Field(None, description="same as mdc in .nml")
+    ntracer_gen: Optional[int] = Field(
+        None, description="user defined module (USE_GEN)"
+    )
+    ntracer_age: Optional[int] = Field(
+        None,
         description="age calculation (USE_AGE). Must be =2*N where N is # of age tracers",
     )
-    sed_class: int = Field(5, description="SED3D (USE_SED)")
-    eco_class: int = Field(27, description="EcoSim (USE_ECO): must be between [25,60]")
-    nspool: int = Field(36, description="output step spool")
-    ihfskip: int = Field(
-        864,
+    sed_class: Optional[int] = Field(None, description="SED3D (USE_SED)")
+    eco_class: Optional[int] = Field(
+        None, description="EcoSim (USE_ECO): must be between [25,60]"
+    )
+    nspool: Optional[int] = Field(None, description="output step spool")
+    ihfskip: Optional[int] = Field(
+        None,
         description="stack spool; every ihfskip steps will be put into 1_*, 2_*, etc...",
     )
 
 
-class OPT(NamelistBaseModel):
-    ipre2: int = Field(0, description="")
-    itransport_only: int = Field(0, description="")
-    iloadtide: int = Field(0, description="")
-    loadtide_coef: float = Field(
-        0.1,
+class Opt(NamelistBaseModel):
+    ipre2: Optional[int] = Field(None, description="")
+    itransport_only: Optional[int] = Field(None, description="")
+    iloadtide: Optional[int] = Field(None, description="")
+    loadtide_coef: Optional[float] = Field(
+        None,
         description="only used if iloadtide=2,3 (for '3', the default should be 0.12)",
     )
-    start_year: int = Field(2000, description="int")
-    start_month: int = Field(1, description="int")
-    start_day: int = Field(1, description="int")
-    start_hour: int = Field(0, description="double")
-    utc_start: int = Field(8, description="double")
-    ics: int = Field(1, description="Coordinate option")
-    ihot: int = Field(0, description="")
-    ieos_type: int = Field(0, description="")
-    ieos_pres: int = Field(
-        0, description="used only if ieos_type=0. 0: without pressure effects"
+    start_year: Optional[int] = Field(None, description="int")
+    start_month: Optional[int] = Field(None, description="int")
+    start_day: Optional[int] = Field(None, description="int")
+    start_hour: Optional[int] = Field(None, description="double")
+    utc_start: Optional[int] = Field(None, description="double")
+    ics: Optional[int] = Field(None, description="Coordinate option")
+    ihot: Optional[int] = Field(None, description="")
+    ieos_type: Optional[int] = Field(None, description="")
+    ieos_pres: Optional[int] = Field(
+        None, description="used only if ieos_type=0. 0: without pressure effects"
     )
-    eos_a: float = Field(-0.1, description="needed if ieos_type=1; should be <=0")
-    eos_b: float = Field(1001.0, description="needed if ieos_type=1")
-    dramp: float = Field(
-        1.0, description="ramp-up period in days for b.c. etc (no ramp-up if <=0)"
+    eos_a: Optional[float] = Field(
+        None, description="needed if ieos_type=1; should be <=0"
     )
-    drampbc: float = Field(
-        0.0, description="ramp-up period in days for baroclinic force"
+    eos_b: Optional[float] = Field(None, description="needed if ieos_type=1")
+    dramp: Optional[float] = Field(
+        None, description="ramp-up period in days for b.c. etc (no ramp-up if <=0)"
     )
-    iupwind_mom: int = Field(0, description="")
-    indvel: int = Field(0, description="")
-    ihorcon: int = Field(0, description="")
-    hvis_coef0: float = Field(
-        0.025,
+    drampbc: Optional[float] = Field(
+        None, description="ramp-up period in days for baroclinic force"
+    )
+    iupwind_mom: Optional[int] = Field(None, description="")
+    indvel: Optional[int] = Field(None, description="")
+    ihorcon: Optional[int] = Field(None, description="")
+    hvis_coef0: Optional[float] = Field(
+        None,
         description="const. diffusion # if ihorcon/=0; <=0.025 for ihorcon=2, <=0.125 for ihorcon=1",
     )
-    ishapiro: int = Field(1, description="options")
-    niter_shap: int = Field(
-        1, description="needed if ishapiro/=0: # of iterations with Shapiro filter"
+    ishapiro: Optional[int] = Field(None, description="options")
+    niter_shap: Optional[int] = Field(
+        None, description="needed if ishapiro/=0: # of iterations with Shapiro filter"
     )
-    shapiro0: float = Field(0.5, description="needed only if ishapiro=1")
-    thetai: float = Field(0.6, description="")
-    icou_elfe_wwm: int = Field(0, description="")
-    nstep_wwm: int = Field(1, description="call WWM every this many time steps")
-    iwbl: int = Field(
-        0, description="wave boundary layer formulation (used only if USE_WMM and"
+    shapiro0: Optional[float] = Field(None, description="needed only if ishapiro=1")
+    thetai: Optional[float] = Field(None, description="")
+    icou_elfe_wwm: Optional[int] = Field(None, description="")
+    nstep_wwm: Optional[int] = Field(
+        None, description="call WWM every this many time steps"
     )
-    hmin_radstress: float = Field(
-        1.0,
+    iwbl: Optional[int] = Field(
+        None, description="wave boundary layer formulation (used only if USE_WMM and"
+    )
+    hmin_radstress: Optional[float] = Field(
+        None,
         description="min. total water depth used only in radiation stress calculation [m]",
     )
-    drampwafo: float = Field(
-        0.0,
+    drampwafo: Optional[float] = Field(
+        None,
         description="ramp-up period in days for the wave forces (no ramp-up if <=0)",
     )
-    turbinj: float = Field(
-        0.15,
+    turbinj: Optional[float] = Field(
+        None,
         description="% of depth-induced wave breaking energy injected in turbulence",
     )
-    turbinjds: float = Field(
-        1.0,
+    turbinjds: Optional[float] = Field(
+        None,
         description="% of wave energy dissipated through whitecapping injected in turbulence",
     )
-    alphaw: float = Field(
-        0.5,
+    alphaw: Optional[float] = Field(
+        None,
         description="for itur=4 : scaling parameter for the surface roughness z0s = alphaw*Hm0.",
     )
-    fwvor_advxy_stokes: int = Field(
-        1, description="--> Stokes drift advection (xy), Coriolis"
+    fwvor_advxy_stokes: Optional[int] = Field(
+        None, description="--> Stokes drift advection (xy), Coriolis"
     )
-    fwvor_advz_stokes: int = Field(
-        1, description="--> Stokes drift advection (z) , Coriolis"
+    fwvor_advz_stokes: Optional[int] = Field(
+        None, description="--> Stokes drift advection (z) , Coriolis"
     )
-    fwvor_gradpress: int = Field(1, description="--> Pressure term")
-    fwvor_breaking: int = Field(1, description="--> Wave breaking")
-    fwvor_streaming: int = Field(
-        1, description="--> Wave streaming (works with iwbl /= 0)"
+    fwvor_gradpress: Optional[int] = Field(None, description="--> Pressure term")
+    fwvor_breaking: Optional[int] = Field(None, description="--> Wave breaking")
+    fwvor_streaming: Optional[int] = Field(
+        None, description="--> Wave streaming (works with iwbl /= 0)"
     )
-    fwvor_wveg: int = Field(
-        0, description="--> Wave dissipation by vegetation acceleration term"
+    fwvor_wveg: Optional[int] = Field(
+        None, description="--> Wave dissipation by vegetation acceleration term"
     )
-    fwvor_wveg_NL: int = Field(
-        0,
+    fwvor_wveg_nl: Optional[int] = Field(
+        None,
         description="--> Non linear intrawave vegetation force (see Dean and Bender, 2006 or van Rooijen et al., 2016 for details)",
     )
-    cur_wwm: int = Field(0, description="Coupling current in WWM")
-    wafo_obcramp: int = Field(
-        0, description="Ramp on wave forces at open boundary (1: on / 0: off)"
+    cur_wwm: Optional[int] = Field(None, description="Coupling current in WWM")
+    wafo_obcramp: Optional[int] = Field(
+        None, description="Ramp on wave forces at open boundary (1: on / 0: off)"
     )
-    imm: int = Field(0, description="")
-    ibdef: int = Field(
-        10, description="needed if imm=1; # of steps used in deformation"
+    imm: Optional[int] = Field(None, description="")
+    ibdef: Optional[int] = Field(
+        None, description="needed if imm=1; # of steps used in deformation"
     )
-    slam0: int = Field(-124, description="lon - not really used")
-    sfea0: int = Field(45, description="lat")
-    iunder_deep: int = Field(0, description="")
-    h1_bcc: float = Field(50.0, description="[m]")
-    h2_bcc: float = Field(100.0, description="[m]; >h1_bcc")
-    hw_depth: str = Field("1.e6", description="threshold depth in [m]")
-    hw_ratio: float = Field(0.5, description="ratio")
-    ihydraulics: int = Field(0, description="")
-    if_source: int = Field(0, description="")
-    dramp_ss: int = Field(
-        2,
+    slam0: Optional[int] = Field(None, description="lon - not really used")
+    sfea0: Optional[int] = Field(None, description="lat")
+    iunder_deep: Optional[int] = Field(None, description="")
+    h1_bcc: Optional[float] = Field(None, description="[m]")
+    h2_bcc: Optional[float] = Field(None, description="[m]; >h1_bcc")
+    hw_depth: Optional[str] = Field(None, description="threshold depth in [m]")
+    hw_ratio: Optional[float] = Field(None, description="ratio")
+    ihydraulics: Optional[int] = Field(None, description="")
+    if_source: Optional[int] = Field(None, description="")
+    dramp_ss: Optional[int] = Field(
+        None,
         description="needed if if_source/=0; ramp-up period in days for source/sinks (no ramp-up if <=0)",
     )
-    meth_sink: int = Field(1, description="options to treat sinks @ dry elem")
-    lev_tr_source__1: int = Field(-9, description="T")
-    lev_tr_source__2: int = Field(-9, description="S")
-    lev_tr_source__3: int = Field(-9, description="GEN")
-    lev_tr_source__4: int = Field(
-        -9, description="AGE: set -9999. in msource's AGE section"
+    meth_sink: Optional[int] = Field(
+        None, description="options to treat sinks @ dry elem"
     )
-    lev_tr_source__5: int = Field(-9, description="SED3D")
-    lev_tr_source__6: int = Field(-9, description="EcoSim")
-    lev_tr_source__7: int = Field(-9, description="ICM")
-    lev_tr_source__8: int = Field(-9, description="CoSINE")
-    lev_tr_source__9: int = Field(-9, description="Feco")
-    lev_tr_source__10: int = Field(-9, description="TIMOR")
-    lev_tr_source__11: int = Field(-9, description="FABM")
-    lev_tr_source__12: int = Field(-9, description="DVD")
-    level_age: list = Field([9, -999], description="default: -999 (all levels)")
-    ihdif: int = Field(0, description="")
-    nchi: int = Field(0, description="")
-    dzb_min: float = Field(
-        0.5, description="needed if nchi=1; min. bottom boundary layer thickness [m]."
+    lev_tr_source__1: Optional[int] = Field(None, description="T")
+    lev_tr_source__2: Optional[int] = Field(None, description="S")
+    lev_tr_source__3: Optional[int] = Field(None, description="GEN")
+    lev_tr_source__4: Optional[int] = Field(
+        None, description="AGE: set -9999. in msource's AGE section"
     )
-    hmin_man: float = Field(
-        1.0, description="needed if nchi=-1: min. depth in Manning's formulation [m]"
+    lev_tr_source__5: Optional[int] = Field(None, description="SED3D")
+    lev_tr_source__6: Optional[int] = Field(None, description="EcoSim")
+    lev_tr_source__7: Optional[int] = Field(None, description="ICM")
+    lev_tr_source__8: Optional[int] = Field(None, description="CoSINE")
+    lev_tr_source__9: Optional[int] = Field(None, description="Feco")
+    lev_tr_source__10: Optional[int] = Field(None, description="TIMOR")
+    lev_tr_source__11: Optional[int] = Field(None, description="FABM")
+    lev_tr_source__12: Optional[int] = Field(None, description="DVD")
+    level_age: Optional[list] = Field(None, description="default: -999 (all levels)")
+    ihdif: Optional[int] = Field(None, description="")
+    nchi: Optional[int] = Field(None, description="")
+    dzb_min: Optional[float] = Field(
+        None, description="needed if nchi=1; min. bottom boundary layer thickness [m]."
     )
-    ncor: int = Field(0, description="should usually be 1 if ics=2")
-    rlatitude: int = Field(46, description="if ncor=-1")
-    coricoef: int = Field(0, description="if ncor=0")
-    ic_elev: int = Field(0, description="")
-    nramp_elev: int = Field(0, description="")
-    inv_atm_bnd: int = Field(0, description="0: off; 1: on")
-    prmsl_ref: float = Field(
-        101325.0, description="reference atmos. pressure on bnd [Pa]"
+    hmin_man: Optional[float] = Field(
+        None, description="needed if nchi=-1: min. depth in Manning's formulation [m]"
     )
-    flag_ic__1: int = Field(1, description="T")
-    flag_ic__2: int = Field(1, description="S")
-    flag_ic__3: int = Field(1, description="GEN (user defined module)")
-    flag_ic__5: int = Field(1, description="SED3D")
-    flag_ic__6: int = Field(1, description="EcoSim")
-    flag_ic__7: int = Field(1, description="ICM")
-    flag_ic__8: int = Field(1, description="CoSINE")
-    flag_ic__9: int = Field(1, description="FIB")
-    flag_ic__10: int = Field(1, description="TIMOR")
-    flag_ic__11: int = Field(1, description="FABM")
-    flag_ic__12: int = Field(0, description="DVD (must=0)")
-    gen_wsett: int = Field(0, description="1.e-4")
-    ibcc_mean: int = Field(0, description="")
-    rmaxvel: float = Field(5.0, description="")
-    velmin_btrack: str = Field("1.e-4", description="")
-    btrack_nudge: str = Field("9.013e-3", description="")
-    ihhat: int = Field(1, description="")
-    inunfl: int = Field(0, description="")
-    h0: float = Field(0.01, description="min. water depth for wetting/drying [m]")
-    shorewafo: int = Field(0, description="Matters only if USE_WWM")
-    moitn0: int = Field(
-        50, description="output spool for solver info; used only with JCG"
+    ncor: Optional[int] = Field(None, description="should usually be 1 if ics=2")
+    rlatitude: Optional[int] = Field(None, description="if ncor=-1")
+    coricoef: Optional[int] = Field(None, description="if ncor=0")
+    ic_elev: Optional[int] = Field(None, description="")
+    nramp_elev: Optional[int] = Field(None, description="")
+    inv_atm_bnd: Optional[int] = Field(None, description="0: off; 1: on")
+    prmsl_ref: Optional[float] = Field(
+        None, description="reference atmos. pressure on bnd [Pa]"
     )
-    mxitn0: int = Field(1500, description="max. iteration allowed")
-    rtol0: str = Field("1.e-12", description="error tolerance")
-    nadv: int = Field(1, description="")
-    dtb_max: float = Field(30.0, description="in sec")
-    dtb_min: float = Field(10.0, description="")
-    inter_mom: int = Field(0, description="")
-    kr_co: int = Field(1, description="not used if inter_mom=0")
-    itr_met: int = Field(3, description="")
-    h_tvd: float = Field(5.0, description="cut-off depth (m)")
-    eps1_tvd_imp: str = Field(
-        "1.e-4",
+    flag_ic__1: Optional[int] = Field(None, description="T")
+    flag_ic__2: Optional[int] = Field(None, description="S")
+    flag_ic__3: Optional[int] = Field(None, description="GEN (user defined module)")
+    flag_ic__5: Optional[int] = Field(None, description="SED3D")
+    flag_ic__6: Optional[int] = Field(None, description="EcoSim")
+    flag_ic__7: Optional[int] = Field(None, description="ICM")
+    flag_ic__8: Optional[int] = Field(None, description="CoSINE")
+    flag_ic__9: Optional[int] = Field(None, description="FIB")
+    flag_ic__10: Optional[int] = Field(None, description="TIMOR")
+    flag_ic__11: Optional[int] = Field(None, description="FABM")
+    flag_ic__12: Optional[int] = Field(None, description="DVD (must=0)")
+    gen_wsett: Optional[int] = Field(None, description="1.e-4")
+    ibcc_mean: Optional[int] = Field(None, description="")
+    rmaxvel: Optional[float] = Field(None, description="")
+    velmin_btrack: Optional[str] = Field(None, description="")
+    btrack_nudge: Optional[str] = Field(None, description="")
+    ihhat: Optional[int] = Field(None, description="")
+    inunfl: Optional[int] = Field(None, description="")
+    h0: Optional[float] = Field(
+        None, description="min. water depth for wetting/drying [m]"
+    )
+    shorewafo: Optional[int] = Field(None, description="Matters only if USE_WWM")
+    moitn0: Optional[int] = Field(
+        None, description="output spool for solver info; used only with JCG"
+    )
+    mxitn0: Optional[int] = Field(None, description="max. iteration allowed")
+    rtol0: Optional[str] = Field(None, description="error tolerance")
+    nadv: Optional[int] = Field(None, description="")
+    dtb_max: Optional[float] = Field(None, description="in sec")
+    dtb_min: Optional[float] = Field(None, description="")
+    inter_mom: Optional[int] = Field(None, description="")
+    kr_co: Optional[int] = Field(None, description="not used if inter_mom=0")
+    itr_met: Optional[int] = Field(None, description="")
+    h_tvd: Optional[float] = Field(None, description="cut-off depth (m)")
+    eps1_tvd_imp: Optional[str] = Field(
+        None,
         description="suggested value is 1.e-4, but for large suspended load, need to use a smaller value (e.g. 1.e-9)",
     )
-    eps2_tvd_imp: str = Field("1.e-14", description="")
-    ielm_transport: int = Field(0, description="1: turn on")
-    max_subcyc: int = Field(
-        10,
+    eps2_tvd_imp: Optional[str] = Field(None, description="")
+    ielm_transport: Optional[int] = Field(None, description="1: turn on")
+    max_subcyc: Optional[int] = Field(
+        None,
         description="used only if ielm_transport/=0. Max # of subcycling per time step in transport allowed",
     )
-    ip_weno: int = Field(
-        2,
+    ip_weno: Optional[int] = Field(
+        None,
         description="order of accuracy: 0- upwind; 1- linear polynomial, 2nd order; 2- quadratic polynomial, 3rd order",
     )
-    courant_weno: float = Field(0.5, description="Courant number for weno transport")
-    nquad: int = Field(
-        2, description="number of quad points on each side, nquad= 1 or 2"
+    courant_weno: Optional[float] = Field(
+        None, description="Courant number for weno transport"
     )
-    ntd_weno: int = Field(
-        1,
+    nquad: Optional[int] = Field(
+        None, description="number of quad points on each side, nquad= 1 or 2"
+    )
+    ntd_weno: Optional[int] = Field(
+        None,
         description="order of temporal discretization: (1) Euler (default); (3): 3rd-order Runge-Kutta (only for benchmarking)",
     )
-    epsilon1: str = Field(
-        "1.e-15",
+    epsilon1: Optional[str] = Field(
+        None,
         description="coefficient for 2nd order weno smoother (larger values are more prone to numerical dispersion)",
     )
-    epsilon2: str = Field(
-        "1.e-10",
+    epsilon2: Optional[str] = Field(
+        None,
         description="1st coefficient for 3rd order weno smoother (larger values are more prone to numerical dispersion",
     )
-    i_prtnftl_weno: int = Field(
-        0,
+    i_prtnftl_weno: Optional[int] = Field(
+        None,
         description="option for writing nonfatal errors on invalid temp. or salinity for density: (0) off; (1) on.",
     )
-    epsilon3: str = Field(
-        "1.e-25",
+    epsilon3: Optional[str] = Field(
+        None,
         description="2nd coefficient for 3rd order weno smoother (inactive at the moment)",
     )
-    ielad_weno: int = Field(
-        0,
+    ielad_weno: Optional[int] = Field(
+        None,
         description="ielad, if ielad=1, use ELAD method to suppress dispersion (inactive at the moment)",
     )
-    small_elad: str = Field("1.e-4", description="small (inactive at the moment)")
-    nws: int = Field(0, description="")
-    wtiminc: float = Field(
-        150.0, description="time step for atmos. forcing. Default: same as dt"
+    small_elad: Optional[str] = Field(
+        None, description="small (inactive at the moment)"
     )
-    drampwind: float = Field(
-        1.0, description="ramp-up period in days for wind (no ramp-up if <=0)"
+    nws: Optional[int] = Field(None, description="")
+    wtiminc: Optional[float] = Field(
+        None, description="time step for atmos. forcing. Default: same as dt"
     )
-    iwindoff: int = Field(
-        0, description="needed only if nws/=0; '1': needs windfactor.gr3"
+    drampwind: Optional[float] = Field(
+        None, description="ramp-up period in days for wind (no ramp-up if <=0)"
     )
-    iwind_form: int = Field(1, description="needed if nws/=0")
-    model_type_pahm: int = Field(
-        10,
+    iwindoff: Optional[int] = Field(
+        None, description="needed only if nws/=0; '1': needs windfactor.gr3"
+    )
+    iwind_form: Optional[int] = Field(None, description="needed if nws/=0")
+    model_type_pahm: Optional[int] = Field(
+        None,
         description="only used if nws=-1: hurricane model type (1: Holland; 10: GAHM)",
     )
-    ihconsv: int = Field(0, description="heat exchange option")
-    isconsv: int = Field(0, description="evaporation/precipitation model")
-    i_hmin_airsea_ex: int = Field(2, description="no effect if ihconsv=0")
-    hmin_airsea_ex: float = Field(0.2, description="[m], no effect if ihconsv=0")
-    i_hmin_salt_ex: int = Field(2, description="no effect if isconsv=0")
-    hmin_salt_ex: float = Field(0.2, description="[m], no effect if isconsv=0")
-    iprecip_off_bnd: int = Field(
-        0, description="if /=0, precip will be turned off near land bnd"
+    ihconsv: Optional[int] = Field(None, description="heat exchange option")
+    isconsv: Optional[int] = Field(None, description="evaporation/precipitation model")
+    i_hmin_airsea_ex: Optional[int] = Field(None, description="no effect if ihconsv=0")
+    hmin_airsea_ex: Optional[float] = Field(
+        None, description="[m], no effect if ihconsv=0"
     )
-    itur: int = Field(3, description="Default: 0")
-    dfv0: str = Field("1.e-2", description="needed if itur=0")
-    dfh0: str = Field("1.e-4", description="needed if itur=0")
-    mid: str = Field("'KL'", description="needed if itur=3,5. Use KE if itur=5")
-    stab: str = Field(
-        "'KC'",
+    i_hmin_salt_ex: Optional[int] = Field(None, description="no effect if isconsv=0")
+    hmin_salt_ex: Optional[float] = Field(
+        None, description="[m], no effect if isconsv=0"
+    )
+    iprecip_off_bnd: Optional[int] = Field(
+        None, description="if /=0, precip will be turned off near land bnd"
+    )
+    itur: Optional[int] = Field(None, description="Default: 0")
+    dfv0: Optional[str] = Field(None, description="needed if itur=0")
+    dfh0: Optional[str] = Field(None, description="needed if itur=0")
+    mid: Optional[str] = Field(None, description="needed if itur=3,5. Use KE if itur=5")
+    stab: Optional[str] = Field(
+        None,
         description="needed if itur=3 or 5. Use 'GA' if turb_met='MY'; otherwise use 'KC'.",
     )
-    xlsc0: float = Field(
-        0.1,
+    xlsc0: Optional[float] = Field(
+        None,
         description="needed if itur=3 or 5. Scale for surface & bottom mixing length (>0)",
     )
-    inu_elev: int = Field(0, description="")
-    inu_uv: int = Field(0, description="")
-    inu_tr__1: int = Field(0, description="T")
-    inu_tr__2: int = Field(0, description="S")
-    inu_tr__3: int = Field(0, description="GEN")
-    inu_tr__4: int = Field(0, description="Age")
-    inu_tr__5: int = Field(0, description="SED3D")
-    inu_tr__6: int = Field(0, description="EcoSim")
-    inu_tr__7: int = Field(0, description="ICM")
-    inu_tr__8: int = Field(0, description="CoSINE")
-    inu_tr__9: int = Field(0, description="FIB")
-    inu_tr__10: int = Field(0, description="TIMOR")
-    inu_tr__11: int = Field(0, description="FABM")
-    inu_tr__12: int = Field(0, description="DVD (must=0)")
-    nu_sum_mult: int = Field(1, description="1: final relax is sum of horizontal")
-
-
-class VERTICAL(NamelistBaseModel):
-    vnh1: int = Field(400, description="vertical nudging depth 1")
-    vnf1: float = Field(0.0, description="vertical relax \in [0,1]")
-    vnh2: int = Field(500, description="vertical nudging depth 2 (must >vnh1)")
-    vnf2: float = Field(0.0, description="vertical relax")
-    step_nu_tr: float = Field(
-        86400.0, description="time step [sec] in all [MOD]_nu.nc (for inu_[MOD]=2)"
+    inu_elev: Optional[int] = Field(None, description="")
+    inu_uv: Optional[int] = Field(None, description="")
+    inu_tr__1: Optional[int] = Field(None, description="T")
+    inu_tr__2: Optional[int] = Field(None, description="S")
+    inu_tr__3: Optional[int] = Field(None, description="GEN")
+    inu_tr__4: Optional[int] = Field(None, description="Age")
+    inu_tr__5: Optional[int] = Field(None, description="SED3D")
+    inu_tr__6: Optional[int] = Field(None, description="EcoSim")
+    inu_tr__7: Optional[int] = Field(None, description="ICM")
+    inu_tr__8: Optional[int] = Field(None, description="CoSINE")
+    inu_tr__9: Optional[int] = Field(None, description="FIB")
+    inu_tr__10: Optional[int] = Field(None, description="TIMOR")
+    inu_tr__11: Optional[int] = Field(None, description="FABM")
+    inu_tr__12: Optional[int] = Field(None, description="DVD (must=0)")
+    nu_sum_mult: Optional[int] = Field(
+        None, description="1: final relax is sum of horizontal"
     )
-    h_bcc1: float = Field(100.0, description="h_bcc1")
-    s1_mxnbt: float = Field(0.5, description="")
-    s2_mxnbt: float = Field(3.5, description="")
-    iharind: int = Field(0, description="")
-    iflux: int = Field(0, description="")
-    izonal5: int = Field(0, description="'0' - no test; otherwise on")
-    ibtrack_test: int = Field(0, description="")
-    irouse_test: int = Field(0, description="")
-    flag_fib: int = Field(1, description="")
-    slr_rate: float = Field(
-        120.0,
+
+
+class Vertical(NamelistBaseModel):
+    vnh1: Optional[int] = Field(None, description="vertical nudging depth 1")
+    vnf1: Optional[float] = Field(None, description="vertical relax \in [0,1]")
+    vnh2: Optional[int] = Field(
+        None, description="vertical nudging depth 2 (must >vnh1)"
+    )
+    vnf2: Optional[float] = Field(None, description="vertical relax")
+    step_nu_tr: Optional[float] = Field(
+        None, description="time step [sec] in all [MOD]_nu.nc (for inu_[MOD]=2)"
+    )
+    h_bcc1: Optional[float] = Field(None, description="h_bcc1")
+    s1_mxnbt: Optional[float] = Field(None, description="")
+    s2_mxnbt: Optional[float] = Field(None, description="")
+    iharind: Optional[int] = Field(None, description="")
+    iflux: Optional[int] = Field(None, description="")
+    izonal5: Optional[int] = Field(None, description="'0' - no test; otherwise on")
+    ibtrack_test: Optional[int] = Field(None, description="")
+    irouse_test: Optional[int] = Field(None, description="")
+    flag_fib: Optional[int] = Field(None, description="")
+    slr_rate: Optional[float] = Field(
+        None,
         description="sea-level rise rate in mm/yr, times morphological acceleration if used",
     )
-    isav: int = Field(0, description="on/off flag")
-    nstep_ice: int = Field(
-        1, description="call ice module every nstep_ice steps of SCHISM"
+    isav: Optional[int] = Field(None, description="on/off flag")
+    nstep_ice: Optional[int] = Field(
+        None, description="call ice module every nstep_ice steps of SCHISM"
     )
-    rearth_pole: float = Field(6378206.4, description="")
-    rearth_eq: float = Field(6378206.4, description="")
-    shw: str = Field("4184.d0", description="")
-    rho0: str = Field("1000.d0", description="kg/m^3")
-    vclose_surf_frac: float = Field(1.0, description="")
-    iadjust_mass_consv0__1: int = Field(0, description="T")
-    iadjust_mass_consv0__2: int = Field(0, description="S")
-    iadjust_mass_consv0__3: int = Field(0, description="GEN")
-    iadjust_mass_consv0__4: int = Field(0, description="AGE")
-    iadjust_mass_consv0__5: int = Field(
-        0, description="SED3D (code won't allow non-0 for this module)"
+    rearth_pole: Optional[float] = Field(None, description="")
+    rearth_eq: Optional[float] = Field(None, description="")
+    shw: Optional[str] = Field(None, description="")
+    rho0: Optional[str] = Field(None, description="kg/m^3")
+    vclose_surf_frac: Optional[float] = Field(None, description="")
+    iadjust_mass_consv0__1: Optional[int] = Field(None, description="T")
+    iadjust_mass_consv0__2: Optional[int] = Field(None, description="S")
+    iadjust_mass_consv0__3: Optional[int] = Field(None, description="GEN")
+    iadjust_mass_consv0__4: Optional[int] = Field(None, description="AGE")
+    iadjust_mass_consv0__5: Optional[int] = Field(
+        None, description="SED3D (code won't allow non-0 for this module)"
     )
-    iadjust_mass_consv0__6: int = Field(0, description="EcoSim")
-    iadjust_mass_consv0__7: int = Field(0, description="ICM")
-    iadjust_mass_consv0__8: int = Field(0, description="CoSiNE")
-    iadjust_mass_consv0__9: int = Field(0, description="Feco")
-    iadjust_mass_consv0__10: int = Field(0, description="TIMOR")
-    iadjust_mass_consv0__11: int = Field(0, description="FABM")
-    iadjust_mass_consv0__12: int = Field(0, description="DVD (must=0)")
-    h_massconsv: float = Field(2.0, description="[m]")
-    rinflation_icm: str = Field("1.e-3", description="")
+    iadjust_mass_consv0__6: Optional[int] = Field(None, description="EcoSim")
+    iadjust_mass_consv0__7: Optional[int] = Field(None, description="ICM")
+    iadjust_mass_consv0__8: Optional[int] = Field(None, description="CoSiNE")
+    iadjust_mass_consv0__9: Optional[int] = Field(None, description="Feco")
+    iadjust_mass_consv0__10: Optional[int] = Field(None, description="TIMOR")
+    iadjust_mass_consv0__11: Optional[int] = Field(None, description="FABM")
+    iadjust_mass_consv0__12: Optional[int] = Field(None, description="DVD (must=0)")
+    h_massconsv: Optional[float] = Field(None, description="[m]")
+    rinflation_icm: Optional[str] = Field(None, description="")
 
 
-class SCHOUT(NamelistBaseModel):
-    nc_out: int = Field(1, description="")
-    iof_ugrid: int = Field(0, description="")
-    nhot: int = Field(0, description="1: output *_hotstart every 'nhot_write' steps")
-    nhot_write: int = Field(8640, description="must be a multiple of ihfskip if nhot=1")
-    iout_sta: int = Field(0, description="")
-    nspool_sta: int = Field(
-        10, description="needed if iout_sta/=0; mod(nhot_write,nspool_sta) must=0"
+class Schout(NamelistBaseModel):
+    nc_out: Optional[int] = Field(None, description="")
+    iof_ugrid: Optional[int] = Field(None, description="")
+    nhot: Optional[int] = Field(
+        None, description="1: output *_hotstart every 'nhot_write' steps"
     )
-    iof_hydro__1: int = Field(
-        1, description="0: off; 1: on - elev. [m]  {elevation}  2D"
+    nhot_write: Optional[int] = Field(
+        None, description="must be a multiple of ihfskip if nhot=1"
     )
-    iof_hydro__2: int = Field(0, description="air pressure [Pa]  {airPressure}  2D")
-    iof_hydro__3: int = Field(0, description="air temperature [C] {airTemperature}  2D")
-    iof_hydro__4: int = Field(
-        0, description="Specific humidity [-] {specificHumidity}  2D"
+    iout_sta: Optional[int] = Field(None, description="")
+    nspool_sta: Optional[int] = Field(
+        None, description="needed if iout_sta/=0; mod(nhot_write,nspool_sta) must=0"
     )
-    iof_hydro__5: int = Field(
-        0,
+    iof_hydro__1: Optional[int] = Field(
+        None, description="0: off; 1: on - elev. [m]  {elevation}  2D"
+    )
+    iof_hydro__2: Optional[int] = Field(
+        None, description="air pressure [Pa]  {airPressure}  2D"
+    )
+    iof_hydro__3: Optional[int] = Field(
+        None, description="air temperature [C] {airTemperature}  2D"
+    )
+    iof_hydro__4: Optional[int] = Field(
+        None, description="Specific humidity [-] {specificHumidity}  2D"
+    )
+    iof_hydro__5: Optional[int] = Field(
+        None,
         description="Net downward solar (shortwave) radiation after albedo [W/m/m] {solarRadiation}  2D",
     )
-    iof_hydro__6: int = Field(
-        0, description="sensible flux (positive upward) [W/m/m]  {sensibleHeat}  2D"
+    iof_hydro__6: Optional[int] = Field(
+        None, description="sensible flux (positive upward) [W/m/m]  {sensibleHeat}  2D"
     )
-    iof_hydro__7: int = Field(
-        0, description="latent heat flux (positive upward) [W/m/m] {latentHeat}  2D"
+    iof_hydro__7: Optional[int] = Field(
+        None, description="latent heat flux (positive upward) [W/m/m] {latentHeat}  2D"
     )
-    iof_hydro__8: int = Field(
-        0,
+    iof_hydro__8: Optional[int] = Field(
+        None,
         description="upward longwave radiation (positive upward) [W/m/m] {upwardLongwave}  2D",
     )
-    iof_hydro__9: int = Field(
-        0,
+    iof_hydro__9: Optional[int] = Field(
+        None,
         description="downward longwave radiation (positive downward) [W/m/m] {downwardLongwave}  2D",
     )
-    iof_hydro__10: int = Field(
-        0, description="total flux=-flsu-fllu-(radu-radd) [W/m/m] {totalHeat}  2D"
+    iof_hydro__10: Optional[int] = Field(
+        None, description="total flux=-flsu-fllu-(radu-radd) [W/m/m] {totalHeat}  2D"
     )
-    iof_hydro__11: int = Field(
-        0, description="evaporation rate [kg/m/m/s] {evaporationRate}  2D"
+    iof_hydro__11: Optional[int] = Field(
+        None, description="evaporation rate [kg/m/m/s] {evaporationRate}  2D"
     )
-    iof_hydro__12: int = Field(
-        0, description="precipitation rate [kg/m/m/s] {precipitationRate}  2D"
+    iof_hydro__12: Optional[int] = Field(
+        None, description="precipitation rate [kg/m/m/s] {precipitationRate}  2D"
     )
-    iof_hydro__13: int = Field(
-        0,
+    iof_hydro__13: Optional[int] = Field(
+        None,
         description="Bottom stress vector [kg/m/s^2(Pa)] {bottomStressX,Y}  2D vector",
     )
-    iof_hydro__14: int = Field(
-        0, description="wind velocity vector [m/s] {windSpeedX,Y}  2D vector"
+    iof_hydro__14: Optional[int] = Field(
+        None, description="wind velocity vector [m/s] {windSpeedX,Y}  2D vector"
     )
-    iof_hydro__15: int = Field(
-        0, description="wind stress vector [m^2/s/s] {windStressX,Y}  2D vector"
+    iof_hydro__15: Optional[int] = Field(
+        None, description="wind stress vector [m^2/s/s] {windStressX,Y}  2D vector"
     )
-    iof_hydro__16: int = Field(
-        0, description="depth-averaged vel vector [m/s] {depthAverageVelX,Y}  2D vector"
+    iof_hydro__16: Optional[int] = Field(
+        None,
+        description="depth-averaged vel vector [m/s] {depthAverageVelX,Y}  2D vector",
     )
-    iof_hydro__17: int = Field(
-        0, description="vertical velocity [m/s] {verticalVelocity}  3D"
+    iof_hydro__17: Optional[int] = Field(
+        None, description="vertical velocity [m/s] {verticalVelocity}  3D"
     )
-    iof_hydro__18: int = Field(0, description="water temperature [C] {temperature}  3D")
-    iof_hydro__19: int = Field(0, description="water salinity [PSU] {salinity}  3D")
-    iof_hydro__20: int = Field(
-        0, description="water density [kg/m^3] {waterDensity}  3D"
+    iof_hydro__18: Optional[int] = Field(
+        None, description="water temperature [C] {temperature}  3D"
     )
-    iof_hydro__21: int = Field(
-        0, description="vertical eddy diffusivity [m^2/s] {diffusivity}  3D"
+    iof_hydro__19: Optional[int] = Field(
+        None, description="water salinity [PSU] {salinity}  3D"
     )
-    iof_hydro__22: int = Field(
-        0, description="vertical eddy viscosity [m^2/s] {viscosity}  3D"
+    iof_hydro__20: Optional[int] = Field(
+        None, description="water density [kg/m^3] {waterDensity}  3D"
     )
-    iof_hydro__23: int = Field(
-        0, description="turbulent kinetic energy {turbulentKineticEner}   3D"
+    iof_hydro__21: Optional[int] = Field(
+        None, description="vertical eddy diffusivity [m^2/s] {diffusivity}  3D"
     )
-    iof_hydro__24: int = Field(
-        0, description="turbulent mixing length [m] {mixingLength}  3D"
+    iof_hydro__22: Optional[int] = Field(
+        None, description="vertical eddy viscosity [m^2/s] {viscosity}  3D"
     )
-    iof_hydro__26: int = Field(
-        1, description="horizontal vel vector [m/s] {horizontalVelX,Y} 3D vector"
+    iof_hydro__23: Optional[int] = Field(
+        None, description="turbulent kinetic energy {turbulentKineticEner}   3D"
     )
-    iof_hydro__27: int = Field(
-        0,
+    iof_hydro__24: Optional[int] = Field(
+        None, description="turbulent mixing length [m] {mixingLength}  3D"
+    )
+    iof_hydro__26: Optional[int] = Field(
+        None, description="horizontal vel vector [m/s] {horizontalVelX,Y} 3D vector"
+    )
+    iof_hydro__27: Optional[int] = Field(
+        None,
         description="horizontal vel vector defined @side [m/s] {horizontalSideVelX,Y} 3D vector",
     )
-    iof_hydro__28: int = Field(
-        0, description="vertical vel. @elem [m/s] {verticalVelAtElement} 3D"
+    iof_hydro__28: Optional[int] = Field(
+        None, description="vertical vel. @elem [m/s] {verticalVelAtElement} 3D"
     )
-    iof_hydro__29: int = Field(
-        0, description="T @prism centers [C] {temperatureAtElement} 3D"
+    iof_hydro__29: Optional[int] = Field(
+        None, description="T @prism centers [C] {temperatureAtElement} 3D"
     )
-    iof_hydro__30: int = Field(
-        0, description="S @prism centers [PSU] {salinityAtElement} 3D"
+    iof_hydro__30: Optional[int] = Field(
+        None, description="S @prism centers [PSU] {salinityAtElement} 3D"
     )
-    iof_hydro__31: int = Field(
-        0,
+    iof_hydro__31: Optional[int] = Field(
+        None,
         description="Barotropic pressure gradient force vector (m.s-2) @side centers  {pressure_gradient} 2D vector",
     )
 
 
-class PARAM(NamelistBaseModel):
+class Param(NamelistBaseModel):
     """
 
     The full contents of the namelist file are shown below providing
@@ -1567,7 +1606,7 @@ class PARAM(NamelistBaseModel):
 
     """
 
-    core: CORE | None = Field(default=None)
-    opt: OPT | None = Field(default=None)
-    vertical: VERTICAL | None = Field(default=None)
-    schout: SCHOUT | None = Field(default=None)
+    core: Optional[Core] = Field(default=None)
+    opt: Optional[Opt] = Field(default=None)
+    vertical: Optional[Vertical] = Field(default=None)
+    schout: Optional[Schout] = Field(default=None)

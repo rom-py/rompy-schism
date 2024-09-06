@@ -1,89 +1,85 @@
-# This file was auto generated from a schism namelist file on 2024-08-28.
+# This file was auto generated from a schism namelist file on 2024-09-06.
+
+from typing import Optional
 
 from pydantic import Field
 from rompy.schism.namelists.basemodel import NamelistBaseModel
 
 
-class SED_CORE(NamelistBaseModel):
-    Sd50: list = Field(
-        ["0.12d0", "0.18d0", "0.39d0", "0.60d0", "1.2d0"], description=""
-    )
-    Erate: list = Field(
-        ["1.6d-3", "1.6d-3", "1.6d-3", "1.6d-3", "1.6d-3"], description="ierosion=0"
-    )
+class Sed_core(NamelistBaseModel):
+    sd50: Optional[list] = Field(None, description="")
+    erate: Optional[list] = Field(None, description="ierosion=0")
 
 
-class SED_OPT(NamelistBaseModel):
-    iSedtype: list = Field([1, 1, 1, 1, 1], description="5 classes")
-    Srho: list = Field(
-        ["2650.0d0", "2650.0d0", "2650.0d0", "2650.0d0", "2650.0d0"], description=""
+class Sed_opt(NamelistBaseModel):
+    isedtype: Optional[list] = Field(None, description="5 classes")
+    srho: Optional[list] = Field(None, description="")
+    comp_ws: Optional[int] = Field(None, description="")
+    comp_tauce: Optional[int] = Field(None, description="")
+    wsed: Optional[list] = Field(None, description="")
+    tau_ce: Optional[list] = Field(None, description="")
+    sed_debug: Optional[int] = Field(None, description="")
+    ised_dump: Optional[int] = Field(None, description="")
+    bedload: Optional[int] = Field(None, description="")
+    bedload_filter: Optional[int] = Field(None, description="")
+    bedload_limiter: Optional[int] = Field(None, description="")
+    suspended_load: Optional[int] = Field(None, description="")
+    iasym: Optional[int] = Field(None, description="")
+    w_asym_max: Optional[str] = Field(None, description="")
+    elfrink_filter: Optional[int] = Field(None, description="")
+    ech_uorb: Optional[int] = Field(None, description="")
+    bedload_acc: Optional[int] = Field(None, description="")
+    bedload_acc_filter: Optional[int] = Field(None, description="")
+    kacc_hoe: Optional[str] = Field(None, description="")
+    kacc_dub: Optional[str] = Field(None, description="")
+    thresh_acc_opt: Optional[int] = Field(None, description="")
+    acrit: Optional[str] = Field(None, description="")
+    tau_option: Optional[int] = Field(None, description="")
+    tau_max: Optional[str] = Field(None, description="[Pa]")
+    zstress: Optional[str] = Field(None, description="[m]; only used if tau_option/=1")
+    ierosion: Optional[int] = Field(None, description="")
+    slope_formulation: Optional[int] = Field(None, description="")
+    alpha_bs: Optional[str] = Field(
+        None, description="only used if slope_formulation=4"
     )
-    comp_ws: int = Field(0, description="")
-    comp_tauce: int = Field(0, description="")
-    Wsed: list = Field(
-        ["1.06d0", "3.92d0", "5.43d0", "10.19d0", "28.65d0"], description=""
+    alpha_bn: Optional[str] = Field(
+        None, description="only used if slope_formulation=4"
     )
-    tau_ce: list = Field(
-        ["0.15d0", "0.17d0", "0.23d0", "0.3d0", "0.6d0"], description=""
-    )
-    sed_debug: int = Field(0, description="")
-    ised_dump: int = Field(0, description="")
-    bedload: int = Field(1, description="")
-    bedload_filter: int = Field(0, description="")
-    bedload_limiter: int = Field(0, description="")
-    suspended_load: int = Field(1, description="")
-    iasym: int = Field(0, description="")
-    w_asym_max: str = Field("0.4d0", description="")
-    elfrink_filter: int = Field(0, description="")
-    ech_uorb: int = Field(200, description="")
-    bedload_acc: int = Field(0, description="")
-    bedload_acc_filter: int = Field(0, description="")
-    kacc_hoe: str = Field("1.4d-4", description="")
-    kacc_dub: str = Field("0.631d-4", description="")
-    thresh_acc_opt: int = Field(2, description="")
-    acrit: str = Field("0.2d0", description="")
-    tau_option: int = Field(1, description="")
-    tau_max: str = Field("10.0d0", description="[Pa]")
-    zstress: str = Field("0.2d0", description="[m]; only used if tau_option/=1")
-    ierosion: int = Field(0, description="")
-    slope_formulation: int = Field(4, description="")
-    alpha_bs: str = Field("1.0d0", description="only used if slope_formulation=4")
-    alpha_bn: str = Field("1.5d0", description="only used if slope_formulation=4")
-    ised_bc_bot: int = Field(1, description="")
-    alphd: float = Field(1.0, description="")
-    refht: float = Field(0.75, description="suggested value: 0.75;")
-    Tbp: float = Field(100.0, description="suggested value: 100;")
-    im_pick_up: int = Field(4, description="")
-    sed_morph: int = Field(0, description="")
-    sed_morph_time: str = Field("1.d0", description="")
-    morph_fac: str = Field("1.0d0", description="for all classes")
-    drag_formulation: int = Field(1, description="")
-    ddensed: int = Field(0, description="")
-    bedforms_rough: int = Field(0, description="")
-    iwave_ripple: int = Field(1, description="")
-    irough_bdld: int = Field(1, description="")
-    slope_avalanching: int = Field(1, description="")
-    dry_slope_cr: float = Field(1.0, description="")
-    wet_slope_cr: float = Field(0.3, description="")
-    bedmass_filter: int = Field(0, description="")
-    bedmass_threshold: float = Field(0.025, description="")
-    bdldiffu: float = Field(0.5, description="")
-    bedload_coeff: str = Field("1.0d0", description="")
-    Cdb_min: str = Field("1.d-6", description="")
-    Cdb_max: float = Field(0.01, description="")
-    actv_max: str = Field("0.05d0", description="")
-    Nbed: int = Field(1, description="")
-    sedlay_ini_opt: int = Field(0, description="")
-    toplay_inithick: str = Field("10.0d-2", description="")
-    newlayer_thick: str = Field("0.001d0", description="")
-    imeth_bed_evol: int = Field(2, description="")
-    poro_option: int = Field(1, description="")
-    porosity: float = Field(0.4, description="")
-    Awooster: float = Field(0.42, description="")
-    Bwooster: float = Field(-0.458, description="")
+    ised_bc_bot: Optional[int] = Field(None, description="")
+    alphd: Optional[float] = Field(None, description="")
+    refht: Optional[float] = Field(None, description="suggested value: 0.75;")
+    tbp: Optional[float] = Field(None, description="suggested value: 100;")
+    im_pick_up: Optional[int] = Field(None, description="")
+    sed_morph: Optional[int] = Field(None, description="")
+    sed_morph_time: Optional[str] = Field(None, description="")
+    morph_fac: Optional[str] = Field(None, description="for all classes")
+    drag_formulation: Optional[int] = Field(None, description="")
+    ddensed: Optional[int] = Field(None, description="")
+    bedforms_rough: Optional[int] = Field(None, description="")
+    iwave_ripple: Optional[int] = Field(None, description="")
+    irough_bdld: Optional[int] = Field(None, description="")
+    slope_avalanching: Optional[int] = Field(None, description="")
+    dry_slope_cr: Optional[float] = Field(None, description="")
+    wet_slope_cr: Optional[float] = Field(None, description="")
+    bedmass_filter: Optional[int] = Field(None, description="")
+    bedmass_threshold: Optional[float] = Field(None, description="")
+    bdldiffu: Optional[float] = Field(None, description="")
+    bedload_coeff: Optional[str] = Field(None, description="")
+    cdb_min: Optional[str] = Field(None, description="")
+    cdb_max: Optional[float] = Field(None, description="")
+    actv_max: Optional[str] = Field(None, description="")
+    nbed: Optional[int] = Field(None, description="")
+    sedlay_ini_opt: Optional[int] = Field(None, description="")
+    toplay_inithick: Optional[str] = Field(None, description="")
+    newlayer_thick: Optional[str] = Field(None, description="")
+    imeth_bed_evol: Optional[int] = Field(None, description="")
+    poro_option: Optional[int] = Field(None, description="")
+    porosity: Optional[float] = Field(None, description="")
+    awooster: Optional[float] = Field(None, description="")
+    bwooster: Optional[float] = Field(None, description="")
 
 
-class SEDIMENT(NamelistBaseModel):
+class Sediment(NamelistBaseModel):
     """
 
     The full contents of the namelist file are shown below providing
@@ -476,5 +472,5 @@ class SEDIMENT(NamelistBaseModel):
 
     """
 
-    sed_core: SED_CORE | None = Field(default=None)
-    sed_opt: SED_OPT | None = Field(default=None)
+    sed_core: Optional[Sed_core] = Field(default=None)
+    sed_opt: Optional[Sed_opt] = Field(default=None)

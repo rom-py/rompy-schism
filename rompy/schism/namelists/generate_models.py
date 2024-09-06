@@ -78,19 +78,20 @@ def generate_pydantic_models(
     master_model_name=None,
     # basemodel="rompy.schism.basemodel.NamelistBaseModel",
     basemodel="rompy.schism.namelists.basemodel.NamelistBaseModel",
-    none_option=True,
+    none_option=False,
 ):
     with open(filename, "w") as file:
         file.write(
             f"# This file was auto generated from a schism namelist file on {datetime.datetime.now().strftime('%Y-%m-%d')}.\n\n"
         )
+        file.write(f"from typing import Optional\n")
         file.write(f"from pydantic import Field\n")
         basemodellist = basemodel.split(".")
         file.write(
             f"from {'.'.join(basemodellist[0:-1])} import {basemodellist[-1]}\n\n"
         )
         for key, value in data.items():
-            model_name = key
+            model_name = key.capitalize()
             if key == "description":
                 continue
             file.write(f"class {model_name}({basemodellist[-1]}):\n")
@@ -112,14 +113,24 @@ def generate_pydantic_models(
                     default_value = default
 
                 # Write the field
-                file.write(
-                    '    {}: {} = Field({}, description="{}")\n'.format(
-                        inner_key,
-                        inner_type.__name__,
-                        repr(default_value),
-                        inner_value["description"],
+                if none_option:
+                    file.write(
+                        '    {}: {} = Field({}, description="{}")\n'.format(
+                            inner_key,
+                            f"Optional[{inner_type.__name__}]",
+                            None,
+                            inner_value["description"],
+                        )
                     )
-                )
+                else:
+                    file.write(
+                        '    {}: {} = Field({}, description="{}")\n'.format(
+                            inner_key,
+                            inner_type.__name__,
+                            repr(default_value),
+                            inner_value["description"],
+                        )
+                    )
             file.write("\n")
 
         if master_model_name:
@@ -133,11 +144,11 @@ def generate_pydantic_models(
                 else:
                     if none_option:
                         file.write(
-                            f"    {key.lower()}: {key} | None = Field(default=None)\n"
+                            f"    {key}: Optional[{key.capitalize()}] = Field(default=None)\n"
                         )
                     else:
                         file.write(
-                            f"    {key.lower()}: {key} = Field(default={key}())\n"
+                            f"    {key}: {key.capitalize()} = Field(default={key.capitalize()}())\n"
                         )
     run(["isort", filename])
     run(["black", filename])
@@ -146,7 +157,7 @@ def generate_pydantic_models(
 def nml_to_models(file_in: str, file_out: str):
     # Load the input text file and extract sections
     nml_dict = nml_to_dict(file_in)
-    master_model_name = os.path.basename(file_in).split(".")[0].upper()
+    master_model_name = os.path.basename(file_in).split(".")[0].capitalize()
     # if os.path.basename(file_in).split(".")[0] == "param":
     #     none_option = False
     # else:
@@ -199,7 +210,9 @@ def main():
                 print(f" Processing {file_in} to {file_out}")
                 nml_to_models(file_in, file_out)
                 classname = file_out.split(".")[0]
-                f.write(f"from .{classname} import {classname.split('_')[0].upper()}\n")
+                f.write(
+                    f"from .{classname} import {classname.split('_')[0].capitalize()}\n"
+                )
         f.write(f"from .sflux import Sflux_Inputs\n")
         f.write(f"from .schism import NML")
     run(["isort", "__init__.py"])
