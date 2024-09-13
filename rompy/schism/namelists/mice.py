@@ -36,8 +36,8 @@ class Mice_in(NamelistBaseModel):
     mevp_rheol_steps: Optional[int] = Field(
         500, description="Number of iterations in modified EVP (mEVP)."
     )
-    delta_min: Optional[str] = Field(
-        "1.0e-11",
+    delta_min: Optional[float] = Field(
+        1e-11,
         description="Limit for minimum divergence (1/s). Used in both VP and EVP.",
     )
     theta_io: Optional[float] = Field(

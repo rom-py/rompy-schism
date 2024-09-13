@@ -30,7 +30,7 @@ class NML(NamelistBaseModel):
     cosine: Optional[Cosine] = Field(
         description="Sediment model parameters", default=None
     )
-    wmminput: Optional[Wwminput] = Field(
+    wwminput: Optional[Wwminput] = Field(
         description="Wave model input parameters", default=None
     )
 

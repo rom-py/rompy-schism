@@ -95,9 +95,15 @@ def extract_variables(section):
             for ii in range(50):
                 var = var.replace(f"({ii})", f"__{ii}").lower()
             values = []
+            # remove trailing comma
+            # For for weird case in wwminput where the (seamingly) single input has a comma after it? TODO
+            value = value.strip()
+            if len(value) > 1:
+                if value[-1] == ",":
+                    value = value[:-1]
             if "," in value:
                 items = value.split(",")
-                # For for weird case in wwminput where the (seamingly) single input has a comma after it?
+                # For for weird case in wwminput where the (seamingly) single input has a comma after it? TODO
                 if len(items) == 2:
                     if items[1].strip() == "":
                         items = items[0]
@@ -108,7 +114,7 @@ def extract_variables(section):
             for item in items:
                 try:
                     if "e" in item or "E" in item:
-                        values.append(item.strip())
+                        values.append(float(item.strip()))
                     elif "." in item:
                         values.append(float(item))
                     else:
@@ -283,8 +289,6 @@ def nml_to_dict(file_in: str):
 
 def main():
     exclude_files = [
-        # "wwminput.nml.spectra",
-        # "wwminput.nml.WW3",
         # "mice.nml",
         # "ice.nml",
         # "icm.nml",
@@ -292,6 +296,9 @@ def main():
         # "cosine.nml",
         # # "param.nml",
         # "sediment.nml",
+        # "wwminput.nml",
+        "wwminput.nml.spectra",
+        "wwminput.nml.WW3",
         "icm_reduced.nml",
         "wwminput_reduced.nml.WW3",
     ]

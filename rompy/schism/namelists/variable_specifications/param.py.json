@@ -279,14 +279,14 @@
         "shw": {
             "description": "Specific heat of water (C_p) in J/kg/K.",
             "validators": [
-                "@field_validator('shw')\n@classmethod\ndef check_shw(cls, v):\n    if v <= 0:\n        raise ValueError('shw must be positive')\n    return v"
+                "@field_validator('shw')\n@classmethod\ndef check_shw(cls, v):\n    if float(v.replace('d','')) <= 0:\n        raise ValueError('shw must be positive')\n    return v"
             ],
             "cross_validators": []
         },
         "rho0": {
             "description": "Reference water density for Boussinesq approximation in kg/m^3.",
             "validators": [
-                "@field_validator('rho0')\n@classmethod\ndef check_rho0(cls, v):\n    if v <= 0:\n        raise ValueError('rho0 must be positive')\n    return v"
+                "@field_validator('rho0')\n@classmethod\ndef check_rho0(cls, v):\n    if float(v.replace('d','')) <= 0:\n        raise ValueError('rho0 must be positive')\n    return v"
             ],
             "cross_validators": []
         },

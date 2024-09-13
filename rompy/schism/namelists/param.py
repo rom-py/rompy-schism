@@ -262,7 +262,7 @@ class Opt(NamelistBaseModel):
     iunder_deep: Optional[int] = Field(0, description="")
     h1_bcc: Optional[float] = Field(50.0, description="[m]")
     h2_bcc: Optional[float] = Field(100.0, description="[m]; >h1_bcc")
-    hw_depth: Optional[str] = Field("1.e6", description="threshold depth in [m]")
+    hw_depth: Optional[float] = Field(1000000.0, description="threshold depth in [m]")
     hw_ratio: Optional[float] = Field(0.5, description="ratio")
     ihydraulics: Optional[int] = Field(0, description="")
     if_source: Optional[int] = Field(0, description="")
@@ -319,8 +319,8 @@ class Opt(NamelistBaseModel):
     gen_wsett: Optional[int] = Field(0, description="1.e-4")
     ibcc_mean: Optional[int] = Field(0, description="")
     rmaxvel: Optional[float] = Field(5.0, description="")
-    velmin_btrack: Optional[str] = Field("1.e-4", description="")
-    btrack_nudge: Optional[str] = Field("9.013e-3", description="")
+    velmin_btrack: Optional[float] = Field(0.0001, description="")
+    btrack_nudge: Optional[float] = Field(0.009013, description="")
     ihhat: Optional[int] = Field(1, description="")
     inunfl: Optional[int] = Field(0, description="")
     h0: Optional[float] = Field(
@@ -331,7 +331,7 @@ class Opt(NamelistBaseModel):
         50, description="output spool for solver info; used only with JCG"
     )
     mxitn0: Optional[int] = Field(1500, description="max. iteration allowed")
-    rtol0: Optional[str] = Field("1.e-12", description="error tolerance")
+    rtol0: Optional[float] = Field(1e-12, description="error tolerance")
     nadv: Optional[int] = Field(1, description="")
     dtb_max: Optional[float] = Field(30.0, description="in sec")
     dtb_min: Optional[float] = Field(10.0, description="")
@@ -339,11 +339,11 @@ class Opt(NamelistBaseModel):
     kr_co: Optional[int] = Field(1, description="not used if inter_mom=0")
     itr_met: Optional[int] = Field(3, description="")
     h_tvd: Optional[float] = Field(5.0, description="cut-off depth (m)")
-    eps1_tvd_imp: Optional[str] = Field(
-        "1.e-4",
+    eps1_tvd_imp: Optional[float] = Field(
+        0.0001,
         description="suggested value is 1.e-4, but for large suspended load, need to use a smaller value (e.g. 1.e-9)",
     )
-    eps2_tvd_imp: Optional[str] = Field("1.e-14", description="")
+    eps2_tvd_imp: Optional[float] = Field(1e-14, description="")
     ielm_transport: Optional[int] = Field(0, description="1: turn on")
     max_subcyc: Optional[int] = Field(
         10,
@@ -363,28 +363,28 @@ class Opt(NamelistBaseModel):
         1,
         description="order of temporal discretization: (1) Euler (default); (3): 3rd-order Runge-Kutta (only for benchmarking)",
     )
-    epsilon1: Optional[str] = Field(
-        "1.e-15",
+    epsilon1: Optional[float] = Field(
+        1e-15,
         description="coefficient for 2nd order weno smoother (larger values are more prone to numerical dispersion)",
     )
-    epsilon2: Optional[str] = Field(
-        "1.e-10",
+    epsilon2: Optional[float] = Field(
+        1e-10,
         description="1st coefficient for 3rd order weno smoother (larger values are more prone to numerical dispersion",
     )
     i_prtnftl_weno: Optional[int] = Field(
         0,
         description="option for writing nonfatal errors on invalid temp. or salinity for density: (0) off; (1) on.",
     )
-    epsilon3: Optional[str] = Field(
-        "1.e-25",
+    epsilon3: Optional[float] = Field(
+        1e-25,
         description="2nd coefficient for 3rd order weno smoother (inactive at the moment)",
     )
     ielad_weno: Optional[int] = Field(
         0,
         description="ielad, if ielad=1, use ELAD method to suppress dispersion (inactive at the moment)",
     )
-    small_elad: Optional[str] = Field(
-        "1.e-4", description="small (inactive at the moment)"
+    small_elad: Optional[float] = Field(
+        0.0001, description="small (inactive at the moment)"
     )
     nws: Optional[int] = Field(0, description="")
     wtiminc: Optional[float] = Field(
@@ -415,8 +415,8 @@ class Opt(NamelistBaseModel):
         0, description="if /=0, precip will be turned off near land bnd"
     )
     itur: Optional[int] = Field(3, description="Default: 0")
-    dfv0: Optional[str] = Field("1.e-2", description="needed if itur=0")
-    dfh0: Optional[str] = Field("1.e-4", description="needed if itur=0")
+    dfv0: Optional[float] = Field(0.01, description="needed if itur=0")
+    dfh0: Optional[float] = Field(0.0001, description="needed if itur=0")
     mid: Optional[str] = Field("KL", description="needed if itur=3,5. Use KE if itur=5")
     stab: Optional[str] = Field(
         "KC",
@@ -594,8 +594,8 @@ class Vertical(NamelistBaseModel):
     h_massconsv: Optional[float] = Field(
         2.0, description="Threshold depth for ICM mass conservation in meters."
     )
-    rinflation_icm: Optional[str] = Field(
-        "1.e-3",
+    rinflation_icm: Optional[float] = Field(
+        0.001,
         description="Maximum ratio between H^{n+1} and H^n allowed for ICM mass conservation.",
     )
 
@@ -735,14 +735,14 @@ class Vertical(NamelistBaseModel):
     @field_validator("shw")
     @classmethod
     def check_shw(cls, v):
-        if v <= 0:
+        if float(v.replace("d", "")) <= 0:
             raise ValueError("shw must be positive")
         return v
 
     @field_validator("rho0")
     @classmethod
     def check_rho0(cls, v):
-        if v <= 0:
+        if float(v.replace("d", "")) <= 0:
             raise ValueError("rho0 must be positive")
         return v
 
