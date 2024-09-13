@@ -1,0 +1,106 @@
+{
+    "marco": {
+        "nsub": {
+            "description": "Number of subcycles in ICM kinetics",
+            "validators": [
+                "@field_validator('nsub')\n@classmethod\ndef validate_nsub(cls, v):\n    if v < 1:\n        raise ValueError('nsub must be a positive integer')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "ike": {
+            "description": "Option for computing light attenuation coefficients. 0: Ke=Ke0+KeC*Chl+KeS*(tss2c*POC), TSS=tss2c*POC. 1: Ke=Ke0+KeC*Chl+KeS*TSS, using SED3D or saved total_sed_conc. 2: Ke=Ke0+KeC*Chl+KeSalt*Salt, CDOM effect related to Salinity",
+            "validators": [
+                "@field_validator('ike')\n@classmethod\ndef validate_ike(cls, v):\n    if v not in [0, 1, 2]:\n        raise ValueError('ike must be 0, 1, or 2')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "ke0": {
+            "description": "Background light extinction coefficient (1/m)",
+            "validators": [
+                "@field_validator('ke0')\n@classmethod\ndef validate_ke0(cls, v):\n    if v < 0:\n        raise ValueError('ke0 must be non-negative')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "kec": {
+            "description": "Light attenuation due to chlorophyll",
+            "validators": [
+                "@field_validator('kec')\n@classmethod\ndef validate_kec(cls, v):\n    if v < 0:\n        raise ValueError('kec must be non-negative')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "kes": {
+            "description": "Light attenuation due to Total Suspended Solids (TSS)",
+            "validators": [
+                "@field_validator('kes')\n@classmethod\ndef validate_kes(cls, v):\n    if v < 0:\n        raise ValueError('kes must be non-negative')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "kesalt": {
+            "description": "Light attenuation due to Colored Dissolved Organic Matter (CDOM), related to salinity",
+            "validators": [
+                "@field_validator('kesalt')\n@classmethod\ndef validate_kesalt(cls, v):\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "tss2c": {
+            "description": "Total Suspended Solids (TSS) to carbon ratio",
+            "validators": [
+                "@field_validator('tss2c')\n@classmethod\ndef validate_tss2c(cls, v):\n    if v <= 0:\n        raise ValueError('tss2c must be positive')\n    return v"
+            ],
+            "cross_validators": [
+                "@model_validator(mode='after')\ndef validate_light_attenuation(self):\n    if self.ike == 0 and self.tss2c <= 0:\n        raise ValueError('When ike is 0, tss2c must be positive')\n    return self"
+            ]
+        }
+    },
+    "core": {
+        "gpm": {
+            "description": "Phytoplankton growth rates (day^-1) for different phytoplankton groups",
+            "validators": [
+                "@field_validator('gpm')\n@classmethod\ndef check_gpm(cls, v):\n    if not all(0 < x < 10 for x in v):\n        raise ValueError('GPM values must be between 0 and 10')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "tgp": {
+            "description": "Optimal temperatures for phytoplankton growth (\u00b0C) for different phytoplankton groups",
+            "validators": [
+                "@field_validator('tgp')\n@classmethod\ndef check_tgp(cls, v):\n    if not all(0 < x < 40 for x in v):\n        raise ValueError('TGP values must be between 0 and 40')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "ktgp": {
+            "description": "Temperature dependence coefficients for phytoplankton growth (\u00b0C^-2) for different phytoplankton groups and temperature ranges",
+            "validators": [
+                "@field_validator('ktgp')\n@classmethod\ndef check_ktgp(cls, v):\n    if not all(0 < x < 0.01 for x in v):\n        raise ValueError('KTGP values must be between 0 and 0.01')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "mtr": {
+            "description": "Phytoplankton photorespiration coefficients (dimensionless, 0 < MTR < 1) for different phytoplankton groups",
+            "validators": [
+                "@field_validator('mtr')\n@classmethod\ndef check_mtr(cls, v):\n    if not all(0 <= x < 1 for x in v):\n        raise ValueError('MTR values must be between 0 and 1')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "mtb": {
+            "description": "Phytoplankton metabolism rates (day^-1) for different phytoplankton groups",
+            "validators": [
+                "@field_validator('mtb')\n@classmethod\ndef check_mtb(cls, v):\n    if not all(0 < x < 1 for x in v):\n        raise ValueError('MTB values must be between 0 and 1')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "tmt": {
+            "description": "Reference temperatures for phytoplankton metabolism (\u00b0C) for different phytoplankton groups",
+            "validators": [
+                "@field_validator('tmt')\n@classmethod\ndef check_tmt(cls, v):\n    if not all(0 < x < 40 for x in v):\n        raise ValueError('TMT values must be between 0 and 40')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "ktmt": {
+            "description": "Temperature dependence coefficients for phytoplankton metabolism (\u00b0C^-1) for different phytoplankton groups",
+            "validators": [
+                "@field_validator('ktmt')\n@classmethod\ndef check_ktmt(cls, v):\n    if not all(0 < x < 0.1 for x in v):\n        raise ValueError('KTMT values must be between 0 and 0.1')\n    return v"
+            ],
+            "cross_validators": []
+        }
+    }
+}

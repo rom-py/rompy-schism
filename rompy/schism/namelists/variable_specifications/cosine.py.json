@@ -1,0 +1,472 @@
+{
+    "marco": {
+        "idelay": {
+            "description": "Switch for 7-day delay in zooplankton predation (0: off, 1: on)",
+            "validators": [
+                "@field_validator('idelay')\n@classmethod\ndef validate_idelay(cls, v):\n    if v not in [0, 1]:\n        raise ValueError('idelay must be 0 or 1')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "ndelay": {
+            "description": "Number of days for zooplankton predation delay when idelay is active",
+            "validators": [
+                "@field_validator('ndelay')\n@classmethod\ndef validate_ndelay(cls, v):\n    if v < 0:\n        raise ValueError('ndelay must be non-negative')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "ibgraze": {
+            "description": "Switch for bottom grazing function (0: off, 1: on)",
+            "validators": [
+                "@field_validator('ibgraze')\n@classmethod\ndef validate_ibgraze(cls, v):\n    if v not in [0, 1]:\n        raise ValueError('ibgraze must be 0 or 1')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "idapt": {
+            "description": "Switch for light adaptation (0: off, 1: on)",
+            "validators": [
+                "@field_validator('idapt')\n@classmethod\ndef validate_idapt(cls, v):\n    if v not in [0, 1]:\n        raise ValueError('idapt must be 0 or 1')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "alpha_corr": {
+            "description": "Correction factor for light adaptation when idapt is active",
+            "validators": [
+                "@field_validator('alpha_corr')\n@classmethod\ndef validate_alpha_corr(cls, v):\n    if v <= 0:\n        raise ValueError('alpha_corr must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "zeptic": {
+            "description": "Euphotic zone depth parameter for light adaptation when idapt is active",
+            "validators": [
+                "@field_validator('zeptic')\n@classmethod\ndef validate_zeptic(cls, v):\n    if v <= 0:\n        raise ValueError('zeptic must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "iz2graze": {
+            "description": "Switch for Z2 grazing on S2, Z1, and DN (0: off, 1: on)",
+            "validators": [
+                "@field_validator('iz2graze')\n@classmethod\ndef validate_iz2graze(cls, v):\n    if v not in [0, 1]:\n        raise ValueError('iz2graze must be 0 or 1')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "iout_cosine": {
+            "description": "CoSiNE model station output option (0: off, 1-5: various output levels)",
+            "validators": [
+                "@field_validator('iout_cosine')\n@classmethod\ndef validate_iout_cosine(cls, v):\n    if v not in range(6):\n        raise ValueError('iout_cosine must be between 0 and 5')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "nspool_cosine": {
+            "description": "Output interval (number of time steps) for CoSiNE model station output",
+            "validators": [
+                "@field_validator('nspool_cosine')\n@classmethod\ndef validate_nspool_cosine(cls, v):\n    if v <= 0:\n        raise ValueError('nspool_cosine must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "ico2s": {
+            "description": "Switch for CO2 limitation on phytoplankton growth (0: off, 1: on)",
+            "validators": [
+                "@field_validator('ico2s')\n@classmethod\ndef validate_ico2s(cls, v):\n    if v not in [0, 1]:\n        raise ValueError('ico2s must be 0 or 1')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "ispm": {
+            "description": "Suspended Particulate Matter (SPM) calculation method (0: constant, 1: spatial varying, 2: SED model)",
+            "validators": [
+                "@field_validator('ispm')\n@classmethod\ndef validate_ispm(cls, v):\n    if v not in [0, 1, 2]:\n        raise ValueError('ispm must be 0, 1, or 2')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "spm0": {
+            "description": "Constant SPM value used when ispm is 0",
+            "validators": [
+                "@field_validator('spm0')\n@classmethod\ndef validate_spm0(cls, v):\n    if v < 0:\n        raise ValueError('spm0 must be non-negative')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "ised": {
+            "description": "Switch for sediment flux model (0: off, 1: on)",
+            "validators": [
+                "@field_validator('ised')\n@classmethod\ndef validate_ised(cls, v):\n    if v not in [0, 1]:\n        raise ValueError('ised must be 0 or 1')\n    return v"
+            ],
+            "cross_validators": []
+        }
+    },
+    "core": {
+        "gmaxs": {
+            "description": "Maximum growth rates for two phytoplankton types",
+            "validators": [
+                "@field_validator('gmaxs')\n@classmethod\ndef check_gmaxs(cls, v):\n    if not (isinstance(v, list) and len(v) == 2 and all(isinstance(x, float) and x > 0 for x in v)):\n        raise ValueError('gmaxs must be a list of 2 positive floats')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "gammas": {
+            "description": "Mortality rates for two phytoplankton types",
+            "validators": [
+                "@field_validator('gammas')\n@classmethod\ndef check_gammas(cls, v):\n    if not (isinstance(v, list) and len(v) == 2 and all(isinstance(x, float) and 0 <= x <= 1 for x in v)):\n        raise ValueError('gammas must be a list of 2 floats between 0 and 1')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "pis": {
+            "description": "Ammonium inhibition parameters for two phytoplankton types",
+            "validators": [
+                "@field_validator('pis')\n@classmethod\ndef check_pis(cls, v):\n    if not (isinstance(v, list) and len(v) == 2 and all(isinstance(x, float) and x > 0 for x in v)):\n        raise ValueError('pis must be a list of 2 positive floats')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "kno3s": {
+            "description": "NO3 half-saturation constants for two phytoplankton types",
+            "validators": [
+                "@field_validator('kno3s')\n@classmethod\ndef check_kno3s(cls, v):\n    if not (isinstance(v, list) and len(v) == 2 and all(isinstance(x, float) and x > 0 for x in v)):\n        raise ValueError('kno3s must be a list of 2 positive floats')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "knh4s": {
+            "description": "NH4 half-saturation constants for two phytoplankton types",
+            "validators": [
+                "@field_validator('knh4s')\n@classmethod\ndef check_knh4s(cls, v):\n    if not (isinstance(v, list) and len(v) == 2 and all(isinstance(x, float) and x > 0 for x in v)):\n        raise ValueError('knh4s must be a list of 2 positive floats')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "kpo4s": {
+            "description": "PO4 half-saturation constants for two phytoplankton types",
+            "validators": [
+                "@field_validator('kpo4s')\n@classmethod\ndef check_kpo4s(cls, v):\n    if not (isinstance(v, list) and len(v) == 2 and all(isinstance(x, float) and x > 0 for x in v)):\n        raise ValueError('kpo4s must be a list of 2 positive floats')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "kco2s": {
+            "description": "CO2 half-saturation constants for two phytoplankton types",
+            "validators": [
+                "@field_validator('kco2s')\n@classmethod\ndef check_kco2s(cls, v):\n    if not (isinstance(v, list) and len(v) == 2 and all(isinstance(x, float) and x > 0 for x in v)):\n        raise ValueError('kco2s must be a list of 2 positive floats')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "ksio4": {
+            "description": "SiO4 half-saturation constant for diatoms",
+            "validators": [
+                "@field_validator('ksio4')\n@classmethod\ndef check_ksio4(cls, v):\n    if not (isinstance(v, float) and v > 0):\n        raise ValueError('ksio4 must be a positive float')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "kns": {
+            "description": "Nighttime uptake rates of NH4 for two phytoplankton types",
+            "validators": [
+                "@field_validator('kns')\n@classmethod\ndef check_kns(cls, v):\n    if not (isinstance(v, list) and len(v) == 2 and all(isinstance(x, float) and x >= 0 for x in v)):\n        raise ValueError('kns must be a list of 2 non-negative floats')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "alphas": {
+            "description": "Initial slopes of P-I curve for two phytoplankton types",
+            "validators": [
+                "@field_validator('alphas')\n@classmethod\ndef check_alphas(cls, v):\n    if not (isinstance(v, list) and len(v) == 2 and all(isinstance(x, float) and x > 0 for x in v)):\n        raise ValueError('alphas must be a list of 2 positive floats')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "betas": {
+            "description": "Slopes for photo-inhibition for two phytoplankton types",
+            "validators": [
+                "@field_validator('betas')\n@classmethod\ndef check_betas(cls, v):\n    if not (isinstance(v, list) and len(v) == 2 and all(isinstance(x, float) and x >= 0 for x in v)):\n        raise ValueError('betas must be a list of 2 non-negative floats')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "aks": {
+            "description": "Light extinction coefficients for phytoplankton and suspended particulate matter",
+            "validators": [
+                "@field_validator('aks')\n@classmethod\ndef check_aks(cls, v):\n    if not (isinstance(v, list) and len(v) == 3 and all(isinstance(x, float) and x > 0 for x in v)):\n        raise ValueError('aks must be a list of 3 positive floats')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "betaz": {
+            "description": "Maximum grazing rates for two zooplankton types",
+            "validators": [
+                "@field_validator('betaz')\n@classmethod\ndef check_betaz(cls, v):\n    if not (isinstance(v, list) and len(v) == 2 and all(isinstance(x, float) and x > 0 for x in v)):\n        raise ValueError('betaz must be a list of 2 positive floats')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "alphaz": {
+            "description": "Assimilation rates for two zooplankton types",
+            "validators": [
+                "@field_validator('alphaz')\n@classmethod\ndef check_alphaz(cls, v):\n    if not (isinstance(v, list) and len(v) == 2 and all(isinstance(x, float) and 0 < x <= 1 for x in v)):\n        raise ValueError('alphaz must be a list of 2 floats between 0 and 1')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "gammaz": {
+            "description": "Mortality rates for two zooplankton types",
+            "validators": [
+                "@field_validator('gammaz')\n@classmethod\ndef check_gammaz(cls, v):\n    if not (isinstance(v, list) and len(v) == 2 and all(isinstance(x, float) and 0 < x <= 1 for x in v)):\n        raise ValueError('gammaz must be a list of 2 floats between 0 and 1')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "kez": {
+            "description": "Excretion rates for two zooplankton types",
+            "validators": [
+                "@field_validator('kez')\n@classmethod\ndef check_kez(cls, v):\n    if not (isinstance(v, list) and len(v) == 2 and all(isinstance(x, float) and 0 < x <= 1 for x in v)):\n        raise ValueError('kez must be a list of 2 floats between 0 and 1')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "kgz": {
+            "description": "Reference prey concentrations for grazing for two zooplankton types",
+            "validators": [
+                "@field_validator('kgz')\n@classmethod\ndef check_kgz(cls, v):\n    if not (isinstance(v, list) and len(v) == 2 and all(isinstance(x, float) and x > 0 for x in v)):\n        raise ValueError('kgz must be a list of 2 positive floats')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "rhoz": {
+            "description": "Prey preference factors of Z2 on (S2, Z1, DN)",
+            "validators": [
+                "@field_validator('rhoz')\n@classmethod\ndef check_rhoz(cls, v):\n    if not (isinstance(v, list) and len(v) == 3 and all(isinstance(x, float) and 0 <= x <= 1 for x in v)):\n        raise ValueError('rhoz must be a list of 3 floats between 0 and 1')\n    return v"
+            ],
+            "cross_validators": [
+                "@model_validator(mode='after')\ndef check_rhoz_sum(self):\n    if sum(self.rhoz) != 1:\n        raise ValueError('Sum of rhoz values must equal 1')\n    return self"
+            ]
+        },
+        "ipo4": {
+            "description": "Flag to add additional PO4 from biogenic silica dissolution",
+            "validators": [
+                "@field_validator('ipo4')\n@classmethod\ndef check_ipo4(cls, v):\n    if v not in [0, 1]:\n        raise ValueError('ipo4 must be either 0 or 1')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "tr": {
+            "description": "Reference temperature for temperature adjustment for CoSiNE sink and source",
+            "validators": [
+                "@field_validator('tr')\n@classmethod\ndef check_tr(cls, v):\n    if not (isinstance(v, float) and v > 0):\n        raise ValueError('tr must be a positive float')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "kox": {
+            "description": "Reference oxygen concentration for oxidation",
+            "validators": [
+                "@field_validator('kox')\n@classmethod\ndef check_kox(cls, v):\n    if not (isinstance(v, float) and v > 0):\n        raise ValueError('kox must be a positive float')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "wss2": {
+            "description": "Settling velocity of S2 (phytoplankton type 2)",
+            "validators": [
+                "@field_validator('wss2')\n@classmethod\ndef check_wss2(cls, v):\n    if not (isinstance(v, float) and v >= 0):\n        raise ValueError('wss2 must be a non-negative float')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "wsdn": {
+            "description": "Settling velocity of DN (detrital nitrogen)",
+            "validators": [
+                "@field_validator('wsdn')\n@classmethod\ndef check_wsdn(cls, v):\n    if not (isinstance(v, float) and v >= 0):\n        raise ValueError('wsdn must be a non-negative float')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "wsdsi": {
+            "description": "Settling velocity of DSi (dissolved silica)",
+            "validators": [
+                "@field_validator('wsdsi')\n@classmethod\ndef check_wsdsi(cls, v):\n    if not (isinstance(v, float) and v >= 0):\n        raise ValueError('wsdsi must be a non-negative float')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "si2n": {
+            "description": "Silica to nitrogen conversion coefficient",
+            "validators": [
+                "@field_validator('si2n')\n@classmethod\ndef check_si2n(cls, v):\n    if not (isinstance(v, float) and v > 0):\n        raise ValueError('si2n must be a positive float')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "p2n": {
+            "description": "Phosphorus to nitrogen conversion coefficient",
+            "validators": [
+                "@field_validator('p2n')\n@classmethod\ndef check_p2n(cls, v):\n    if not (isinstance(v, float) and v > 0):\n        raise ValueError('p2n must be a positive float')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "o2no": {
+            "description": "Oxygen to nitrogen (NO3) conversion coefficient",
+            "validators": [
+                "@field_validator('o2no')\n@classmethod\ndef check_o2no(cls, v):\n    if not (isinstance(v, float) and v > 0):\n        raise ValueError('o2no must be a positive float')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "o2nh": {
+            "description": "Oxygen to nitrogen (NH4) conversion coefficient",
+            "validators": [
+                "@field_validator('o2nh')\n@classmethod\ndef check_o2nh(cls, v):\n    if not (isinstance(v, float) and v > 0):\n        raise ValueError('o2nh must be a positive float')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "c2n": {
+            "description": "Carbon to nitrogen conversion coefficient",
+            "validators": [
+                "@field_validator('c2n')\n@classmethod\ndef check_c2n(cls, v):\n    if not (isinstance(v, float) and v > 0):\n        raise ValueError('c2n must be a positive float')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "gamman": {
+            "description": "Nitrification coefficient",
+            "validators": [
+                "@field_validator('gamman')\n@classmethod\ndef check_gamman(cls, v):\n    if not (isinstance(v, float) and 0 <= v <= 1):\n        raise ValueError('gamman must be a float between 0 and 1')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "pco2a": {
+            "description": "Atmospheric CO2 concentration",
+            "validators": [
+                "@field_validator('pco2a')\n@classmethod\ndef check_pco2a(cls, v):\n    if not (isinstance(v, float) and v > 0):\n        raise ValueError('pco2a must be a positive float')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "kmdn": {
+            "description": "Remineralization coefficients for DN (detrital nitrogen)",
+            "validators": [
+                "@field_validator('kmdn')\n@classmethod\ndef check_kmdn(cls, v):\n    if not (isinstance(v, list) and len(v) == 2 and all(isinstance(x, float) and x >= 0 for x in v)):\n        raise ValueError('kmdn must be a list of 2 non-negative floats')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "kmdsi": {
+            "description": "Remineralization coefficients for DSi (dissolved silica)",
+            "validators": [
+                "@field_validator('kmdsi')\n@classmethod\ndef check_kmdsi(cls, v):\n    if not (isinstance(v, list) and len(v) == 2 and all(isinstance(x, float) and x >= 0 for x in v)):\n        raise ValueError('kmdsi must be a list of 2 non-negative floats')\n    return v"
+            ],
+            "cross_validators": []
+        }
+    },
+    "misc": {
+        "iws": {
+            "description": "Flag to enable or disable diatom sinking velocity dependence on NO3 concentration",
+            "validators": [
+                "@field_validator('iws')\n@classmethod\ndef validate_iws(cls, v: int) -> int:\n    if v not in [0, 1]:\n        raise ValueError('iws must be either 0 or 1')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "no3c": {
+            "description": "Critical NO3 concentration (mmol/m3) for diatom sinking velocity calculation",
+            "validators": [
+                "@field_validator('no3c')\n@classmethod\ndef validate_no3c(cls, v: float) -> float:\n    if v <= 0:\n        raise ValueError('no3c must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "ws1": {
+            "description": "Diatom sinking velocity (m/day) when NO3 concentration is below no3c",
+            "validators": [
+                "@field_validator('ws1')\n@classmethod\ndef validate_ws1(cls, v: float) -> float:\n    if v < 0:\n        raise ValueError('ws1 must be non-negative')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "ws2": {
+            "description": "Diatom sinking velocity (m/day) when NO3 concentration is above no3c",
+            "validators": [
+                "@field_validator('ws2')\n@classmethod\ndef validate_ws2(cls, v: float) -> float:\n    if v < 0:\n        raise ValueError('ws2 must be non-negative')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "iclam": {
+            "description": "Flag to enable or disable clam grazing model",
+            "validators": [
+                "@field_validator('iclam')\n@classmethod\ndef validate_iclam(cls, v: int) -> int:\n    if v not in [0, 1]:\n        raise ValueError('iclam must be either 0 or 1')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "deltaz": {
+            "description": "Vertical grid size (meter) for clam grazing model",
+            "validators": [
+                "@field_validator('deltaz')\n@classmethod\ndef validate_deltaz(cls, v: float) -> float:\n    if v <= 0:\n        raise ValueError('deltaz must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "kcex": {
+            "description": "Clam excretion rate (day^-1)",
+            "validators": [
+                "@field_validator('kcex')\n@classmethod\ndef validate_kcex(cls, v: float) -> float:\n    if v < 0 or v > 1:\n        raise ValueError('kcex must be between 0 and 1')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "nperclam": {
+            "description": "Nitrogen content per clam (mmol[N])",
+            "validators": [
+                "@field_validator('nperclam')\n@classmethod\ndef validate_nperclam(cls, v: float) -> float:\n    if v <= 0:\n        raise ValueError('nperclam must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "wclam": {
+            "description": "Clam weight (g)",
+            "validators": [
+                "@field_validator('wclam')\n@classmethod\ndef validate_wclam(cls, v: float) -> float:\n    if v <= 0:\n        raise ValueError('wclam must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "fclam": {
+            "description": "Clam filtration rate (L.g[AFDW]^-1.day^-1)",
+            "validators": [
+                "@field_validator('fclam')\n@classmethod\ndef validate_fclam(cls, v: float) -> float:\n    if v <= 0:\n        raise ValueError('fclam must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "nclam0": {
+            "description": "Initial number of clams",
+            "validators": [
+                "@field_validator('nclam0')\n@classmethod\ndef validate_nclam0(cls, v: int) -> int:\n    if v < 0:\n        raise ValueError('nclam0 must be non-negative')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "fs2": {
+            "description": "Partitioning coefficients for S2 from water column into sediment (3 values)",
+            "validators": [
+                "@field_validator('fs2')\n@classmethod\ndef validate_fs2(cls, v: List[float]) -> List[float]:\n    if len(v) != 3 or not all(0 <= x <= 1 for x in v) or abs(sum(v) - 1) > 1e-6:\n        raise ValueError('fs2 must be a list of 3 values between 0 and 1, summing to 1')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "rks2": {
+            "description": "Changing rates of remineralization for sediment S2 (3 values, day^-1)",
+            "validators": [
+                "@field_validator('rks2')\n@classmethod\ndef validate_rks2(cls, v: List[float]) -> List[float]:\n    if len(v) != 3 or not all(x >= 0 for x in v):\n        raise ValueError('rks2 must be a list of 3 non-negative values')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "mks2": {
+            "description": "Maximum remineralization rates for sediment S2 (3 values, day^-1)",
+            "validators": [
+                "@field_validator('mks2')\n@classmethod\ndef validate_mks2(cls, v: List[float]) -> List[float]:\n    if len(v) != 3 or not all(x >= 0 for x in v):\n        raise ValueError('mks2 must be a list of 3 non-negative values')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "fdn": {
+            "description": "Partitioning coefficients for DN from water column into sediment (3 values)",
+            "validators": [
+                "@field_validator('fdn')\n@classmethod\ndef validate_fdn(cls, v: List[float]) -> List[float]:\n    if len(v) != 3 or not all(0 <= x <= 1 for x in v) or abs(sum(v) - 1) > 1e-6:\n        raise ValueError('fdn must be a list of 3 values between 0 and 1, summing to 1')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "rkdn": {
+            "description": "Changing rates of remineralization for sediment DN (3 values, day^-1)",
+            "validators": [
+                "@field_validator('rkdn')\n@classmethod\ndef validate_rkdn(cls, v: List[float]) -> List[float]:\n    if len(v) != 3 or not all(x >= 0 for x in v):\n        raise ValueError('rkdn must be a list of 3 non-negative values')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "mkdn": {
+            "description": "Maximum remineralization rates for sediment DN (3 values, day^-1)",
+            "validators": [
+                "@field_validator('mkdn')\n@classmethod\ndef validate_mkdn(cls, v: List[float]) -> List[float]:\n    if len(v) != 3 or not all(x >= 0 for x in v):\n        raise ValueError('mkdn must be a list of 3 non-negative values')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "fdsi": {
+            "description": "Partitioning coefficients for DSi from water column into sediment (3 values)",
+            "validators": [
+                "@field_validator('fdsi')\n@classmethod\ndef validate_fdsi(cls, v: List[float]) -> List[float]:\n    if len(v) != 3 or not all(0 <= x <= 1 for x in v) or abs(sum(v) - 1) > 1e-6:\n        raise ValueError('fdsi must be a list of 3 values between 0 and 1, summing to 1')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "rkdsi": {
+            "description": "Changing rates of remineralization for sediment DSi (3 values, day^-1)",
+            "validators": [
+                "@field_validator('rkdsi')\n@classmethod\ndef validate_rkdsi(cls, v: List[float]) -> List[float]:\n    if len(v) != 3 or not all(x >= 0 for x in v):\n        raise ValueError('rkdsi must be a list of 3 non-negative values')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "mkdsi": {
+            "description": "Maximum remineralization rates for sediment DSi (3 values, day^-1)",
+            "validators": [
+                "@field_validator('mkdsi')\n@classmethod\ndef validate_mkdsi(cls, v: List[float]) -> List[float]:\n    if len(v) != 3 or not all(x >= 0 for x in v):\n        raise ValueError('mkdsi must be a list of 3 non-negative values')\n    return v"
+            ],
+            "cross_validators": []
+        }
+    }
+}
