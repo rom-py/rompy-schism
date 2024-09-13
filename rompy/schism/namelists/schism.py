@@ -55,14 +55,12 @@ class NML(NamelistBaseModel):
             }
         }
 
-        date_format = "%Y-%m-%d %H:%M:%S"
-        if hasattr(
-            self, "wwminput_WW3"
-        ):  # TODO change this check to the actual flag value
+        date_format = "%Y%m%d.%H%M%S"
+        if hasattr(self, "wwminput"):  # TODO change this check to the actual flag value
             # TODO these are currently all the same, but they could be different
             update.update(
                 {
-                    "wwminput_WW3": {
+                    "wwminput": {
                         "proc": {
                             "begtc": period.start.strftime(date_format),
                             "endtc": period.end.strftime(date_format),
