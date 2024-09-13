@@ -7,5 +7,4 @@ from .param import Param
 from .schism import NML
 from .sediment import Sediment
 from .sflux import Sflux_Inputs
-from .wwminput_spectra import Wwminput
-from .wwminput_WW3 import Wwminput
+from .wwminput import Wwminput

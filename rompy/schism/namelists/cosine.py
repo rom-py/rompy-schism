@@ -597,7 +597,7 @@ class Misc(NamelistBaseModel):
     nperclam: Optional[float] = Field(
         0.39032, description="Nitrogen content per clam (mmol[N])"
     )
-    wclam: Optional[str] = Field("5.45e-3", description="Clam weight (g)")
+    wclam: Optional[float] = Field(0.00545, description="Clam weight (g)")
     fclam: Optional[int] = Field(
         40, description="Clam filtration rate (L.g[AFDW]^-1.day^-1)"
     )
@@ -607,7 +607,7 @@ class Misc(NamelistBaseModel):
         description="Partitioning coefficients for S2 from water column into sediment (3 values)",
     )
     rks2: Optional[list] = Field(
-        ["4e-3", "1.0e-4", 0.0],
+        [0.004, 0.0001, 0.0],
         description="Changing rates of remineralization for sediment S2 (3 values, day^-1)",
     )
     mks2: Optional[list] = Field(
@@ -619,7 +619,7 @@ class Misc(NamelistBaseModel):
         description="Partitioning coefficients for DN from water column into sediment (3 values)",
     )
     rkdn: Optional[list] = Field(
-        ["4e-3", "1.0e-4", 0.0],
+        [0.004, 0.0001, 0.0],
         description="Changing rates of remineralization for sediment DN (3 values, day^-1)",
     )
     mkdn: Optional[list] = Field(
@@ -631,7 +631,7 @@ class Misc(NamelistBaseModel):
         description="Partitioning coefficients for DSi from water column into sediment (3 values)",
     )
     rkdsi: Optional[list] = Field(
-        [0.004, "1e-4", 0.0],
+        [0.004, 0.0001, 0.0],
         description="Changing rates of remineralization for sediment DSi (3 values, day^-1)",
     )
     mkdsi: Optional[list] = Field(

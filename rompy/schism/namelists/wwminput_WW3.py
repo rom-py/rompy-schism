@@ -1202,7 +1202,8 @@ class Nums(NamelistBaseModel):
         1.0, description="Minimum time step (seconds) for dynamic integration."
     )
     ndyniter: Optional[int] = Field(
-        1, description="Maximum iterations for dynamic scheme before applying limiter."
+        100,
+        description="Maximum iterations for dynamic scheme before applying limiter.",
     )
     dtmin_sin: Optional[float] = Field(
         1.0,
@@ -1224,35 +1225,36 @@ class Nums(NamelistBaseModel):
         1.0, description="Minimum time step for SBF term in fractional step method."
     )
     ndyniter_sin: Optional[int] = Field(
-        1, description="Maximum iterations for SIN term in fractional step approach."
+        10, description="Maximum iterations for SIN term in fractional step approach."
     )
     ndyniter_snl4: Optional[int] = Field(
-        1, description="Maximum iterations for SNL4 term in fractional step approach."
+        10, description="Maximum iterations for SNL4 term in fractional step approach."
     )
     ndyniter_sds: Optional[int] = Field(
-        1, description="Maximum iterations for SDS term in fractional step approach."
+        10, description="Maximum iterations for SDS term in fractional step approach."
     )
     ndyniter_sbr: Optional[int] = Field(
-        1, description="Maximum iterations for SBR term in fractional step approach."
+        10, description="Maximum iterations for SBR term in fractional step approach."
     )
     ndyniter_snl3: Optional[int] = Field(
-        1, description="Maximum iterations for SNL3 term in fractional step approach."
+        10, description="Maximum iterations for SNL3 term in fractional step approach."
     )
     ndyniter_sbf: Optional[int] = Field(
-        1, description="Maximum iterations for SBF term in fractional step approach."
+        10, description="Maximum iterations for SBF term in fractional step approach."
     )
     lsoubound: Optional[bool] = Field(
         False,
         description="Apply source terms on boundary. Useful for harbor studies and flume experiments.",
     )
-    wae_solverthr: Optional[str] = Field(
-        "", description="Threshold for the Block-Jacobi or Block-Gauss-Seider solver."
+    wae_solverthr: Optional[float] = Field(
+        1e-06,
+        description="Threshold for the Block-Jacobi or Block-Gauss-Seider solver.",
     )
-    maxiter: Optional[str] = Field(
-        "", description="Maximum number of iterations for solvers."
+    maxiter: Optional[int] = Field(
+        1000, description="Maximum number of iterations for solvers."
     )
-    pmin: Optional[str] = Field(
-        "", description="Maximum percentage of non-converged grid points allowed."
+    pmin: Optional[float] = Field(
+        1.0, description="Maximum percentage of non-converged grid points allowed."
     )
     lnaninfchk: Optional[bool] = Field(
         False,
@@ -2091,12 +2093,12 @@ class Petscoptions(NamelistBaseModel):
         "LGMRES",
         description="Controls the solver used. Options include GMRES (Generalized Minimal Residual method), LGMRES (Augmented GMRES), DGMRES (Deflated GMRES), PGMRES (Pipelined GMRES), and KSPBCGSL (Enhanced BiCGStab(L) algorithm).",
     )
-    rtol: Optional[str] = Field(
-        "1.E-20",
+    rtol: Optional[float] = Field(
+        1e-20,
         description="The relative convergence tolerance, representing the relative decrease in the residual norm.",
     )
-    abstol: Optional[str] = Field(
-        "1.E-20",
+    abstol: Optional[float] = Field(
+        1e-20,
         description="The absolute convergence tolerance, representing the absolute size of the residual norm.",
     )
     dtol: Optional[float] = Field(
@@ -2178,10 +2180,7 @@ class Nesting(NamelistBaseModel):
         "",
         description="Start time for the nested grid run. Format should match ListUNITC.",
     )
-    listdeltc: Optional[str] = Field(
-        "ZERO",
-        description="Time step for the nested grid run. Should be in units specified by ListUNITC.",
-    )
+    listdeltc: Optional[str] = Field("ZERO", description="")
     listunitc: Optional[str] = Field(
         "",
         description="Time unit for ListBEGTC, ListDELTC, and ListENDTC. Should be a valid time unit string.",
@@ -2209,15 +2208,6 @@ class Nesting(NamelistBaseModel):
     def validate_listbegtc(cls, v):
         if not isinstance(v, str):
             raise ValueError("ListBEGTC must be a string")
-        return v
-
-    @field_validator("listdeltc")
-    @classmethod
-    def validate_listdeltc(cls, v):
-        if not isinstance(v, (int, float)):
-            raise ValueError("ListDELTC must be a number")
-        if v < 0:
-            raise ValueError("ListDELTC must be non-negative")
         return v
 
     @field_validator("listunitc")

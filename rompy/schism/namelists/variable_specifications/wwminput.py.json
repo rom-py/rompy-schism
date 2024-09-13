@@ -1,0 +1,1460 @@
+{
+    "proc": {
+        "procname": {
+            "description": "Project name for the simulation",
+            "validators": [
+                "@field_validator('procname')\n@classmethod\ndef validate_procname(cls, v: str) -> str:\n    if not v.strip():\n        raise ValueError('Project name cannot be empty')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "dimmode": {
+            "description": "Dimensionality of the simulation. Must be 2 when coupled with SCHISM",
+            "validators": [
+                "@field_validator('dimmode')\n@classmethod\ndef validate_dimmode(cls, v: int) -> int:\n    if v != 2:\n        raise ValueError('DIMMODE must be 2 when coupled with SCHISM')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "lstea": {
+            "description": "Flag for steady mode (under development)",
+            "validators": [
+                "@field_validator('lstea')\n@classmethod\ndef validate_lstea(cls, v: bool) -> bool:\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "lqstea": {
+            "description": "Flag for Quasi-Steady Mode. If True, WWM-II performs subiterations defined as DELTC/NQSITER unless QSCONVI is reached",
+            "validators": [
+                "@field_validator('lqstea')\n@classmethod\ndef validate_lqstea(cls, v: bool) -> bool:\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "lsphe": {
+            "description": "Flag for using spherical coordinates (longitude/latitude)",
+            "validators": [
+                "@field_validator('lsphe')\n@classmethod\ndef validate_lsphe(cls, v: bool) -> bool:\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "lnautin": {
+            "description": "Flag for using nautical convention for all input angles given in degrees",
+            "validators": [
+                "@field_validator('lnautin')\n@classmethod\ndef validate_lnautin(cls, v: bool) -> bool:\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "lnautout": {
+            "description": "Flag for using nautical convention for output angles. If True, 0 is from north, 90 is from east; if False, mathematical convention is used (0: to east, 90: to north)",
+            "validators": [
+                "@field_validator('lnautout')\n@classmethod\ndef validate_lnautout(cls, v: bool) -> bool:\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "lmono_in": {
+            "description": "Flag for prescribing monochromatic wave height (Hmono) as boundary conditions. Incident wave is defined as Hmono = sqrt(2) * Hs",
+            "validators": [
+                "@field_validator('lmono_in')\n@classmethod\ndef validate_lmono_in(cls, v: bool) -> bool:\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "lmono_out": {
+            "description": "Flag for outputting wave heights in terms of Lmono",
+            "validators": [
+                "@field_validator('lmono_out')\n@classmethod\ndef validate_lmono_out(cls, v: bool) -> bool:\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "begtc": {
+            "description": "Start time of the simulation in format 'yyyymmdd.hhmmss'",
+            "validators": [
+                "@field_validator('begtc')\n@classmethod\ndef validate_begtc(cls, v: str) -> str:\n    try:\n        datetime.strptime(v, '%Y%m%d.%H%M%S')\n    except ValueError:\n        raise ValueError('Invalid date format for BEGTC')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "deltc": {
+            "description": "Time step in seconds. Must match dt*nstep_wwm in SCHISM",
+            "validators": [
+                "@field_validator('deltc')\n@classmethod\ndef validate_deltc(cls, v: int) -> int:\n    if v <= 0:\n        raise ValueError('DELTC must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "unitc": {
+            "description": "Unit of time step",
+            "validators": [
+                "@field_validator('unitc')\n@classmethod\ndef validate_unitc(cls, v: str) -> str:\n    if v.upper() != 'SEC':\n        raise ValueError('UNITC must be SEC')\n    return v.upper()"
+            ],
+            "cross_validators": []
+        },
+        "endtc": {
+            "description": "End time of the simulation in format 'yyyymmdd.hhmmss'",
+            "validators": [
+                "@field_validator('endtc')\n@classmethod\ndef validate_endtc(cls, v: str) -> str:\n    try:\n        datetime.strptime(v, '%Y%m%d.%H%M%S')\n    except ValueError:\n        raise ValueError('Invalid date format for ENDTC')\n    return v"
+            ],
+            "cross_validators": [
+                "@model_validator(mode='after')\ndef validate_simulation_time(self) -> 'Model':\n    start = datetime.strptime(self.begtc, '%Y%m%d.%H%M%S')\n    end = datetime.strptime(self.endtc, '%Y%m%d.%H%M%S')\n    if end <= start:\n        raise ValueError('ENDTC must be later than BEGTC')\n    return self"
+            ]
+        },
+        "dmin": {
+            "description": "Minimum water depth. Must be the same as h0 in SCHISM",
+            "validators": [
+                "@field_validator('dmin')\n@classmethod\ndef validate_dmin(cls, v: float) -> float:\n    if v <= 0:\n        raise ValueError('DMIN must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        }
+    },
+    "coupl": {
+        "lcpl": {
+            "description": "Main switch for coupling with current model. Keep it on for SCHISM-WWM coupling.",
+            "validators": [
+                "@field_validator('lcpl')\n@classmethod\ndef validate_lcpl(cls, v):\n    if not isinstance(v, bool):\n        raise ValueError('LCPL must be a boolean value')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "radflag": {
+            "description": "Flag for radiation stress formulation. 'LON' for Longuet-Higgins formulation, 'VOR' for vortex formulation.",
+            "validators": [
+                "@field_validator('radflag')\n@classmethod\ndef validate_radflag(cls, v):\n    if v not in ['LON', 'VOR']:\n        raise ValueError('RADFLAG must be either \"LON\" or \"VOR\"')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "letot": {
+            "description": "Option to compute wave-induced radiation stress. If True, radiation stress is based on the integrated wave spectrum. If False, it's estimated based on the directional spectra itself as in Roland et al. (2008). False is generally preferred for more accurate results.",
+            "validators": [
+                "@field_validator('letot')\n@classmethod\ndef validate_letot(cls, v):\n    if not isinstance(v, bool):\n        raise ValueError('LETOT must be a boolean value')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "nlvt": {
+            "description": "Number of vertical layers. Not used with SCHISM.",
+            "validators": [
+                "@field_validator('nlvt')\n@classmethod\ndef validate_nlvt(cls, v):\n    if not isinstance(v, int) or v <= 0:\n        raise ValueError('NLVT must be a positive integer')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "dtcoup": {
+            "description": "Coupling time step in seconds. Not used when coupled to SCHISM.",
+            "validators": [
+                "@field_validator('dtcoup')\n@classmethod\ndef validate_dtcoup(cls, v):\n    if not isinstance(v, (int, float)) or v <= 0:\n        raise ValueError('DTCOUP must be a positive number')\n    return v"
+            ],
+            "cross_validators": []
+        }
+    },
+    "grid": {
+        "lcird": {
+            "description": "Flag to use full circle in directional space",
+            "validators": [
+                "@field_validator('lcird')\n@classmethod\ndef validate_lcird(cls, v: bool) -> bool:\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "lstag": {
+            "description": "Flag to stagger directional bins with a half Dtheta. Can only be True for regular grids to avoid characteristic line aligning with grid line",
+            "validators": [
+                "@field_validator('lstag')\n@classmethod\ndef validate_lstag(cls, v: bool) -> bool:\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "mindir": {
+            "description": "Minimum direction for simulation in degrees (nautical convention; 0: from N; 90: from E). Not used if LCIRD is True",
+            "validators": [
+                "@field_validator('mindir')\n@classmethod\ndef validate_mindir(cls, v: float) -> float:\n    if v < 0 or v >= 360:\n        raise ValueError('MINDIR must be between 0 and 360')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "maxdir": {
+            "description": "Maximum direction for simulation in degrees. May be less than MINDIR. Not used if LCIRD is True",
+            "validators": [
+                "@field_validator('maxdir')\n@classmethod\ndef validate_maxdir(cls, v: float) -> float:\n    if v <= 0 or v > 360:\n        raise ValueError('MAXDIR must be between 0 and 360')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "mdc": {
+            "description": "Number of directional bins",
+            "validators": [
+                "@field_validator('mdc')\n@classmethod\ndef validate_mdc(cls, v: int) -> int:\n    if v <= 0:\n        raise ValueError('MDC must be a positive integer')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "frlow": {
+            "description": "Low frequency limit of the discrete wave period in Hz (1/period)",
+            "validators": [
+                "@field_validator('frlow')\n@classmethod\ndef validate_frlow(cls, v: float) -> float:\n    if v <= 0:\n        raise ValueError('FRLOW must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "frhigh": {
+            "description": "High frequency limit of the discrete wave period in Hz",
+            "validators": [
+                "@field_validator('frhigh')\n@classmethod\ndef validate_frhigh(cls, v: float) -> float:\n    if v <= 0:\n        raise ValueError('FRHIGH must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "msc": {
+            "description": "Number of frequency bins",
+            "validators": [
+                "@field_validator('msc')\n@classmethod\ndef validate_msc(cls, v: int) -> int:\n    if v <= 0:\n        raise ValueError('MSC must be a positive integer')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "filegrid": {
+            "description": "Name of the grid file. Should be 'hgridi_WWM.gr3' if IGRIDTYPE is 3 (SCHISM)",
+            "validators": [
+                "@field_validator('filegrid')\n@classmethod\ndef validate_filegrid(cls, v: str) -> str:\n    if not v:\n        raise ValueError('FILEGRID must not be empty')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "igridtype": {
+            "description": "Grid type used. 1: XFN system.dat, 2: WWM-PERIODIC, 3: SCHISM, 4: old WWM type",
+            "validators": [
+                "@field_validator('igridtype')\n@classmethod\ndef validate_igridtype(cls, v: int) -> int:\n    if v not in [1, 2, 3, 4]:\n        raise ValueError('IGRIDTYPE must be 1, 2, 3, or 4')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "lslop": {
+            "description": "Flag to use bottom slope limiter (default: False)",
+            "validators": [
+                "@field_validator('lslop')\n@classmethod\ndef validate_lslop(cls, v: bool) -> bool:\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "slmax": {
+            "description": "Maximum slope when bottom slope limiter is used",
+            "validators": [
+                "@field_validator('slmax')\n@classmethod\ndef validate_slmax(cls, v: float) -> float:\n    if v <= 0:\n        raise ValueError('SLMAX must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "lvar1d": {
+            "description": "Flag for 1D mode if variable dx is used. Not used with SCHISM",
+            "validators": [
+                "@field_validator('lvar1d')\n@classmethod\ndef validate_lvar1d(cls, v: bool) -> bool:\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "loptsig": {
+            "description": "Flag to use optimal distributions of frequencies in spectral space (fi+1 = fi * 1.1). Care should be taken with the high frequency limit",
+            "validators": [
+                "@field_validator('loptsig')\n@classmethod\ndef validate_loptsig(cls, v: bool) -> bool:\n    return v"
+            ],
+            "cross_validators": []
+        }
+    },
+    "init": {
+        "filehot_in": {
+            "description": "Full path and filename for the input hot file, which can be copied from FILEHOT_OUT. Used for restarting simulations.",
+            "validators": [
+                "@field_validator('filehot_in')\n@classmethod\ndef validate_filehot_in(cls, v: str) -> str:\n    if not v.endswith('.nc'):\n        raise ValueError('FILEHOT_IN must be a NetCDF file with .nc extension')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "hotstyle_in": {
+            "description": "Specifies the format of the input hot file. 1 for binary format, 2 for NetCDF format (default).",
+            "validators": [
+                "@field_validator('hotstyle_in')\n@classmethod\ndef validate_hotstyle_in(cls, v: int) -> int:\n    if v not in [1, 2]:\n        raise ValueError('HOTSTYLE_IN must be either 1 (binary) or 2 (NetCDF)')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "ihotpos_in": {
+            "description": "Position in the hot file for reading data (only applicable for NetCDF files). If LCYCLEHOT=T, this can be 1 or 2 (out of the 2 time records). '1' is the most recent time.",
+            "validators": [
+                "@field_validator('ihotpos_in')\n@classmethod\ndef validate_ihotpos_in(cls, v: int) -> int:\n    if v not in [1, 2]:\n        raise ValueError('IHOTPOS_IN must be either 1 or 2')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "multiplein": {
+            "description": "Specifies whether to read the hot file from a single file (0) or multiple files (1). Multiple files might require the same number of CPUs.",
+            "validators": [
+                "@field_validator('multiplein')\n@classmethod\ndef validate_multiplein(cls, v: int) -> int:\n    if v not in [0, 1]:\n        raise ValueError('MULTIPLEIN must be either 0 (single file) or 1 (multiple files)')\n    return v"
+            ],
+            "cross_validators": []
+        }
+    },
+    "hotfile": {
+        "lhotf": {
+            "description": "Flag to enable writing of hotfile output",
+            "validators": [
+                "@field_validator('lhotf')\n@classmethod\ndef validate_lhotf(cls, v: bool) -> bool:\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "filehot_out": {
+            "description": "Name of the output hotfile",
+            "validators": [
+                "@field_validator('filehot_out')\n@classmethod\ndef validate_filehot_out(cls, v: str) -> str:\n    if not v.endswith('.nc'):\n        raise ValueError('Filename must end with .nc')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "begtc": {
+            "description": "Starting time of hotfile writing, format: 'YYYYMMDD.HHMMSS'. When ihot!=0 in SCHISM, this will be the new hotstarted time (even with ihot=2)",
+            "validators": [
+                "@field_validator('begtc')\n@classmethod\ndef validate_begtc(cls, v: str) -> str:\n    import datetime\n    try:\n        datetime.datetime.strptime(v, '%Y%m%d.%H%M%S')\n    except ValueError:\n        raise ValueError('Invalid date format. Use YYYYMMDD.HHMMSS')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "deltc": {
+            "description": "Time interval between hotfile writes",
+            "validators": [
+                "@field_validator('deltc')\n@classmethod\ndef validate_deltc(cls, v: float) -> float:\n    if v <= 0:\n        raise ValueError('Time interval must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "unitc": {
+            "description": "Time unit used for DELTC",
+            "validators": [
+                "@field_validator('unitc')\n@classmethod\ndef validate_unitc(cls, v: str) -> str:\n    valid_units = ['SEC', 'MIN', 'HOUR', 'DAY']\n    if v.upper() not in valid_units:\n        raise ValueError(f'Invalid time unit. Choose from {valid_units}')\n    return v.upper()"
+            ],
+            "cross_validators": []
+        },
+        "endtc": {
+            "description": "Ending time of hotfile writing, format: 'YYYYMMDD.HHMMSS'. Should be adjusted with BEGTC",
+            "validators": [
+                "@field_validator('endtc')\n@classmethod\ndef validate_endtc(cls, v: str) -> str:\n    import datetime\n    try:\n        datetime.datetime.strptime(v, '%Y%m%d.%H%M%S')\n    except ValueError:\n        raise ValueError('Invalid date format. Use YYYYMMDD.HHMMSS')\n    return v"
+            ],
+            "cross_validators": [
+                "@model_validator(mode='after')\ndef validate_time_range(self) -> 'Model':\n    import datetime\n    start = datetime.datetime.strptime(self.begtc, '%Y%m%d.%H%M%S')\n    end = datetime.datetime.strptime(self.endtc, '%Y%m%d.%H%M%S')\n    if end <= start:\n        raise ValueError('ENDTC must be later than BEGTC')\n    return self"
+            ]
+        },
+        "lcyclehot": {
+            "description": "Flag to control hotfile record behavior (applies only to netcdf). If True, hotfile contains 2 last records (1st is the most recent). If False, hotfile contains N records if N outputs have been done. For binary, only one record is used",
+            "validators": [
+                "@field_validator('lcyclehot')\n@classmethod\ndef validate_lcyclehot(cls, v: bool) -> bool:\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "hotstyle_out": {
+            "description": "Output format for hotfile. 1: binary, 2: netcdf (default)",
+            "validators": [
+                "@field_validator('hotstyle_out')\n@classmethod\ndef validate_hotstyle_out(cls, v: int) -> int:\n    if v not in [1, 2]:\n        raise ValueError('HOTSTYLE_OUT must be 1 (binary) or 2 (netcdf)')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "multipleout": {
+            "description": "Flag to control hotfile output mode. 0: single file output (binary or netcdf) using MPI_REDUCE (avoid too frequent output), 1: separate files for each process",
+            "validators": [
+                "@field_validator('multipleout')\n@classmethod\ndef validate_multipleout(cls, v: int) -> int:\n    if v not in [0, 1]:\n        raise ValueError('MULTIPLEOUT must be 0 (single file) or 1 (multiple files)')\n    return v"
+            ],
+            "cross_validators": []
+        }
+    },
+    "bouc": {
+        "lbcse": {
+            "description": "Flag indicating if wave boundary data is time dependent",
+            "validators": [
+                "@field_validator('lbcse')\n@classmethod\ndef validate_lbcse(cls, v: bool) -> bool:\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "lbinter": {
+            "description": "Flag to perform time interpolation if LBCSE is True (not available for quasi-steady mode within subtime steps)",
+            "validators": [
+                "@field_validator('lbinter')\n@classmethod\ndef validate_lbinter(cls, v: bool) -> bool:\n    return v"
+            ],
+            "cross_validators": [
+                "@model_validator(mode='after')\ndef validate_lbinter_lbcse(self) -> 'Model':\n    if self.lbinter and not self.lbcse:\n        raise ValueError('LBINTER can only be True if LBCSE is True')\n    return self"
+            ]
+        },
+        "lbcwa": {
+            "description": "Flag to use parametric wave spectra for boundary conditions",
+            "validators": [
+                "@field_validator('lbcwa')\n@classmethod\ndef validate_lbcwa(cls, v: bool) -> bool:\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "lbcsp": {
+            "description": "Flag to specify non-parametric wave spectra, defined in 'FILEWAVE'",
+            "validators": [
+                "@field_validator('lbcsp')\n@classmethod\ndef validate_lbcsp(cls, v: bool) -> bool:\n    return v"
+            ],
+            "cross_validators": [
+                "@model_validator(mode='after')\ndef validate_lbcwa_lbcsp(self) -> 'Model':\n    if self.lbcwa and self.lbcsp:\n        raise ValueError('LBCWA and LBCSP cannot both be True')\n    return self"
+            ]
+        },
+        "linhom": {
+            "description": "Flag for non-uniform wave boundary conditions in space",
+            "validators": [
+                "@field_validator('linhom')\n@classmethod\ndef validate_linhom(cls, v: bool) -> bool:\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "lbsp1d": {
+            "description": "Flag for 1D (frequency space only) format for FILEWAVE if LBCSP is True and LINHOM is False",
+            "validators": [
+                "@field_validator('lbsp1d')\n@classmethod\ndef validate_lbsp1d(cls, v: bool) -> bool:\n    return v"
+            ],
+            "cross_validators": [
+                "@model_validator(mode='after')\ndef validate_lbsp1d_conditions(self) -> 'Model':\n    if self.lbsp1d and not (self.lbcsp and not self.linhom):\n        raise ValueError('LBSP1D can only be True if LBCSP is True and LINHOM is False')\n    return self"
+            ]
+        },
+        "lbsp2d": {
+            "description": "Flag for 2D format for FILEWAVE if LBCSP is True and LINHOM is False",
+            "validators": [
+                "@field_validator('lbsp2d')\n@classmethod\ndef validate_lbsp2d(cls, v: bool) -> bool:\n    return v"
+            ],
+            "cross_validators": [
+                "@model_validator(mode='after')\ndef validate_lbsp2d_conditions(self) -> 'Model':\n    if self.lbsp2d and not (self.lbcsp and not self.linhom):\n        raise ValueError('LBSP2D can only be True if LBCSP is True and LINHOM is False')\n    return self"
+            ]
+        },
+        "begtc": {
+            "description": "Begin time of the wave boundary file (FILEWAVE)",
+            "validators": [
+                "@field_validator('begtc')\n@classmethod\ndef validate_begtc(cls, v: str) -> str:\n    try:\n        datetime.strptime(v, '%Y%m%d.%H%M%S')\n        return v\n    except ValueError:\n        raise ValueError('Invalid date format for BEGTC')"
+            ],
+            "cross_validators": []
+        },
+        "deltc": {
+            "description": "Time step in FILEWAVE",
+            "validators": [
+                "@field_validator('deltc')\n@classmethod\ndef validate_deltc(cls, v: int) -> int:\n    if v <= 0:\n        raise ValueError('DELTC must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "unitc": {
+            "description": "Time unit for DELTC (HR, MIN, or SEC)",
+            "validators": [
+                "@field_validator('unitc')\n@classmethod\ndef validate_unitc(cls, v: str) -> str:\n    if v not in ['HR', 'MIN', 'SEC']:\n        raise ValueError('UNITC must be HR, MIN, or SEC')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "endtc": {
+            "description": "End time of the wave boundary file",
+            "validators": [
+                "@field_validator('endtc')\n@classmethod\ndef validate_endtc(cls, v: str) -> str:\n    try:\n        datetime.strptime(v, '%Y%m%d.%H%M%S')\n        return v\n    except ValueError:\n        raise ValueError('Invalid date format for ENDTC')"
+            ],
+            "cross_validators": [
+                "@model_validator(mode='after')\ndef validate_time_range(self) -> 'Model':\n    begin = datetime.strptime(self.begtc, '%Y%m%d.%H%M%S')\n    end = datetime.strptime(self.endtc, '%Y%m%d.%H%M%S')\n    if end <= begin:\n        raise ValueError('ENDTC must be later than BEGTC')\n    return self"
+            ]
+        },
+        "filebound": {
+            "description": "Boundary file defining boundary conditions and Neumann nodes",
+            "validators": [
+                "@field_validator('filebound')\n@classmethod\ndef validate_filebound(cls, v: str) -> str:\n    if not v.endswith('.gr3'):\n        raise ValueError('FILEBOUND must have .gr3 extension')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "iboundformat": {
+            "description": "Format of boundary file (1: WWM, 3: WW3 2D spectra in netcdf, 6: WW3 2D spectra in netcdf with LBCSP=T)",
+            "validators": [
+                "@field_validator('iboundformat')\n@classmethod\ndef validate_iboundformat(cls, v: int) -> int:\n    if v not in [1, 3, 6]:\n        raise ValueError('IBOUNDFORMAT must be 1, 3, or 6')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "filewave": {
+            "description": "Boundary file defining boundary input from WW3",
+            "validators": [
+                "@field_validator('filewave')\n@classmethod\ndef validate_filewave(cls, v: str) -> str:\n    if not v:\n        raise ValueError('FILEWAVE must not be empty')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "lindsprdeg": {
+            "description": "Flag indicating if directional spreading input is in degrees (True) or exponent (False) for 1D wave spectra",
+            "validators": [
+                "@field_validator('lindsprdeg')\n@classmethod\ndef validate_lindsprdeg(cls, v: bool) -> bool:\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "lparmdir": {
+            "description": "Flag to read directional spreading from WBDS in exponential format (only valid for 1D spectra)",
+            "validators": [
+                "@field_validator('lparmdir')\n@classmethod\ndef validate_lparmdir(cls, v: bool) -> bool:\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "wbhs": {
+            "description": "Significant wave height at the boundary for parametric spectra",
+            "validators": [
+                "@field_validator('wbhs')\n@classmethod\ndef validate_wbhs(cls, v: float) -> float:\n    if v <= 0:\n        raise ValueError('WBHS must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "wbss": {
+            "description": "Spectral shape parameter for parametric spectra",
+            "validators": [
+                "@field_validator('wbss')\n@classmethod\ndef validate_wbss(cls, v: int) -> int:\n    if v not in [-3, -2, -1, 1, 2, 3, 4]:\n        raise ValueError('WBSS must be -3, -2, -1, 1, 2, 3, or 4')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "wbtp": {
+            "description": "Peak or mean period at the boundary for parametric spectra",
+            "validators": [
+                "@field_validator('wbtp')\n@classmethod\ndef validate_wbtp(cls, v: float) -> float:\n    if v <= 0:\n        raise ValueError('WBTP must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "wbdm": {
+            "description": "Average wave direction at the boundary (degrees)",
+            "validators": [
+                "@field_validator('wbdm')\n@classmethod\ndef validate_wbdm(cls, v: float) -> float:\n    if not 0 <= v <= 360:\n        raise ValueError('WBDM must be between 0 and 360')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "wbdsms": {
+            "description": "Flag indicating if directional spreading value is in degrees (1) or exponent (2)",
+            "validators": [
+                "@field_validator('wbdsms')\n@classmethod\ndef validate_wbdsms(cls, v: int) -> int:\n    if v not in [1, 2]:\n        raise ValueError('WBDSMS must be 1 or 2')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "wbds": {
+            "description": "Directional spreading at the boundary (degrees or exponent)",
+            "validators": [
+                "@field_validator('wbds')\n@classmethod\ndef validate_wbds(cls, v: float) -> float:\n    if v <= 0:\n        raise ValueError('WBDS must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "wbgauss": {
+            "description": "Factor for Gaussian distribution if WBSS=4",
+            "validators": [
+                "@field_validator('wbgauss')\n@classmethod\ndef validate_wbgauss(cls, v: float) -> float:\n    if v <= 0:\n        raise ValueError('WBGAUSS must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "wbpken": {
+            "description": "Peak enhancement factor for JONSWAP spectra if WBSS=2",
+            "validators": [
+                "@field_validator('wbpken')\n@classmethod\ndef validate_wbpken(cls, v: float) -> float:\n    if v <= 0:\n        raise ValueError('WBPKEN must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        }
+    },
+    "engs": {
+        "mesnl": {
+            "description": "Nonlinear Interaction NL4 switch: 1 for on (Discrete Interaction approximation), 0 for off",
+            "validators": [
+                "@field_validator('mesnl')\n@classmethod\ndef validate_mesnl(cls, v):\n    if v not in [0, 1]:\n        raise ValueError('MESNL must be 0 or 1')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "mesin": {
+            "description": "Wind input formulation: 1 - Ardhuin et al. (use LSOURCESWAM = F), 2 - ECMWF physics, 3 - Makin & Stam, 4 - Babanin et al., 5 - Cycle 3, 0 - no wind",
+            "validators": [
+                "@field_validator('mesin')\n@classmethod\ndef validate_mesin(cls, v):\n    if v not in range(6):\n        raise ValueError('MESIN must be between 0 and 5')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "ifric": {
+            "description": "Formulation for atmospheric boundary layer: 1 for MESIN = 1, 4 for MESIN = 3",
+            "validators": [
+                "@field_validator('ifric')\n@classmethod\ndef validate_ifric(cls, v):\n    if v not in [1, 4]:\n        raise ValueError('IFRIC must be 1 or 4')\n    return v"
+            ],
+            "cross_validators": [
+                "@model_validator(mode='after')\ndef validate_ifric_mesin(self):\n    if self.mesin == 1 and self.ifric != 1:\n        raise ValueError('When MESIN=1, IFRIC should be 1')\n    if self.mesin == 3 and self.ifric != 4:\n        raise ValueError('When MESIN=3, IFRIC should be 4')\n    return self"
+            ]
+        },
+        "mesbf": {
+            "description": "Bottom friction formulation: 1 - JONSWAP (Default), 2 - Madsen et al. (1989), 3 - SHOWEX",
+            "validators": [
+                "@field_validator('mesbf')\n@classmethod\ndef validate_mesbf(cls, v):\n    if v not in [1, 2, 3]:\n        raise ValueError('MESBF must be 1, 2, or 3')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "fricc": {
+            "description": "Bottom friction coefficient: JONSWAP coefficient [0.038, 0.067] if MESBF=1, physical bottom roughness if MESBF=2, D50 if MESBF=3 (negative value reads from SHOWEX_D50.gr3)",
+            "validators": [
+                "@field_validator('fricc')\n@classmethod\ndef validate_fricc(cls, v):\n    return v"
+            ],
+            "cross_validators": [
+                "@model_validator(mode='after')\ndef validate_fricc_mesbf(self):\n    if self.mesbf == 1 and not 0.038 <= self.fricc <= 0.067:\n        raise ValueError('When MESBF=1, FRICC should be between 0.038 and 0.067')\n    return self"
+            ]
+        },
+        "mesbr": {
+            "description": "Shallow water wave breaking switch: 0 for off, 1 for on",
+            "validators": [
+                "@field_validator('mesbr')\n@classmethod\ndef validate_mesbr(cls, v):\n    if v not in [0, 1]:\n        raise ValueError('MESBR must be 0 or 1')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "ibreak": {
+            "description": "Wave breaking formulation: 1 - Battjes and Janssen (1978), 2 - Thornton and Guza (1983) Constant weighting, 3 - Thornton and Guza (1983) Skewed weighting, 4 - van der Westhuysen (2010), 5 - Baldock et al (1998) modified by Janssen and Battjes (2007), 6 - Church and Thornton (1993)",
+            "validators": [
+                "@field_validator('ibreak')\n@classmethod\ndef validate_ibreak(cls, v):\n    if v not in range(1, 7):\n        raise ValueError('IBREAK must be between 1 and 6')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "icrit": {
+            "description": "Wave breaking criterion: 1 - Constant breaker index, 2,6 - Local steepness adapted from Battjes and Stive (1985), 3 - Biphase threshold, 4 - Sallenger and Holman 1985, 5 - Ruessink et al (2003)",
+            "validators": [
+                "@field_validator('icrit')\n@classmethod\ndef validate_icrit(cls, v):\n    if v not in range(1, 7):\n        raise ValueError('ICRIT must be between 1 and 6')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "brcr": {
+            "description": "Breaker index parameter: gamma for IBREAK=1,5; gamma_TG for IBREAK=2,3; biphase_ref for IBREAK=4",
+            "validators": [
+                "@field_validator('brcr')\n@classmethod\ndef validate_brcr(cls, v):\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "a_brcr": {
+            "description": "Coefficient for ICRIT = 4, 5",
+            "validators": [
+                "@field_validator('a_brcr')\n@classmethod\ndef validate_a_brcr(cls, v):\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "b_brcr": {
+            "description": "Coefficient for ICRIT = 4, 5",
+            "validators": [
+                "@field_validator('b_brcr')\n@classmethod\ndef validate_b_brcr(cls, v):\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "min_brcr": {
+            "description": "Minimum value for ICRIT = 4, 5",
+            "validators": [
+                "@field_validator('min_brcr')\n@classmethod\ndef validate_min_brcr(cls, v):\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "max_brcr": {
+            "description": "Maximum value for ICRIT = 4, 5",
+            "validators": [
+                "@field_validator('max_brcr')\n@classmethod\ndef validate_max_brcr(cls, v):\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "a_biph": {
+            "description": "Biphase coefficient, default 0.2 (intended for IBREAK=3)",
+            "validators": [
+                "@field_validator('a_biph')\n@classmethod\ndef validate_a_biph(cls, v):\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "br_coef_method": {
+            "description": "Method for the breaking coefficient: 1 - constant, 2 - adaptive",
+            "validators": [
+                "@field_validator('br_coef_method')\n@classmethod\ndef validate_br_coef_method(cls, v):\n    if v not in [1, 2]:\n        raise ValueError('BR_COEF_METHOD must be 1 or 2')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "b_alp": {
+            "description": "Breaking coefficient. If BR_COEF_METHOD = 2, B_ALP ~ 40",
+            "validators": [
+                "@field_validator('b_alp')\n@classmethod\ndef validate_b_alp(cls, v):\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "zprof_break": {
+            "description": "Vertical distribution function of wave breaking source term, only used in 3D run",
+            "validators": [
+                "@field_validator('zprof_break')\n@classmethod\ndef validate_zprof_break(cls, v):\n    if v not in range(1, 7):\n        raise ValueError('ZPROF_BREAK must be between 1 and 6')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "bc_break": {
+            "description": "Apply depth-limited breaking at the boundaries: 1 - On, 0 - Off",
+            "validators": [
+                "@field_validator('bc_break')\n@classmethod\ndef validate_bc_break(cls, v):\n    if v not in [0, 1]:\n        raise ValueError('BC_BREAK must be 0 or 1')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "iroller": {
+            "description": "Wave roller model: 1 - On, 0 - Off (not used at the moment)",
+            "validators": [
+                "@field_validator('iroller')\n@classmethod\ndef validate_iroller(cls, v):\n    if v not in [0, 1]:\n        raise ValueError('IROLLER must be 0 or 1')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "alprol": {
+            "description": "Alpha coefficient for the wave roller model (between 0 and 1): 1 - full conversion, 0 - no energy transferred to the roller",
+            "validators": [
+                "@field_validator('alprol')\n@classmethod\ndef validate_alprol(cls, v):\n    if not 0 <= v <= 1:\n        raise ValueError('ALPROL must be between 0 and 1')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "meveg": {
+            "description": "Vegetation on/off. If on, isav must = 1 in param.nml",
+            "validators": [
+                "@field_validator('meveg')\n@classmethod\ndef validate_meveg(cls, v):\n    if v not in [0, 1]:\n        raise ValueError('MEVEG must be 0 or 1')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "lmaxetot": {
+            "description": "Limit shallow water wave height by wave breaking limiter",
+            "validators": [
+                "@field_validator('lmaxetot')\n@classmethod\ndef validate_lmaxetot(cls, v):\n    if not isinstance(v, bool):\n        raise ValueError('LMAXETOT must be a boolean')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "mesds": {
+            "description": "Formulation for the whitecapping source function; same value as MESIN",
+            "validators": [
+                "@field_validator('mesds')\n@classmethod\ndef validate_mesds(cls, v):\n    if v not in range(6):\n        raise ValueError('MESDS must be between 0 and 5')\n    return v"
+            ],
+            "cross_validators": [
+                "@model_validator(mode='after')\ndef validate_mesds_mesin(self):\n    if self.mesds != self.mesin:\n        raise ValueError('MESDS should have the same value as MESIN')\n    return self"
+            ]
+        },
+        "mestr": {
+            "description": "Formulation for the triad 3 wave interactions: 0 - off, 1 - Lumped Triad Approx. (LTA), 2 - corrected version of LTA by Salmon et al. (2016)",
+            "validators": [
+                "@field_validator('mestr')\n@classmethod\ndef validate_mestr(cls, v):\n    if v not in [0, 1, 2]:\n        raise ValueError('MESTR must be 0, 1, or 2')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "trico": {
+            "description": "Proportionality constant (alpha_EB) for triad interactions",
+            "validators": [
+                "@field_validator('trico')\n@classmethod\ndef validate_trico(cls, v):\n    if v <= 0:\n        raise ValueError('TRICO must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "trira": {
+            "description": "Ratio of max. frequency considered in triads over mean frequency",
+            "validators": [
+                "@field_validator('trira')\n@classmethod\ndef validate_trira(cls, v):\n    if v <= 0:\n        raise ValueError('TRIRA must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "triurs": {
+            "description": "Critical Ursell number; if Ursell # < TRIURS, triads are not computed",
+            "validators": [
+                "@field_validator('triurs')\n@classmethod\ndef validate_triurs(cls, v):\n    if v <= 0:\n        raise ValueError('TRIURS must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        }
+    },
+    "nums": {
+        "icomp": {
+            "description": "Controls the splitting method and scheme type (implicit/explicit) for spectral advection. 0: Explicit for all dimensions, 1: Implicit for geographical space, explicit for others, 2: Implicit for advection and semi-implicit for source terms, 3: Fully implicit with no splitting.",
+            "validators": [
+                "@field_validator('icomp')\n@classmethod\ndef validate_icomp(cls, v):\n    if v not in [0, 1, 2, 3]:\n        raise ValueError('ICOMP must be 0, 1, 2, or 3')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "amethod": {
+            "description": "Controls the methods used in geographical space. 0: No advection, 1-3: Various explicit/implicit schemes, 4-5: PETSc-based methods, 6: BCGS Solver, 7: GAUSS and JACOBI SOLVER.",
+            "validators": [
+                "@field_validator('amethod')\n@classmethod\ndef validate_amethod(cls, v):\n    if v not in range(8):\n        raise ValueError('AMETHOD must be between 0 and 7')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "smethod": {
+            "description": "Controls the integration of source terms. 0: No source terms, 1: Splitting using RK-3 and SI, 2: Semi-implicit, 3: R-K3, 4: Dynamic Splitting, 6: Sub-time steps for breaking term integration.",
+            "validators": [
+                "@field_validator('smethod')\n@classmethod\ndef validate_smethod(cls, v):\n    if v not in [0, 1, 2, 3, 4, 6]:\n        raise ValueError('SMETHOD must be 0, 1, 2, 3, 4, or 6')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "dmethod": {
+            "description": "Controls the numerical method in directional space. 0: No advection, 1: Crank-Nicholson or Euler Implicit, 2: Ultimate Quickest, 3: RK5-WENO, 4: Explicit FVM Upwind scheme.",
+            "validators": [
+                "@field_validator('dmethod')\n@classmethod\ndef validate_dmethod(cls, v):\n    if v not in range(5):\n        raise ValueError('DMETHOD must be between 0 and 4')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "rtheta": {
+            "description": "Weighing factor for DMETHOD = 1, used in Crank-Nicholson integration.",
+            "validators": [
+                "@field_validator('rtheta')\n@classmethod\ndef validate_rtheta(cls, v):\n    if not 0 <= v <= 1:\n        raise ValueError('RTHETA must be between 0 and 1')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "litersplit": {
+            "description": "Controls splitting method. True: double Strang split, False: simple split (more efficient).",
+            "validators": [],
+            "cross_validators": []
+        },
+        "lfilterth": {
+            "description": "Use a CFL filter to limit the advection velocity in directional space.",
+            "validators": [],
+            "cross_validators": []
+        },
+        "maxcflth": {
+            "description": "Maximum CFL number in Theta space, used only if LFILTERTH=True.",
+            "validators": [
+                "@field_validator('maxcflth')\n@classmethod\ndef validate_maxcflth(cls, v):\n    if v <= 0:\n        raise ValueError('MAXCFLTH must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "fmethod": {
+            "description": "Controls the numerical method used in frequency space. 0: No advection, 1: Ultimate Quickest as in WW3.",
+            "validators": [
+                "@field_validator('fmethod')\n@classmethod\ndef validate_fmethod(cls, v):\n    if v not in [0, 1]:\n        raise ValueError('FMETHOD must be 0 or 1')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "lfiltersig": {
+            "description": "Limit the advection velocity in frequency space.",
+            "validators": [],
+            "cross_validators": []
+        },
+        "maxcflsig": {
+            "description": "Maximum CFL number in frequency space, used only if LFILTERSIG=True.",
+            "validators": [
+                "@field_validator('maxcflsig')\n@classmethod\ndef validate_maxcflsig(cls, v):\n    if v <= 0:\n        raise ValueError('MAXCFLSIG must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "llimt": {
+            "description": "Switch on/off Action limiter. Must usually be turned on.",
+            "validators": [],
+            "cross_validators": []
+        },
+        "melim": {
+            "description": "Formulation for the action limiter. 1: WAM group (1988), 2: Hersbach Janssen (1999), 3: For Cycle 4 formulation.",
+            "validators": [
+                "@field_validator('melim')\n@classmethod\ndef validate_melim(cls, v):\n    if v not in [1, 2, 3]:\n        raise ValueError('MELIM must be 1, 2, or 3')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "limfak": {
+            "description": "Proportionality coefficient for the action limiter MAX_DAC_DT = Limfak * Limiter.",
+            "validators": [
+                "@field_validator('limfak')\n@classmethod\ndef validate_limfak(cls, v):\n    if v <= 0:\n        raise ValueError('LIMFAK must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "ldifr": {
+            "description": "Use phase decoupled diffraction approximation according to Holthuijsen et al. (2003).",
+            "validators": [],
+            "cross_validators": []
+        },
+        "idiffr": {
+            "description": "Extended WAE accounting for higher order effects. 1: Holthuijsen et al., 2: Liau et al., 3: Toledo et al.",
+            "validators": [
+                "@field_validator('idiffr')\n@classmethod\ndef validate_idiffr(cls, v):\n    if v not in [1, 2, 3]:\n        raise ValueError('IDIFFR must be 1, 2, or 3')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "lconv": {
+            "description": "Estimate convergence criteria and write to disk (quasi-steady - qstea.out).",
+            "validators": [],
+            "cross_validators": []
+        },
+        "lcfl": {
+            "description": "Write out CFL numbers. Set to False to save time.",
+            "validators": [],
+            "cross_validators": []
+        },
+        "nqsiter": {
+            "description": "Number of quasi-steady (Q-S) sub-divisions within each WWM time step.",
+            "validators": [
+                "@field_validator('nqsiter')\n@classmethod\ndef validate_nqsiter(cls, v):\n    if v <= 0:\n        raise ValueError('NQSITER must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "qsconv1": {
+            "description": "Fraction of grid points that must fulfill absolute wave height criteria EPSH1.",
+            "validators": [
+                "@field_validator('qsconv1')\n@classmethod\ndef validate_qsconv1(cls, v):\n    if not 0 <= v <= 1:\n        raise ValueError('QSCONV1 must be between 0 and 1')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "qsconv2": {
+            "description": "Fraction of grid points that must fulfill relative wave height criteria EPSH2.",
+            "validators": [
+                "@field_validator('qsconv2')\n@classmethod\ndef validate_qsconv2(cls, v):\n    if not 0 <= v <= 1:\n        raise ValueError('QSCONV2 must be between 0 and 1')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "qsconv3": {
+            "description": "Fraction of grid points that must fulfill sum relative wave action criteria EPSH3.",
+            "validators": [
+                "@field_validator('qsconv3')\n@classmethod\ndef validate_qsconv3(cls, v):\n    if not 0 <= v <= 1:\n        raise ValueError('QSCONV3 must be between 0 and 1')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "qsconv4": {
+            "description": "Fraction of grid points that must fulfill relative average wave steepness criteria EPSH4.",
+            "validators": [
+                "@field_validator('qsconv4')\n@classmethod\ndef validate_qsconv4(cls, v):\n    if not 0 <= v <= 1:\n        raise ValueError('QSCONV4 must be between 0 and 1')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "qsconv5": {
+            "description": "Fraction of grid points that must fulfill average relative wave period criteria EPSH5.",
+            "validators": [
+                "@field_validator('qsconv5')\n@classmethod\ndef validate_qsconv5(cls, v):\n    if not 0 <= v <= 1:\n        raise ValueError('QSCONV5 must be between 0 and 1')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "lexpimp": {
+            "description": "Use implicit schemes for frequencies lower than FREQEXP. Used only if ICOMP=0.",
+            "validators": [],
+            "cross_validators": []
+        },
+        "freqexp": {
+            "description": "Minimum frequency for explicit schemes. Used only if LEXPIMP=True and ICOMP=0.",
+            "validators": [
+                "@field_validator('freqexp')\n@classmethod\ndef validate_freqexp(cls, v):\n    if v <= 0:\n        raise ValueError('FREQEXP must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "epsh1": {
+            "description": "Convergence criteria for relative wave height.",
+            "validators": [
+                "@field_validator('epsh1')\n@classmethod\ndef validate_epsh1(cls, v):\n    if v <= 0:\n        raise ValueError('EPSH1 must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "epsh2": {
+            "description": "Convergence criteria for absolute wave height.",
+            "validators": [
+                "@field_validator('epsh2')\n@classmethod\ndef validate_epsh2(cls, v):\n    if v <= 0:\n        raise ValueError('EPSH2 must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "epsh3": {
+            "description": "Convergence criteria for the relative sum of wave action.",
+            "validators": [
+                "@field_validator('epsh3')\n@classmethod\ndef validate_epsh3(cls, v):\n    if v <= 0:\n        raise ValueError('EPSH3 must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "epsh4": {
+            "description": "Convergence criteria for the relative average wave steepness.",
+            "validators": [
+                "@field_validator('epsh4')\n@classmethod\ndef validate_epsh4(cls, v):\n    if v <= 0:\n        raise ValueError('EPSH4 must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "epsh5": {
+            "description": "Convergence criteria for the relative average wave period.",
+            "validators": [
+                "@field_validator('epsh5')\n@classmethod\ndef validate_epsh5(cls, v):\n    if v <= 0:\n        raise ValueError('EPSH5 must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "lvector": {
+            "description": "Use optimized propagation routines for large high-performance computers.",
+            "validators": [],
+            "cross_validators": []
+        },
+        "ivector": {
+            "description": "Different flavors of communications when LVECTOR=True. 1-6: Various optimization strategies.",
+            "validators": [
+                "@field_validator('ivector')\n@classmethod\ndef validate_ivector(cls, v):\n    if v not in range(1, 7):\n        raise ValueError('IVECTOR must be between 1 and 6')\n    return v"
+            ],
+            "cross_validators": [
+                "@model_validator(mode='after')\ndef validate_ivector_lvector(self):\n    if self.lvector and self.ivector not in range(1, 7):\n        raise ValueError('When LVECTOR is True, IVECTOR must be between 1 and 6')\n    return self"
+            ]
+        },
+        "ladvtest": {
+            "description": "For testing the advection schemes.",
+            "validators": [],
+            "cross_validators": []
+        },
+        "lchkconv": {
+            "description": "Check convergence criteria for quasi-steady mode.",
+            "validators": [],
+            "cross_validators": []
+        },
+        "dtmin_dyn": {
+            "description": "Minimum time step (seconds) for dynamic integration.",
+            "validators": [
+                "@field_validator('dtmin_dyn')\n@classmethod\ndef validate_dtmin_dyn(cls, v):\n    if v <= 0:\n        raise ValueError('DTMIN_DYN must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "ndyniter": {
+            "description": "Maximum iterations for dynamic scheme before applying limiter.",
+            "validators": [
+                "@field_validator('ndyniter')\n@classmethod\ndef validate_ndyniter(cls, v):\n    if v <= 0:\n        raise ValueError('NDYNITER must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "dtmin_sin": {
+            "description": "Minimum time step for the full fractional step method (SIN term).",
+            "validators": [
+                "@field_validator('dtmin_sin')\n@classmethod\ndef validate_dtmin_sin(cls, v):\n    if v <= 0:\n        raise ValueError('DTMIN_SIN must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "dtmin_snl4": {
+            "description": "Minimum time step for SNL4 term in fractional step method.",
+            "validators": [
+                "@field_validator('dtmin_snl4')\n@classmethod\ndef validate_dtmin_snl4(cls, v):\n    if v <= 0:\n        raise ValueError('DTMIN_SNL4 must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "dtmin_sds": {
+            "description": "Minimum time step for SDS term in fractional step method.",
+            "validators": [
+                "@field_validator('dtmin_sds')\n@classmethod\ndef validate_dtmin_sds(cls, v):\n    if v <= 0:\n        raise ValueError('DTMIN_SDS must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "dtmin_snl3": {
+            "description": "Minimum time step for SNL3 term in fractional step method.",
+            "validators": [
+                "@field_validator('dtmin_snl3')\n@classmethod\ndef validate_dtmin_snl3(cls, v):\n    if v <= 0:\n        raise ValueError('DTMIN_SNL3 must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "dtmin_sbr": {
+            "description": "Minimum time step for SBR term in fractional step method.",
+            "validators": [
+                "@field_validator('dtmin_sbr')\n@classmethod\ndef validate_dtmin_sbr(cls, v):\n    if v <= 0:\n        raise ValueError('DTMIN_SBR must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "dtmin_sbf": {
+            "description": "Minimum time step for SBF term in fractional step method.",
+            "validators": [
+                "@field_validator('dtmin_sbf')\n@classmethod\ndef validate_dtmin_sbf(cls, v):\n    if v <= 0:\n        raise ValueError('DTMIN_SBF must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "ndyniter_sin": {
+            "description": "Maximum iterations for SIN term in fractional step approach.",
+            "validators": [
+                "@field_validator('ndyniter_sin')\n@classmethod\ndef validate_ndyniter_sin(cls, v):\n    if v <= 0:\n        raise ValueError('NDYNITER_SIN must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "ndyniter_snl4": {
+            "description": "Maximum iterations for SNL4 term in fractional step approach.",
+            "validators": [
+                "@field_validator('ndyniter_snl4')\n@classmethod\ndef validate_ndyniter_snl4(cls, v):\n    if v <= 0:\n        raise ValueError('NDYNITER_SNL4 must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "ndyniter_sds": {
+            "description": "Maximum iterations for SDS term in fractional step approach.",
+            "validators": [
+                "@field_validator('ndyniter_sds')\n@classmethod\ndef validate_ndyniter_sds(cls, v):\n    if v <= 0:\n        raise ValueError('NDYNITER_SDS must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "ndyniter_sbr": {
+            "description": "Maximum iterations for SBR term in fractional step approach.",
+            "validators": [
+                "@field_validator('ndyniter_sbr')\n@classmethod\ndef validate_ndyniter_sbr(cls, v):\n    if v <= 0:\n        raise ValueError('NDYNITER_SBR must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "ndyniter_snl3": {
+            "description": "Maximum iterations for SNL3 term in fractional step approach.",
+            "validators": [
+                "@field_validator('ndyniter_snl3')\n@classmethod\ndef validate_ndyniter_snl3(cls, v):\n    if v <= 0:\n        raise ValueError('NDYNITER_SNL3 must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "ndyniter_sbf": {
+            "description": "Maximum iterations for SBF term in fractional step approach.",
+            "validators": [
+                "@field_validator('ndyniter_sbf')\n@classmethod\ndef validate_ndyniter_sbf(cls, v):\n    if v <= 0:\n        raise ValueError('NDYNITER_SBF must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "lsoubound": {
+            "description": "Apply source terms on boundary. Useful for harbor studies and flume experiments.",
+            "validators": [],
+            "cross_validators": []
+        },
+        "wae_solverthr": {
+            "description": "Threshold for the Block-Jacobi or Block-Gauss-Seider solver.",
+            "validators": [
+                "@field_validator('wae_solverthr')\n@classmethod\ndef validate_wae_solverthr(cls, v):\n    if v <= 0:\n        raise ValueError('WAE_SOLVERTHR must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "maxiter": {
+            "description": "Maximum number of iterations for solvers.",
+            "validators": [
+                "@field_validator('maxiter')\n@classmethod\ndef validate_maxiter(cls, v):\n    if v <= 0:\n        raise ValueError('MAXITER must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "pmin": {
+            "description": "Maximum percentage of non-converged grid points allowed.",
+            "validators": [
+                "@field_validator('pmin')\n@classmethod\ndef validate_pmin(cls, v):\n    if not 0 <= v <= 100:\n        raise ValueError('PMIN must be between 0 and 100')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "lnaninfchk": {
+            "description": "Check for NaN and INF values. Usually turned off for efficiency.",
+            "validators": [],
+            "cross_validators": []
+        },
+        "lzeta_setup": {
+            "description": "Compute wave setup using simple momentum equation.",
+            "validators": [],
+            "cross_validators": []
+        },
+        "zeta_meth": {
+            "description": "Method for wave setup calculation.",
+            "validators": [
+                "@field_validator('zeta_meth')\n@classmethod\ndef validate_zeta_meth(cls, v):\n    if v not in [0, 1]:\n        raise ValueError('ZETA_METH must be 0 or 1')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "lsourceswam": {
+            "description": "Use ECMWF WAM formulation for deep water physics.",
+            "validators": [],
+            "cross_validators": []
+        },
+        "block_gauss_seidel": {
+            "description": "Use Gauss-Seidel method on each computer block for faster computation with less memory usage.",
+            "validators": [],
+            "cross_validators": []
+        },
+        "lnonl": {
+            "description": "Solve the nonlinear system using simpler algorithm (Patankar).",
+            "validators": [],
+            "cross_validators": []
+        },
+        "aspar_local_level": {
+            "description": "ASPAR locality level for memory allocation and optimization.",
+            "validators": [
+                "@field_validator('aspar_local_level')\n@classmethod\ndef validate_aspar_local_level(cls, v):\n    if v not in range(6):\n        raise ValueError('ASPAR_LOCAL_LEVEL must be between 0 and 5')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "l_solver_norm": {
+            "description": "Compute solver norm ||A*x-b|| as termination check of Jacobi-Gauss-Seidel solver.",
+            "validators": [],
+            "cross_validators": []
+        },
+        "laccel": {
+            "description": "Enable acceleration for solvers.",
+            "validators": [],
+            "cross_validators": []
+        }
+    },
+    "history": {
+        "begtc": {
+            "description": "Start output time in format 'YYYYMMDD.HHMMSS'. Must fit within the simulation time, otherwise no output is generated. Defaults to PROC%BEGTC if not specified.",
+            "validators": [
+                "@field_validator('begtc')\n@classmethod\ndef validate_begtc(cls, v):\n    try:\n        datetime.strptime(v, '%Y%m%d.%H%M%S')\n        return v\n    except ValueError:\n        raise ValueError('Invalid date format. Use YYYYMMDD.HHMMSS')"
+            ],
+            "cross_validators": []
+        },
+        "deltc": {
+            "description": "Time step for output in seconds. If smaller than simulation time step, the latter is used. Useful for better 1D and 2D spectra analysis when set to output every step.",
+            "validators": [
+                "@field_validator('deltc')\n@classmethod\ndef validate_deltc(cls, v):\n    if v <= 0:\n        raise ValueError('DELTC must be a positive integer')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "unitc": {
+            "description": "Unit of time for DELTC. Currently only 'SEC' (seconds) is supported.",
+            "validators": [
+                "@field_validator('unitc')\n@classmethod\ndef validate_unitc(cls, v):\n    if v.upper() != 'SEC':\n        raise ValueError('UNITC must be SEC')\n    return v.upper()"
+            ],
+            "cross_validators": []
+        },
+        "endtc": {
+            "description": "Stop time for output in format 'YYYYMMDD.HHMMSS'. Defaults to PROC%ENDC if not specified.",
+            "validators": [
+                "@field_validator('endtc')\n@classmethod\ndef validate_endtc(cls, v):\n    try:\n        datetime.strptime(v, '%Y%m%d.%H%M%S')\n        return v\n    except ValueError:\n        raise ValueError('Invalid date format. Use YYYYMMDD.HHMMSS')"
+            ],
+            "cross_validators": []
+        },
+        "definetc": {
+            "description": "Time scoop (in seconds) for history files. If unset or negative, only one file is generated. For example, 86400 creates daily output files.",
+            "validators": [
+                "@field_validator('definetc')\n@classmethod\ndef validate_definetc(cls, v):\n    if v < 0:\n        return None\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "outstyle": {
+            "description": "Output option. 'NO' for no output, 'NC' for netCDF, 'XFN' for XFN output (default), or 'SHP' for DARKO SHP output.",
+            "validators": [
+                "@field_validator('outstyle')\n@classmethod\ndef validate_outstyle(cls, v):\n    valid_options = ['NO', 'NC', 'XFN', 'SHP']\n    if v.upper() not in valid_options:\n        raise ValueError(f'OUTSTYLE must be one of {valid_options}')\n    return v.upper()"
+            ],
+            "cross_validators": []
+        },
+        "multipleout": {
+            "description": "Output style. 0 for single netCDF file using MPI_reduce (default), 1 for separate netCDF files for each process.",
+            "validators": [
+                "@field_validator('multipleout')\n@classmethod\ndef validate_multipleout(cls, v):\n    if v not in [0, 1]:\n        raise ValueError('MULTIPLEOUT must be 0 or 1')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "use_single_out": {
+            "description": "Use single precision in the output of model variables if True (default).",
+            "validators": [
+                "@field_validator('use_single_out')\n@classmethod\ndef validate_use_single_out(cls, v):\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "paramwrite": {
+            "description": "Write the physical parametrization and chosen numerical method in the netCDF file if True (default).",
+            "validators": [
+                "@field_validator('paramwrite')\n@classmethod\ndef validate_paramwrite(cls, v):\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "gridwrite": {
+            "description": "Write the grid in the netCDF history file if True (default).",
+            "validators": [
+                "@field_validator('gridwrite')\n@classmethod\ndef validate_gridwrite(cls, v):\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "printmma": {
+            "description": "Print minimum, maximum, and average value of statistics during runtime if True (default False). Requires MPI_REDUCE.",
+            "validators": [
+                "@field_validator('printmma')\n@classmethod\ndef validate_printmma(cls, v):\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "fileout": {
+            "description": "Filename for output data.",
+            "validators": [
+                "@field_validator('fileout')\n@classmethod\ndef validate_fileout(cls, v):\n    if not v:\n        raise ValueError('FILEOUT must not be empty')\n    return v"
+            ],
+            "cross_validators": []
+        }
+    },
+    "station": {
+        "begtc": {
+            "description": "Start simulation time in format 'yyyymmdd.hhmmss'. Must fit the simulation time, otherwise no output. Defaults to PROC%BEGTC if not specified.",
+            "validators": [
+                "@field_validator('begtc')\n@classmethod\ndef validate_begtc(cls, v: str) -> str:\n    try:\n        datetime.strptime(v, '%Y%m%d.%H%M%S')\n        return v\n    except ValueError:\n        raise ValueError('Invalid date format. Use yyyymmdd.hhmmss')"
+            ],
+            "cross_validators": []
+        },
+        "deltc": {
+            "description": "Time step for output in seconds. If smaller than simulation time step, the latter is used. Used for better 1D and 2D spectra analysis.",
+            "validators": [
+                "@field_validator('deltc')\n@classmethod\ndef validate_deltc(cls, v: int) -> int:\n    if v <= 0:\n        raise ValueError('DELTC must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "unitc": {
+            "description": "Unit of time for DELTC. Currently only 'SEC' (seconds) is supported.",
+            "validators": [
+                "@field_validator('unitc')\n@classmethod\ndef validate_unitc(cls, v: str) -> str:\n    if v.upper() != 'SEC':\n        raise ValueError('UNITC must be SEC')\n    return v.upper()"
+            ],
+            "cross_validators": []
+        },
+        "endtc": {
+            "description": "Stop time of simulation in format 'yyyymmdd.hhmmss'. Defaults to PROC%ENDC if not specified.",
+            "validators": [
+                "@field_validator('endtc')\n@classmethod\ndef validate_endtc(cls, v: str) -> str:\n    try:\n        datetime.strptime(v, '%Y%m%d.%H%M%S')\n        return v\n    except ValueError:\n        raise ValueError('Invalid date format. Use yyyymmdd.hhmmss')"
+            ],
+            "cross_validators": [
+                "@model_validator(mode='after')\ndef validate_simulation_time(self) -> 'Model':\n    start = datetime.strptime(self.begtc, '%Y%m%d.%H%M%S')\n    end = datetime.strptime(self.endtc, '%Y%m%d.%H%M%S')\n    if end <= start:\n        raise ValueError('ENDTC must be later than BEGTC')\n    return self"
+            ]
+        },
+        "definetc": {
+            "description": "Time interval in seconds for definition of station files. If unset or negative, only one file is generated. For example, 86400 creates daily output files.",
+            "validators": [
+                "@field_validator('definetc')\n@classmethod\ndef validate_definetc(cls, v: int) -> int:\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "outstyle": {
+            "description": "Output option. 'NO' for no output, 'STE' for classic station output (default), 'NC' for netCDF output.",
+            "validators": [
+                "@field_validator('outstyle')\n@classmethod\ndef validate_outstyle(cls, v: str) -> str:\n    if v.upper() not in ['NO', 'STE', 'NC']:\n        raise ValueError('OUTSTYLE must be NO, STE, or NC')\n    return v.upper()"
+            ],
+            "cross_validators": []
+        },
+        "multipleout": {
+            "description": "Output file configuration. 0 for a single netCDF file using MPI_reduce (default), 1 for separate netCDF files for each process.",
+            "validators": [
+                "@field_validator('multipleout')\n@classmethod\ndef validate_multipleout(cls, v: int) -> int:\n    if v not in [0, 1]:\n        raise ValueError('MULTIPLEOUT must be 0 or 1')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "use_single_out": {
+            "description": "Use single precision in the output of model variables. True by default.",
+            "validators": [
+                "@field_validator('use_single_out')\n@classmethod\ndef validate_use_single_out(cls, v: bool) -> bool:\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "paramwrite": {
+            "description": "Write the physical parameterization and chosen numerical method in the netCDF file. True by default.",
+            "validators": [
+                "@field_validator('paramwrite')\n@classmethod\ndef validate_paramwrite(cls, v: bool) -> bool:\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "fileout": {
+            "description": "Output file name (not used).",
+            "validators": [],
+            "cross_validators": []
+        },
+        "loutiter": {
+            "description": "Boolean flag (purpose not specified in the given content).",
+            "validators": [
+                "@field_validator('loutiter')\n@classmethod\ndef validate_loutiter(cls, v: bool) -> bool:\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "iouts": {
+            "description": "Number of output stations.",
+            "validators": [
+                "@field_validator('iouts')\n@classmethod\ndef validate_iouts(cls, v: int) -> int:\n    if v <= 0:\n        raise ValueError('IOUTS must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "nouts": {
+            "description": "Names of output stations.",
+            "validators": [
+                "@field_validator('nouts')\n@classmethod\ndef validate_nouts(cls, v: List[str]) -> List[str]:\n    return v"
+            ],
+            "cross_validators": [
+                "@model_validator(mode='after')\ndef validate_nouts_length(self) -> 'Model':\n    if len(self.nouts) != self.iouts:\n        raise ValueError('Length of NOUTS must match IOUTS')\n    return self"
+            ]
+        },
+        "xouts": {
+            "description": "X-coordinates of output stations.",
+            "validators": [
+                "@field_validator('xouts')\n@classmethod\ndef validate_xouts(cls, v: List[float]) -> List[float]:\n    return v"
+            ],
+            "cross_validators": [
+                "@model_validator(mode='after')\ndef validate_xouts_length(self) -> 'Model':\n    if len(self.xouts) != self.iouts:\n        raise ValueError('Length of XOUTS must match IOUTS')\n    return self"
+            ]
+        },
+        "youts": {
+            "description": "Y-coordinates of output stations.",
+            "validators": [
+                "@field_validator('youts')\n@classmethod\ndef validate_youts(cls, v: List[float]) -> List[float]:\n    return v"
+            ],
+            "cross_validators": [
+                "@model_validator(mode='after')\ndef validate_youts_length(self) -> 'Model':\n    if len(self.youts) != self.iouts:\n        raise ValueError('Length of YOUTS must match IOUTS')\n    return self"
+            ]
+        },
+        "cutoff": {
+            "description": "Cutoff frequency (Hz) for each station, consistent with buoys.",
+            "validators": [
+                "@field_validator('cutoff')\n@classmethod\ndef validate_cutoff(cls, v: List[float]) -> List[float]:\n    if any(f <= 0 for f in v):\n        raise ValueError('All cutoff frequencies must be positive')\n    return v"
+            ],
+            "cross_validators": [
+                "@model_validator(mode='after')\ndef validate_cutoff_length(self) -> 'Model':\n    if len(self.cutoff) != self.iouts:\n        raise ValueError('Length of CUTOFF must match IOUTS')\n    return self"
+            ]
+        },
+        "lsp1d": {
+            "description": "Enable 1D spectral station output.",
+            "validators": [
+                "@field_validator('lsp1d')\n@classmethod\ndef validate_lsp1d(cls, v: bool) -> bool:\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "lsp2d": {
+            "description": "Enable 2D spectral station output.",
+            "validators": [
+                "@field_validator('lsp2d')\n@classmethod\ndef validate_lsp2d(cls, v: bool) -> bool:\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "lsigmax": {
+            "description": "Adjust the cut-off frequency for the output (e.g., consistent with buoy cut-off frequency).",
+            "validators": [
+                "@field_validator('lsigmax')\n@classmethod\ndef validate_lsigmax(cls, v: bool) -> bool:\n    return v"
+            ],
+            "cross_validators": []
+        }
+    },
+    "petscoptions": {
+        "ksptype": {
+            "description": "Controls the solver used. Options include GMRES (Generalized Minimal Residual method), LGMRES (Augmented GMRES), DGMRES (Deflated GMRES), PGMRES (Pipelined GMRES), and KSPBCGSL (Enhanced BiCGStab(L) algorithm).",
+            "validators": [
+                "@field_validator('ksptype')\n@classmethod\ndef validate_ksptype(cls, v):\n    valid_types = ['GMRES', 'LGMRES', 'DGMRES', 'PGMRES', 'KSPBCGSL']\n    if v.upper() not in valid_types:\n        raise ValueError(f'KSPTYPE must be one of {valid_types}')\n    return v.upper()"
+            ],
+            "cross_validators": []
+        },
+        "rtol": {
+            "description": "The relative convergence tolerance, representing the relative decrease in the residual norm.",
+            "validators": [
+                "@field_validator('rtol')\n@classmethod\ndef validate_rtol(cls, v):\n    if v <= 0:\n        raise ValueError('RTOL must be greater than 0')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "abstol": {
+            "description": "The absolute convergence tolerance, representing the absolute size of the residual norm.",
+            "validators": [
+                "@field_validator('abstol')\n@classmethod\ndef validate_abstol(cls, v):\n    if v <= 0:\n        raise ValueError('ABSTOL must be greater than 0')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "dtol": {
+            "description": "The divergence tolerance for the solver.",
+            "validators": [
+                "@field_validator('dtol')\n@classmethod\ndef validate_dtol(cls, v):\n    if v <= 0:\n        raise ValueError('DTOL must be greater than 0')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "maxits": {
+            "description": "The maximum number of iterations to use in the solver.",
+            "validators": [
+                "@field_validator('maxits')\n@classmethod\ndef validate_maxits(cls, v):\n    if v <= 0:\n        raise ValueError('MAXITS must be a positive integer')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "initialguessnonzero": {
+            "description": "Indicates whether the initial guess for the iterative solver is nonzero (True) or zero (False).",
+            "validators": [
+                "@field_validator('initialguessnonzero')\n@classmethod\ndef validate_initialguessnonzero(cls, v):\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "gmrespreallocate": {
+            "description": "Determines if GMRES and FGMRES should preallocate all needed work vectors at initial setup (True) or allocate them in chunks when needed (False).",
+            "validators": [
+                "@field_validator('gmrespreallocate')\n@classmethod\ndef validate_gmrespreallocate(cls, v):\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "pctype": {
+            "description": "Controls the preconditioner used. Options include SOR (Successive Over Relaxation), ASM (Additive Schwarz Method), HYPRE (LLNL package hypre), SPAI (Sparse Approximate Inverse), and NONE (no preconditioning).",
+            "validators": [
+                "@field_validator('pctype')\n@classmethod\ndef validate_pctype(cls, v):\n    valid_types = ['SOR', 'ASM', 'HYPRE', 'SPAI', 'NONE']\n    if v.upper() not in valid_types:\n        raise ValueError(f'PCTYPE must be one of {valid_types}')\n    return v.upper()"
+            ],
+            "cross_validators": []
+        }
+    },
+    "nesting": {
+        "listbegtc": {
+            "description": "Start time for the nested grid run. Format should match ListUNITC.",
+            "validators": [
+                "@field_validator('listbegtc')\n@classmethod\ndef validate_listbegtc(cls, v):\n    if not isinstance(v, str):\n        raise ValueError('ListBEGTC must be a string')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "listunitc": {
+            "description": "Time unit for ListBEGTC, ListDELTC, and ListENDTC. Should be a valid time unit string.",
+            "validators": [
+                "@field_validator('listunitc')\n@classmethod\ndef validate_listunitc(cls, v):\n    valid_units = ['', 'SECONDS', 'MINUTES', 'HOURS', 'DAYS']\n    if v.upper() not in valid_units:\n        raise ValueError(f'ListUNITC must be one of {valid_units}')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "listendtc": {
+            "description": "End time for the nested grid run. Format should match ListUNITC.",
+            "validators": [
+                "@field_validator('listendtc')\n@classmethod\ndef validate_listendtc(cls, v):\n    if not isinstance(v, str):\n        raise ValueError('ListENDTC must be a string')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "listigridtype": {
+            "description": "Grid type for the nested grid. 0 for regular grid, 1 for irregular grid.",
+            "validators": [
+                "@field_validator('listigridtype')\n@classmethod\ndef validate_listigridtype(cls, v):\n    if v not in [0, 1]:\n        raise ValueError('ListIGRIDTYPE must be either 0 or 1')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "listfilegrid": {
+            "description": "File name containing the nested grid information.",
+            "validators": [
+                "@field_validator('listfilegrid')\n@classmethod\ndef validate_listfilegrid(cls, v):\n    if not isinstance(v, str):\n        raise ValueError('ListFILEGRID must be a string')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "listfilebound": {
+            "description": "File name containing the nested grid boundary information.",
+            "validators": [
+                "@field_validator('listfilebound')\n@classmethod\ndef validate_listfilebound(cls, v):\n    if not isinstance(v, str):\n        raise ValueError('ListFILEBOUND must be a string')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "listprefix": {
+            "description": "Prefix for output files from the nested grid run.",
+            "validators": [
+                "@field_validator('listprefix')\n@classmethod\ndef validate_listprefix(cls, v):\n    if not isinstance(v, str):\n        raise ValueError('ListPrefix must be a string')\n    return v"
+            ],
+            "cross_validators": []
+        }
+    },
+    "Wmminput": {
+            "description": "WWM input",
+            "validators": [],
+            "cross_validators": [
+                "@model_validator(mode='after')\ndef validate_mesin_lsourceswam(self):\n    if self.engs.mesin == 1 and self.nums.lsourceswam:\n        raise ValueError('When MESIN=1, LSOURCESWAM should be False')\n    return self"
+            ]
+    }
+}

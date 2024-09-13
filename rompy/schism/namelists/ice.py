@@ -22,8 +22,8 @@ class Ice_in(NamelistBaseModel):
         2,
         description="Selects the rheology model. 1 for EVP (Elastic-Viscous-Plastic), 2 for mEVP (modified EVP).",
     )
-    ice_cutoff: Optional[str] = Field(
-        "1.e-3",
+    ice_cutoff: Optional[float] = Field(
+        0.001,
         description="Cut-off thickness [m] or fraction for ice. No ice velocity if ice thickness is less than or equal to ice_cutoff.",
     )
     evp_rheol_steps: Optional[int] = Field(
@@ -36,12 +36,12 @@ class Ice_in(NamelistBaseModel):
         1,
         description="Form of atmospheric stress calculation. 0 for constant Cd, 1 for FESOM formulation.",
     )
-    cdwin0: Optional[str] = Field(
-        "2.e-3",
+    cdwin0: Optional[float] = Field(
+        0.002,
         description="Constant drag coefficient for wind stress, used if ice_atmos_stress_form=0.",
     )
-    delta_min: Optional[str] = Field(
-        "2.0e-9",
+    delta_min: Optional[float] = Field(
+        2e-09,
         description="Limit for minimum divergence (1/s). Used in both VP and EVP rheology models.",
     )
     theta_io: Optional[float] = Field(
@@ -62,8 +62,8 @@ class Ice_in(NamelistBaseModel):
     mevp_alpha3: Optional[float] = Field(
         200.0, description="Minimum value for variable coefficients if mevp_coef=1."
     )
-    mevp_alpha4: Optional[str] = Field(
-        "2.e-2",
+    mevp_alpha4: Optional[float] = Field(
+        0.02,
         description="Coefficient used in variable coefficient calculation if mevp_coef=1.",
     )
     pstar: Optional[float] = Field(

@@ -425,7 +425,7 @@ class Sin4(NamelistBaseModel):
     swellf6: Optional[str] = Field("", description="")
     swellf7: Optional[str] = Field("", description="")
     z0rat: Optional[str] = Field("", description="")
-    sinbr: Optional[str] = Field("0.000000000000000E+000", description="")
+    sinbr: Optional[float] = Field(0.0, description="")
 
     @model_validator(mode="after")
     def validate_swellf_limits(self):
@@ -467,7 +467,7 @@ class Sds4(NamelistBaseModel):
     sdslfgen: Optional[str] = Field("", description="")
     whitecapwidth: Optional[str] = Field("", description="")
     fxincut: Optional[str] = Field("", description="")
-    fxdscut: Optional[str] = Field("0.000000000000000E+000", description="")
+    fxdscut: Optional[float] = Field(0.0, description="")
 
 
 class Nums(NamelistBaseModel):
@@ -800,12 +800,12 @@ class Station(NamelistBaseModel):
 
 class Petscoptions(NamelistBaseModel):
     ksptype: Optional[str] = Field("bcgs", description="")
-    rtol: Optional[str] = Field(
-        "1.E-20",
+    rtol: Optional[float] = Field(
+        1e-20,
         description="the relative convergence tolerance (relative decrease in the residual norm)",
     )
-    abstol: Optional[str] = Field(
-        "1.E-20",
+    abstol: Optional[float] = Field(
+        1e-20,
         description="the absolute convergence tolerance (absolute size of the residual norm)",
     )
     dtol: Optional[float] = Field(10000.0, description="the divergence tolerance")

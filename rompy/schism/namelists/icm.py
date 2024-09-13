@@ -509,7 +509,7 @@ class Core(NamelistBaseModel):
         description="Phosphorus half saturation for three phytoplankton species (mg/L)",
     )
     khsal: Optional[list] = Field(
-        ["1e6", "1e6", 0.1],
+        [1000000.0, 1000000.0, 0.1],
         description="Salinity when phytoplankton growth is halved for three species (PSU); (1e6: no salinity stress)",
     )
     c2chl: Optional[list] = Field(
@@ -1138,25 +1138,25 @@ class Sfm(NamelistBaseModel):
         description="Initial POP (Particulate Organic Phosphorus) concentrations for 3 classes (G1, G2, G3) in the sediment layer (g/m3)",
     )
     bdz: Optional[float] = Field(0.1, description="Sediment thickness (m)")
-    bvb: Optional[str] = Field("1.37e-5", description="Burial rate (m/day)")
+    bvb: Optional[float] = Field(1.37e-05, description="Burial rate (m/day)")
     bsolid: Optional[list] = Field(
         [0.5, 0.5],
         description="Sediment solid concentrations in Layer 1 and Layer 2 (Kg/L)",
     )
-    bdiff: Optional[str] = Field(
-        "1.8e-7", description="Diffusion coefficient for sediment temperature (m2/s)"
+    bdiff: Optional[float] = Field(
+        1.8e-07, description="Diffusion coefficient for sediment temperature (m2/s)"
     )
     btr: Optional[int] = Field(
         20, description="Reference temperature for sediment processes (°C)"
     )
-    bvpmin: Optional[str] = Field(
-        "3.0e-6", description="minimum particle mixing velocity coefficient (m.day-1)"
+    bvpmin: Optional[float] = Field(
+        3e-06, description="minimum particle mixing velocity coefficient (m.day-1)"
     )
-    bvp: Optional[str] = Field(
-        "1.2e-4", description="particle mixing velocity coefficient (m.day-1)"
+    bvp: Optional[float] = Field(
+        0.00012, description="particle mixing velocity coefficient (m.day-1)"
     )
-    bvd: Optional[str] = Field(
-        "1.0e-3", description="diffusion velocity coefficient (m.day-1)"
+    bvd: Optional[float] = Field(
+        0.001, description="diffusion velocity coefficient (m.day-1)"
     )
     bktvp: Optional[float] = Field(
         1.117, description="temp. dependece of particle mixing velocity"
@@ -1324,8 +1324,8 @@ class Sfm(NamelistBaseModel):
     bkosi: Optional[float] = Field(
         10.0, description="oxygen dependency for silica sorption in Layer 1"
     )
-    bkhpos: Optional[str] = Field(
-        "5.0e4", description="POS half saturation for POS dissolution (g/m3)"
+    bkhpos: Optional[float] = Field(
+        50000.0, description="POS half saturation for POS dissolution (g/m3)"
     )
     bdoc_si: Optional[float] = Field(
         1.0, description="DO criteria for silica sorptiona (g[O2]/m3)"
@@ -2911,8 +2911,8 @@ class Poc(NamelistBaseModel):
     erosion: Optional[int] = Field(
         864, description="Erosion rate in kilograms per square meter per day"
     )
-    etau: Optional[str] = Field(
-        "1.e-6", description="Critical bottom shear stress in Pascals"
+    etau: Optional[float] = Field(
+        1e-06, description="Critical bottom shear stress in Pascals"
     )
     eporo: Optional[float] = Field(
         0.8, description="Coefficient in erosion formula (see code in icm_sfm.F90)"
