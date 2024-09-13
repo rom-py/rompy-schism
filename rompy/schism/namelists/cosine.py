@@ -213,9 +213,9 @@ class Core(NamelistBaseModel):
     ipo4: Optional[int] = Field(
         1, description="Flag to add additional PO4 from biogenic silica dissolution"
     )
-    TR: Optional[float] = Field(
+    tr: Optional[float] = Field(
         20.0,
-        description="Reference temperature for temperature adjust for CoSiNE sink and source",
+        description="Reference temperature for temperature adjustment for CoSiNE sink and source",
     )
     kox: Optional[float] = Field(
         30.0, description="Reference oxygen concentration for oxidation"
@@ -456,6 +456,13 @@ class Core(NamelistBaseModel):
             raise ValueError("ipo4 must be either 0 or 1")
         return v
 
+    @field_validator("tr")
+    @classmethod
+    def check_tr(cls, v):
+        if not (isinstance(v, float) and v > 0):
+            raise ValueError("tr must be a positive float")
+        return v
+
     @field_validator("kox")
     @classmethod
     def check_kox(cls, v):
@@ -567,7 +574,10 @@ class Misc(NamelistBaseModel):
         0,
         description="Flag to enable or disable diatom sinking velocity dependence on NO3 concentration",
     )
-    NO3c: Optional[float] = Field(2.0, description="mmol/m3")
+    no3c: Optional[float] = Field(
+        2.0,
+        description="Critical NO3 concentration (mmol/m3) for diatom sinking velocity calculation",
+    )
     ws1: Optional[float] = Field(
         2.5,
         description="Diatom sinking velocity (m/day) when NO3 concentration is below no3c",
@@ -579,33 +589,67 @@ class Misc(NamelistBaseModel):
     iclam: Optional[int] = Field(
         0, description="Flag to enable or disable clam grazing model"
     )
-    deltaZ: Optional[int] = Field(1, description="meter")
+    deltaz: Optional[int] = Field(
+        1, description="Vertical grid size (meter) for clam grazing model"
+    )
     kcex: Optional[float] = Field(0.002, description="Clam excretion rate (day^-1)")
-    Nperclam: Optional[float] = Field(0.39032, description="mmol[N]")
-    Wclam: Optional[str] = Field("5.45e-3", description="clam weigh (g)")
-    Fclam: Optional[int] = Field(40, description="L.g[AFDW]-1.day-1, filtration rate")
+    nperclam: Optional[float] = Field(
+        0.39032, description="Nitrogen content per clam (mmol[N])"
+    )
+    wclam: Optional[str] = Field("5.45e-3", description="Clam weight (g)")
+    fclam: Optional[int] = Field(
+        40, description="Clam filtration rate (L.g[AFDW]^-1.day^-1)"
+    )
     nclam0: Optional[int] = Field(2000, description="Initial number of clams")
-    fS2: Optional[list] = Field([0.1, 0.1, 0.8], description="")
-    rkS2: Optional[list] = Field(
-        ["4e-3", "1.0e-4", 0.0], description="time delay of 63 day"
+    fs2: Optional[list] = Field(
+        [0.1, 0.1, 0.8],
+        description="Partitioning coefficients for S2 from water column into sediment (3 values)",
     )
-    mkS2: Optional[list] = Field([0.1, 0.01, 0.0], description="")
-    fDN: Optional[list] = Field([0.15, 0.1, 0.75], description="")
-    rkDN: Optional[list] = Field(
-        ["4e-3", "1.0e-4", 0.0], description="time delay of 63 day"
+    rks2: Optional[list] = Field(
+        ["4e-3", "1.0e-4", 0.0],
+        description="Changing rates of remineralization for sediment S2 (3 values, day^-1)",
     )
-    mkDN: Optional[list] = Field([0.1, 0.01, 0.0], description="")
-    fDSi: Optional[list] = Field([0.3, 0.3, 0.4], description="")
-    rkDSi: Optional[list] = Field(
-        [0.004, "1e-4", 0.0], description="time delay of about half a month"
+    mks2: Optional[list] = Field(
+        [0.1, 0.01, 0.0],
+        description="Maximum remineralization rates for sediment S2 (3 values, day^-1)",
     )
-    mkDSi: Optional[list] = Field([0.1, 0.01, 0.0], description="")
+    fdn: Optional[list] = Field(
+        [0.15, 0.1, 0.75],
+        description="Partitioning coefficients for DN from water column into sediment (3 values)",
+    )
+    rkdn: Optional[list] = Field(
+        ["4e-3", "1.0e-4", 0.0],
+        description="Changing rates of remineralization for sediment DN (3 values, day^-1)",
+    )
+    mkdn: Optional[list] = Field(
+        [0.1, 0.01, 0.0],
+        description="Maximum remineralization rates for sediment DN (3 values, day^-1)",
+    )
+    fdsi: Optional[list] = Field(
+        [0.3, 0.3, 0.4],
+        description="Partitioning coefficients for DSi from water column into sediment (3 values)",
+    )
+    rkdsi: Optional[list] = Field(
+        [0.004, "1e-4", 0.0],
+        description="Changing rates of remineralization for sediment DSi (3 values, day^-1)",
+    )
+    mkdsi: Optional[list] = Field(
+        [0.1, 0.01, 0.0],
+        description="Maximum remineralization rates for sediment DSi (3 values, day^-1)",
+    )
 
     @field_validator("iws")
     @classmethod
     def validate_iws(cls, v: int) -> int:
         if v not in [0, 1]:
             raise ValueError("iws must be either 0 or 1")
+        return v
+
+    @field_validator("no3c")
+    @classmethod
+    def validate_no3c(cls, v: float) -> float:
+        if v <= 0:
+            raise ValueError("no3c must be positive")
         return v
 
     @field_validator("ws1")
@@ -629,6 +673,13 @@ class Misc(NamelistBaseModel):
             raise ValueError("iclam must be either 0 or 1")
         return v
 
+    @field_validator("deltaz")
+    @classmethod
+    def validate_deltaz(cls, v: float) -> float:
+        if v <= 0:
+            raise ValueError("deltaz must be positive")
+        return v
+
     @field_validator("kcex")
     @classmethod
     def validate_kcex(cls, v: float) -> float:
@@ -636,11 +687,101 @@ class Misc(NamelistBaseModel):
             raise ValueError("kcex must be between 0 and 1")
         return v
 
+    @field_validator("nperclam")
+    @classmethod
+    def validate_nperclam(cls, v: float) -> float:
+        if v <= 0:
+            raise ValueError("nperclam must be positive")
+        return v
+
+    @field_validator("wclam")
+    @classmethod
+    def validate_wclam(cls, v: float) -> float:
+        if v <= 0:
+            raise ValueError("wclam must be positive")
+        return v
+
+    @field_validator("fclam")
+    @classmethod
+    def validate_fclam(cls, v: float) -> float:
+        if v <= 0:
+            raise ValueError("fclam must be positive")
+        return v
+
     @field_validator("nclam0")
     @classmethod
     def validate_nclam0(cls, v: int) -> int:
         if v < 0:
             raise ValueError("nclam0 must be non-negative")
+        return v
+
+    @field_validator("fs2")
+    @classmethod
+    def validate_fs2(cls, v: List[float]) -> List[float]:
+        if len(v) != 3 or not all(0 <= x <= 1 for x in v) or abs(sum(v) - 1) > 1e-6:
+            raise ValueError(
+                "fs2 must be a list of 3 values between 0 and 1, summing to 1"
+            )
+        return v
+
+    @field_validator("rks2")
+    @classmethod
+    def validate_rks2(cls, v: List[float]) -> List[float]:
+        if len(v) != 3 or not all(x >= 0 for x in v):
+            raise ValueError("rks2 must be a list of 3 non-negative values")
+        return v
+
+    @field_validator("mks2")
+    @classmethod
+    def validate_mks2(cls, v: List[float]) -> List[float]:
+        if len(v) != 3 or not all(x >= 0 for x in v):
+            raise ValueError("mks2 must be a list of 3 non-negative values")
+        return v
+
+    @field_validator("fdn")
+    @classmethod
+    def validate_fdn(cls, v: List[float]) -> List[float]:
+        if len(v) != 3 or not all(0 <= x <= 1 for x in v) or abs(sum(v) - 1) > 1e-6:
+            raise ValueError(
+                "fdn must be a list of 3 values between 0 and 1, summing to 1"
+            )
+        return v
+
+    @field_validator("rkdn")
+    @classmethod
+    def validate_rkdn(cls, v: List[float]) -> List[float]:
+        if len(v) != 3 or not all(x >= 0 for x in v):
+            raise ValueError("rkdn must be a list of 3 non-negative values")
+        return v
+
+    @field_validator("mkdn")
+    @classmethod
+    def validate_mkdn(cls, v: List[float]) -> List[float]:
+        if len(v) != 3 or not all(x >= 0 for x in v):
+            raise ValueError("mkdn must be a list of 3 non-negative values")
+        return v
+
+    @field_validator("fdsi")
+    @classmethod
+    def validate_fdsi(cls, v: List[float]) -> List[float]:
+        if len(v) != 3 or not all(0 <= x <= 1 for x in v) or abs(sum(v) - 1) > 1e-6:
+            raise ValueError(
+                "fdsi must be a list of 3 values between 0 and 1, summing to 1"
+            )
+        return v
+
+    @field_validator("rkdsi")
+    @classmethod
+    def validate_rkdsi(cls, v: List[float]) -> List[float]:
+        if len(v) != 3 or not all(x >= 0 for x in v):
+            raise ValueError("rkdsi must be a list of 3 non-negative values")
+        return v
+
+    @field_validator("mkdsi")
+    @classmethod
+    def validate_mkdsi(cls, v: List[float]) -> List[float]:
+        if len(v) != 3 or not all(x >= 0 for x in v):
+            raise ValueError("mkdsi must be a list of 3 non-negative values")
         return v
 
 
