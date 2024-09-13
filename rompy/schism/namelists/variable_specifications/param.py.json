@@ -1,0 +1,377 @@
+{
+    "core": {
+        "ipre": {
+            "description": "Pre-processor flag (1: on; 0: off). Useful for checking grid errors etc. Use 1 core only for compute (plus necessary scribe cores) when enabled. Under scribe I/O, the code (scribe part) will hang but outputs will be available. Job should be manually terminated.",
+            "validators": [
+                "@field_validator('ipre')\n@classmethod\ndef validate_ipre(cls, v):\n    if v not in [0, 1]:\n        raise ValueError('ipre must be either 0 or 1')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "ibc": {
+            "description": "Baroclinic option flag. If set to 0 (baroclinic model), ibtp is not used.",
+            "validators": [
+                "@field_validator('ibc')\n@classmethod\ndef validate_ibc(cls, v):\n    if v not in [0, 1]:\n        raise ValueError('ibc must be either 0 or 1')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "ibtp": {
+            "description": "Barotropic option flag. Only used when ibc is not 0.",
+            "validators": [
+                "@field_validator('ibtp')\n@classmethod\ndef validate_ibtp(cls, v):\n    if v not in [0, 1]:\n        raise ValueError('ibtp must be either 0 or 1')\n    return v"
+            ],
+            "cross_validators": [
+                "@model_validator(mode='after')\ndef validate_ibc_ibtp(self):\n    if self.ibc == 0 and self.ibtp != 1:\n        raise ValueError('When ibc is 0, ibtp must be 1')\n    return self"
+            ]
+        },
+        "rnday": {
+            "description": "Total run time in days.",
+            "validators": [
+                "@field_validator('rnday')\n@classmethod\ndef validate_rnday(cls, v):\n    if v <= 0:\n        raise ValueError('rnday must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "dt": {
+            "description": "Time step in seconds.",
+            "validators": [
+                "@field_validator('dt')\n@classmethod\ndef validate_dt(cls, v):\n    if v <= 0:\n        raise ValueError('dt must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "msc2": {
+            "description": "Number of spectral frequencies for WWM grid. Must be the same as msc in .nml for consistency between SCHISM and WWM.",
+            "validators": [
+                "@field_validator('msc2')\n@classmethod\ndef validate_msc2(cls, v):\n    if v <= 0:\n        raise ValueError('msc2 must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "mdc2": {
+            "description": "Number of directional bins for WWM grid. Must be the same as mdc in .nml for consistency between SCHISM and WWM.",
+            "validators": [
+                "@field_validator('mdc2')\n@classmethod\ndef validate_mdc2(cls, v):\n    if v <= 0:\n        raise ValueError('mdc2 must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "ntracer_gen": {
+            "description": "Number of tracers in user-defined module (USE_GEN).",
+            "validators": [
+                "@field_validator('ntracer_gen')\n@classmethod\ndef validate_ntracer_gen(cls, v):\n    if v < 0:\n        raise ValueError('ntracer_gen must be non-negative')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "ntracer_age": {
+            "description": "Number of tracers for age calculation (USE_AGE). Must be equal to 2*N where N is the number of age tracers.",
+            "validators": [
+                "@field_validator('ntracer_age')\n@classmethod\ndef validate_ntracer_age(cls, v):\n    if v % 2 != 0 or v < 0:\n        raise ValueError('ntracer_age must be a non-negative even number')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "sed_class": {
+            "description": "Number of sediment classes for SED3D module (USE_SED).",
+            "validators": [
+                "@field_validator('sed_class')\n@classmethod\ndef validate_sed_class(cls, v):\n    if v < 0:\n        raise ValueError('sed_class must be non-negative')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "eco_class": {
+            "description": "Number of ecological variables for EcoSim module (USE_ECO). Must be between 25 and 60, inclusive.",
+            "validators": [
+                "@field_validator('eco_class')\n@classmethod\ndef validate_eco_class(cls, v):\n    if v < 25 or v > 60:\n        raise ValueError('eco_class must be between 25 and 60')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "nspool": {
+            "description": "Output step spool for global output controls.",
+            "validators": [
+                "@field_validator('nspool')\n@classmethod\ndef validate_nspool(cls, v):\n    if v <= 0:\n        raise ValueError('nspool must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "ihfskip": {
+            "description": "Stack spool for global output controls. Every ihfskip steps will be put into 1_*, 2_*, etc.",
+            "validators": [
+                "@field_validator('ihfskip')\n@classmethod\ndef validate_ihfskip(cls, v):\n    if v <= 0:\n        raise ValueError('ihfskip must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        }
+    },
+    "opt": {
+        "ipre2": {
+            "description": "Pre-processing flag for diagnostic outputs. If non-zero, the code will output drag coefficients (Cdp) and stop.",
+            "validators": [
+                "@field_validator('ipre2')\n@classmethod\ndef validate_ipre2(cls, v):\n    if v not in [0, 1]:\n        raise ValueError('ipre2 must be 0 or 1')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "itransport_only": {
+            "description": "Option to solve only tracer transport. 0: off, 1 or 2: on. When 2, additional variables are needed.",
+            "validators": [
+                "@field_validator('itransport_only')\n@classmethod\ndef validate_itransport_only(cls, v):\n    if v not in [0, 1, 2]:\n        raise ValueError('itransport_only must be 0, 1, or 2')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "iloadtide": {
+            "description": "Option to add self-attracting and loading tide (SAL) into tidal potential. 0: off, 1: needs loadtide_[FREQ].gr3 inputs, 2 or 3: simple scaling for gravity approach.",
+            "validators": [
+                "@field_validator('iloadtide')\n@classmethod\ndef validate_iloadtide(cls, v):\n    if v not in [0, 1, 2, 3]:\n        raise ValueError('iloadtide must be 0, 1, 2, or 3')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "loadtide_coef": {
+            "description": "Coefficient for SAL scaling. Used only if iloadtide is 2 or 3.",
+            "validators": [
+                "@field_validator('loadtide_coef')\n@classmethod\ndef validate_loadtide_coef(cls, v):\n    if v < 0 or v > 1:\n        raise ValueError('loadtide_coef must be between 0 and 1')\n    return v"
+            ],
+            "cross_validators": [
+                "@model_validator(mode='after')\ndef check_loadtide_coef(self):\n    if self.iloadtide in [2, 3] and self.loadtide_coef == 0:\n        raise ValueError('loadtide_coef must be set when iloadtide is 2 or 3')"
+            ]
+        },
+        "start_year": {
+            "description": "Starting year for the simulation.",
+            "validators": [
+                "@field_validator('start_year')\n@classmethod\ndef validate_start_year(cls, v):\n    if v < 1900 or v > 2100:\n        raise ValueError('start_year must be between 1900 and 2100')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "start_month": {
+            "description": "Starting month for the simulation.",
+            "validators": [
+                "@field_validator('start_month')\n@classmethod\ndef validate_start_month(cls, v):\n    if v < 1 or v > 12:\n        raise ValueError('start_month must be between 1 and 12')\n    return v"
+            ],
+            "cross_validators": []
+        }
+    },
+    "vertical": {
+        "vnh1": {
+            "description": "Vertical nudging depth 1 in meters. Used in vertical relaxation scheme.",
+            "validators": [
+                "@field_validator('vnh1')\n@classmethod\ndef check_vnh1(cls, v):\n    if v <= 0:\n        raise ValueError('vnh1 must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "vnf1": {
+            "description": "Vertical relaxation factor for depth 1. Must be between 0 and 1.",
+            "validators": [
+                "@field_validator('vnf1')\n@classmethod\ndef check_vnf1(cls, v):\n    if not 0 <= v <= 1:\n        raise ValueError('vnf1 must be between 0 and 1')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "vnh2": {
+            "description": "Vertical nudging depth 2 in meters. Must be greater than vnh1.",
+            "validators": [
+                "@field_validator('vnh2')\n@classmethod\ndef check_vnh2(cls, v):\n    if v <= 0:\n        raise ValueError('vnh2 must be positive')\n    return v"
+            ],
+            "cross_validators": [
+                "@model_validator(mode='after')\ndef check_vnh2_greater_than_vnh1(self):\n    if self.vnh2 <= self.vnh1:\n        raise ValueError('vnh2 must be greater than vnh1')\n    return self"
+            ]
+        },
+        "vnf2": {
+            "description": "Vertical relaxation factor for depth 2. Must be between 0 and 1.",
+            "validators": [
+                "@field_validator('vnf2')\n@classmethod\ndef check_vnf2(cls, v):\n    if not 0 <= v <= 1:\n        raise ValueError('vnf2 must be between 0 and 1')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "step_nu_tr": {
+            "description": "Time step in seconds for all *_nu.nc files when inu_[MOD]=2.",
+            "validators": [
+                "@field_validator('step_nu_tr')\n@classmethod\ndef check_step_nu_tr(cls, v):\n    if v <= 0:\n        raise ValueError('step_nu_tr must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "h_bcc1": {
+            "description": "Cut-off depth for cubic spline interpolation near bottom when computing horizontal gradients.",
+            "validators": [
+                "@field_validator('h_bcc1')\n@classmethod\ndef check_h_bcc1(cls, v):\n    if v <= 0:\n        raise ValueError('h_bcc1 must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "s1_mxnbt": {
+            "description": "Dimensioning parameter for inter-subdomain backtracking.",
+            "validators": [
+                "@field_validator('s1_mxnbt')\n@classmethod\ndef check_s1_mxnbt(cls, v):\n    if v <= 0:\n        raise ValueError('s1_mxnbt must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "s2_mxnbt": {
+            "description": "Another dimensioning parameter for inter-subdomain backtracking.",
+            "validators": [
+                "@field_validator('s2_mxnbt')\n@classmethod\ndef check_s2_mxnbt(cls, v):\n    if v <= 0:\n        raise ValueError('s2_mxnbt must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "iharind": {
+            "description": "Flag for harmonic analysis of elevation. 0 for off, non-zero for on.",
+            "validators": [
+                "@field_validator('iharind')\n@classmethod\ndef check_iharind(cls, v):\n    if not isinstance(v, int):\n        raise ValueError('iharind must be an integer')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "iflux": {
+            "description": "Conservation check option. 0: off, 1: basic output, 2: more elaborate outputs.",
+            "validators": [
+                "@field_validator('iflux')\n@classmethod\ndef check_iflux(cls, v):\n    if v not in [0, 1, 2]:\n        raise ValueError('iflux must be 0, 1, or 2')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "izonal5": {
+            "description": "Flag for Williamson test #5 (zonal flow over an isolated mount). 0 for off, non-zero for on.",
+            "validators": [
+                "@field_validator('izonal5')\n@classmethod\ndef check_izonal5(cls, v):\n    if not isinstance(v, int):\n        raise ValueError('izonal5 must be an integer')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "ibtrack_test": {
+            "description": "Flag for rotating Gausshill test with stratified T,S. 0: off, 1: on.",
+            "validators": [
+                "@field_validator('ibtrack_test')\n@classmethod\ndef check_ibtrack_test(cls, v):\n    if v not in [0, 1]:\n        raise ValueError('ibtrack_test must be 0 or 1')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "irouse_test": {
+            "description": "Flag for Rouse profile test. 0: off, 1: on. Requires USE_TIMOR to be on if enabled.",
+            "validators": [
+                "@field_validator('irouse_test')\n@classmethod\ndef check_irouse_test(cls, v):\n    if v not in [0, 1]:\n        raise ValueError('irouse_test must be 0 or 1')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "flag_fib": {
+            "description": "Flag to choose FIB model for bacteria decay. 1: Constant decay rate, 2: Canteras et al., 1995, 3: Servais et al., 2007.",
+            "validators": [
+                "@field_validator('flag_fib')\n@classmethod\ndef check_flag_fib(cls, v):\n    if v not in [1, 2, 3]:\n        raise ValueError('flag_fib must be 1, 2, or 3')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "slr_rate": {
+            "description": "Sea-level rise rate in mm/year for marsh model. Only used if USE_MARSH is on.",
+            "validators": [
+                "@field_validator('slr_rate')\n@classmethod\ndef check_slr_rate(cls, v):\n    if v < 0:\n        raise ValueError('slr_rate must be non-negative')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "isav": {
+            "description": "Flag for vegetation model. 0: off, 1: on. Requires additional input files if enabled.",
+            "validators": [
+                "@field_validator('isav')\n@classmethod\ndef check_isav(cls, v):\n    if v not in [0, 1]:\n        raise ValueError('isav must be 0 or 1')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "nstep_ice": {
+            "description": "Number of SCHISM steps between calls to the ICE module.",
+            "validators": [
+                "@field_validator('nstep_ice')\n@classmethod\ndef check_nstep_ice(cls, v):\n    if v <= 0:\n        raise ValueError('nstep_ice must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "rearth_pole": {
+            "description": "Earth's radius at the pole in meters.",
+            "validators": [
+                "@field_validator('rearth_pole')\n@classmethod\ndef check_rearth_pole(cls, v):\n    if v <= 0:\n        raise ValueError('rearth_pole must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "rearth_eq": {
+            "description": "Earth's radius at the equator in meters.",
+            "validators": [
+                "@field_validator('rearth_eq')\n@classmethod\ndef check_rearth_eq(cls, v):\n    if v <= 0:\n        raise ValueError('rearth_eq must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "shw": {
+            "description": "Specific heat of water (C_p) in J/kg/K.",
+            "validators": [
+                "@field_validator('shw')\n@classmethod\ndef check_shw(cls, v):\n    if v <= 0:\n        raise ValueError('shw must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "rho0": {
+            "description": "Reference water density for Boussinesq approximation in kg/m^3.",
+            "validators": [
+                "@field_validator('rho0')\n@classmethod\ndef check_rho0(cls, v):\n    if v <= 0:\n        raise ValueError('rho0 must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "vclose_surf_frac": {
+            "description": "Fraction of vertical flux closure adjustment applied at surface for T,S.",
+            "validators": [
+                "@field_validator('vclose_surf_frac')\n@classmethod\ndef check_vclose_surf_frac(cls, v):\n    if not 0 <= v <= 1:\n        raise ValueError('vclose_surf_frac must be between 0 and 1')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "iadjust_mass_consv0": {
+            "description": "Options to enforce strict mass conservation for each tracer model.",
+            "validators": [
+                "@field_validator('iadjust_mass_consv0')\n@classmethod\ndef check_iadjust_mass_consv0(cls, v):\n    if not all(isinstance(x, int) and x in [0, 1] for x in v):\n        raise ValueError('All elements in iadjust_mass_consv0 must be 0 or 1')\n    if v[4] != 0:\n        raise ValueError('iadjust_mass_consv0[5] (SED3D) must be 0')\n    if v[11] != 0:\n        raise ValueError('iadjust_mass_consv0[12] (DVD) must be 0')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "h_massconsv": {
+            "description": "Threshold depth for ICM mass conservation in meters.",
+            "validators": [
+                "@field_validator('h_massconsv')\n@classmethod\ndef check_h_massconsv(cls, v):\n    if v <= 0:\n        raise ValueError('h_massconsv must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "rinflation_icm": {
+            "description": "Maximum ratio between H^{n+1} and H^n allowed for ICM mass conservation.",
+            "validators": [
+                "@field_validator('rinflation_icm')\n@classmethod\ndef check_rinflation_icm(cls, v):\n    if v <= 0:\n        raise ValueError('rinflation_icm must be positive')\n    return v"
+            ],
+            "cross_validators": []
+        }
+    },
+    "schout": {
+        "nc_out": {
+            "description": "Main switch to control netcdf output. If 0, SCHISM won't output nc files at all.",
+            "validators": [
+                "@field_validator('nc_out')\n@classmethod\ndef validate_nc_out(cls, v):\n    if v not in [0, 1]:\n        raise ValueError('nc_out must be 0 or 1')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "iof_ugrid": {
+            "description": "UGRID option for 3D outputs. If non-zero, 3D outputs will have UGRID metadata.",
+            "validators": [
+                "@field_validator('iof_ugrid')\n@classmethod\ndef validate_iof_ugrid(cls, v):\n    if v < 0:\n        raise ValueError('iof_ugrid must be non-negative')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "nhot": {
+            "description": "Option for hotstart outputs. If 1, outputs hotstart every 'nhot_write' steps.",
+            "validators": [
+                "@field_validator('nhot')\n@classmethod\ndef validate_nhot(cls, v):\n    if v not in [0, 1]:\n        raise ValueError('nhot must be 0 or 1')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "nhot_write": {
+            "description": "Number of steps between hotstart outputs. Must be a multiple of ihfskip if nhot=1.",
+            "validators": [
+                "@field_validator('nhot_write')\n@classmethod\ndef validate_nhot_write(cls, v):\n    if v <= 0:\n        raise ValueError('nhot_write must be positive')\n    return v"
+            ],
+            "cross_validators": [
+                "@model_validator(mode='after')\ndef validate_nhot_write_multiple(self):\n    if self.nhot == 1 and self.nhot_write % self.ihfskip != 0:\n        raise ValueError('nhot_write must be a multiple of ihfskip when nhot=1')\n    return self"
+            ]
+        },
+        "iout_sta": {
+            "description": "Station output option. If non-zero, requires output skip (nspool_sta) and a station.in file.",
+            "validators": [
+                "@field_validator('iout_sta')\n@classmethod\ndef validate_iout_sta(cls, v):\n    if v < 0:\n        raise ValueError('iout_sta must be non-negative')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "nspool_sta": {
+            "description": "Number of steps between station outputs. Required if iout_sta is non-zero.",
+            "validators": [
+                "@field_validator('nspool_sta')\n@classmethod\ndef validate_nspool_sta(cls, v):\n    if v <= 0:\n        raise ValueError('nspool_sta must be positive')\n    return v"
+            ],
+            "cross_validators": [
+                "@model_validator(mode='after')\ndef validate_nspool_sta_requirement(self):\n    if self.iout_sta != 0 and self.nspool_sta <= 0:\n        raise ValueError('nspool_sta must be positive when iout_sta is non-zero')\n    return self"
+            ]
+        },
+        "iof_hydro": {
+            "description": "Array of flags for various hydrodynamic output variables.",
+            "validators": [
+                "@field_validator('iof_hydro')\n@classmethod\ndef validate_iof_hydro(cls, v):\n    if not all(x in [0, 1] for x in v):\n        raise ValueError('All elements in iof_hydro must be 0 or 1')\n    return v"
+            ],
+            "cross_validators": []
+        }
+    }
+}

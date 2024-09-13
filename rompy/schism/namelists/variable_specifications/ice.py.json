@@ -1,0 +1,248 @@
+{
+    "ice_in": {
+        "ice_tests": {
+            "description": "Flag for box test. 0 disables, 1 enables.",
+            "validators": [
+                "@field_validator('ice_tests')\n@classmethod\ndef validate_ice_tests(cls, v):\n    if not isinstance(v, int) or v not in [0, 1]:\n        raise ValueError('ice_tests must be 0 or 1')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "ice_advection": {
+            "description": "Flag to enable/disable ice advection. 1 enables, 0 disables.",
+            "validators": [
+                "@field_validator('ice_advection')\n@classmethod\ndef validate_ice_advection(cls, v):\n    if not isinstance(v, int) or v not in [0, 1]:\n        raise ValueError('ice_advection must be 0 or 1')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "ice_therm_on": {
+            "description": "Flag to enable/disable ice thermodynamics. 1 enables, 0 disables.",
+            "validators": [
+                "@field_validator('ice_therm_on')\n@classmethod\ndef validate_ice_therm_on(cls, v):\n    if not isinstance(v, int) or v not in [0, 1]:\n        raise ValueError('ice_therm_on must be 0 or 1')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "ievp": {
+            "description": "Selects the rheology model. 1 for EVP (Elastic-Viscous-Plastic), 2 for mEVP (modified EVP).",
+            "validators": [
+                "@field_validator('ievp')\n@classmethod\ndef validate_ievp(cls, v):\n    if not isinstance(v, int) or v not in [1, 2]:\n        raise ValueError('ievp must be 1 or 2')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "ice_cutoff": {
+            "description": "Cut-off thickness [m] or fraction for ice. No ice velocity if ice thickness is less than or equal to ice_cutoff.",
+            "validators": [
+                "@field_validator('ice_cutoff')\n@classmethod\ndef validate_ice_cutoff(cls, v):\n    if not isinstance(v, float) or v <= 0:\n        raise ValueError('ice_cutoff must be a positive float')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "evp_rheol_steps": {
+            "description": "Number of subcycling steps in EVP rheology model.",
+            "validators": [
+                "@field_validator('evp_rheol_steps')\n@classmethod\ndef validate_evp_rheol_steps(cls, v):\n    if not isinstance(v, int) or v <= 0:\n        raise ValueError('evp_rheol_steps must be a positive integer')\n    return v"
+            ],
+            "cross_validators": [
+                "@model_validator(mode='after')\ndef validate_rheol_steps(self):\n    if self.ievp == 1 and self.evp_rheol_steps <= 0:\n        raise ValueError('evp_rheol_steps must be positive when ievp is 1')"
+            ]
+        },
+        "mevp_rheol_steps": {
+            "description": "Number of iterations in mEVP rheology model.",
+            "validators": [
+                "@field_validator('mevp_rheol_steps')\n@classmethod\ndef validate_mevp_rheol_steps(cls, v):\n    if not isinstance(v, int) or v <= 0:\n        raise ValueError('mevp_rheol_steps must be a positive integer')\n    return v"
+            ],
+            "cross_validators": [
+                "@model_validator(mode='after')\ndef validate_rheol_steps(self):\n    if self.ievp == 2 and self.mevp_rheol_steps <= 0:\n        raise ValueError('mevp_rheol_steps must be positive when ievp is 2')"
+            ]
+        },
+        "ice_atmos_stress_form": {
+            "description": "Form of atmospheric stress calculation. 0 for constant Cd, 1 for FESOM formulation.",
+            "validators": [
+                "@field_validator('ice_atmos_stress_form')\n@classmethod\ndef validate_ice_atmos_stress_form(cls, v):\n    if not isinstance(v, int) or v not in [0, 1]:\n        raise ValueError('ice_atmos_stress_form must be 0 or 1')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "cdwin0": {
+            "description": "Constant drag coefficient for wind stress, used if ice_atmos_stress_form=0.",
+            "validators": [
+                "@field_validator('cdwin0')\n@classmethod\ndef validate_cdwin0(cls, v):\n    if not isinstance(v, float) or v <= 0:\n        raise ValueError('cdwin0 must be a positive float')\n    return v"
+            ],
+            "cross_validators": [
+                "@model_validator(mode='after')\ndef validate_cdwin0_usage(self):\n    if self.ice_atmos_stress_form == 0 and self.cdwin0 <= 0:\n        raise ValueError('cdwin0 must be positive when ice_atmos_stress_form is 0')"
+            ]
+        },
+        "delta_min": {
+            "description": "Limit for minimum divergence (1/s). Used in both VP and EVP rheology models.",
+            "validators": [
+                "@field_validator('delta_min')\n@classmethod\ndef validate_delta_min(cls, v):\n    if not isinstance(v, float) or v <= 0:\n        raise ValueError('delta_min must be a positive float')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "theta_io": {
+            "description": "Ice/ocean rotation angle in degrees. Usually 0 unless vertical grid is too coarse.",
+            "validators": [
+                "@field_validator('theta_io')\n@classmethod\ndef validate_theta_io(cls, v):\n    if not isinstance(v, float) or v < 0 or v >= 360:\n        raise ValueError('theta_io must be a float between 0 and 360')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "mevp_coef": {
+            "description": "Options for specifying 2 relax coefficients in mEVP. 0 for constant, 1 for variable coefficients.",
+            "validators": [
+                "@field_validator('mevp_coef')\n@classmethod\ndef validate_mevp_coef(cls, v):\n    if not isinstance(v, int) or v not in [0, 1]:\n        raise ValueError('mevp_coef must be 0 or 1')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "mevp_alpha1": {
+            "description": "Constant used in mEVP for constitutive equation if mevp_coef=0.",
+            "validators": [
+                "@field_validator('mevp_alpha1')\n@classmethod\ndef validate_mevp_alpha1(cls, v):\n    if not isinstance(v, float) or v <= 0:\n        raise ValueError('mevp_alpha1 must be a positive float')\n    return v"
+            ],
+            "cross_validators": [
+                "@model_validator(mode='after')\ndef validate_mevp_alpha1_usage(self):\n    if self.mevp_coef == 0 and self.mevp_alpha1 <= 0:\n        raise ValueError('mevp_alpha1 must be positive when mevp_coef is 0')"
+            ]
+        },
+        "mevp_alpha2": {
+            "description": "Constant used in mEVP for momentum equation if mevp_coef=0.",
+            "validators": [
+                "@field_validator('mevp_alpha2')\n@classmethod\ndef validate_mevp_alpha2(cls, v):\n    if not isinstance(v, float) or v <= 0:\n        raise ValueError('mevp_alpha2 must be a positive float')\n    return v"
+            ],
+            "cross_validators": [
+                "@model_validator(mode='after')\ndef validate_mevp_alpha2_usage(self):\n    if self.mevp_coef == 0 and self.mevp_alpha2 <= 0:\n        raise ValueError('mevp_alpha2 must be positive when mevp_coef is 0')"
+            ]
+        },
+        "mevp_alpha3": {
+            "description": "Minimum value for variable coefficients if mevp_coef=1.",
+            "validators": [
+                "@field_validator('mevp_alpha3')\n@classmethod\ndef validate_mevp_alpha3(cls, v):\n    if not isinstance(v, float) or v <= 0:\n        raise ValueError('mevp_alpha3 must be a positive float')\n    return v"
+            ],
+            "cross_validators": [
+                "@model_validator(mode='after')\ndef validate_mevp_alpha3_usage(self):\n    if self.mevp_coef == 1 and self.mevp_alpha3 <= 0:\n        raise ValueError('mevp_alpha3 must be positive when mevp_coef is 1')"
+            ]
+        },
+        "mevp_alpha4": {
+            "description": "Coefficient used in variable coefficient calculation if mevp_coef=1.",
+            "validators": [
+                "@field_validator('mevp_alpha4')\n@classmethod\ndef validate_mevp_alpha4(cls, v):\n    if not isinstance(v, float) or v <= 0:\n        raise ValueError('mevp_alpha4 must be a positive float')\n    return v"
+            ],
+            "cross_validators": [
+                "@model_validator(mode='after')\ndef validate_mevp_alpha4_usage(self):\n    if self.mevp_coef == 1 and self.mevp_alpha4 <= 0:\n        raise ValueError('mevp_alpha4 must be positive when mevp_coef is 1')"
+            ]
+        },
+        "pstar": {
+            "description": "Ice strength parameter [N/m^2].",
+            "validators": [
+                "@field_validator('pstar')\n@classmethod\ndef validate_pstar(cls, v):\n    if not isinstance(v, float) or v <= 0:\n        raise ValueError('pstar must be a positive float')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "ellipse": {
+            "description": "Ellipticity of the yield curve.",
+            "validators": [
+                "@field_validator('ellipse')\n@classmethod\ndef validate_ellipse(cls, v):\n    if not isinstance(v, float) or v <= 1:\n        raise ValueError('ellipse must be a float greater than 1')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "c_pressure": {
+            "description": "Ice concentration parameter C [-].",
+            "validators": [
+                "@field_validator('c_pressure')\n@classmethod\ndef validate_c_pressure(cls, v):\n    if not isinstance(v, float) or v <= 0:\n        raise ValueError('c_pressure must be a positive float')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "ncyc_fct": {
+            "description": "Number of subcycling steps in transport for FCT scheme.",
+            "validators": [
+                "@field_validator('ncyc_fct')\n@classmethod\ndef validate_ncyc_fct(cls, v):\n    if not isinstance(v, int) or v <= 0:\n        raise ValueError('ncyc_fct must be a positive integer')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "niter_fct": {
+            "description": "Number of iterations in higher-order solve for FCT scheme.",
+            "validators": [
+                "@field_validator('niter_fct')\n@classmethod\ndef validate_niter_fct(cls, v):\n    if not isinstance(v, int) or v <= 0:\n        raise ValueError('niter_fct must be a positive integer')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "ice_gamma_fct": {
+            "description": "Smoothing parameter for FCT scheme. 1 for maximum positivity preserving.",
+            "validators": [
+                "@field_validator('ice_gamma_fct')\n@classmethod\ndef validate_ice_gamma_fct(cls, v):\n    if not isinstance(v, float) or v < 0 or v > 1:\n        raise ValueError('ice_gamma_fct must be a float between 0 and 1')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "depth_ice_fct": {
+            "description": "Cut-off depth (m) for non-FCT zone in ice_fct.gr3.",
+            "validators": [
+                "@field_validator('depth_ice_fct')\n@classmethod\ndef validate_depth_ice_fct(cls, v):\n    if not isinstance(v, float) or v <= 0:\n        raise ValueError('depth_ice_fct must be a positive float')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "h_ml0": {
+            "description": "Ocean mixed layer depth [m] for thermodynamics calculations.",
+            "validators": [
+                "@field_validator('h_ml0')\n@classmethod\ndef validate_h_ml0(cls, v):\n    if not isinstance(v, float) or v <= 0:\n        raise ValueError('h_ml0 must be a positive float')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "salt_ice": {
+            "description": "Salinity for ice [PSU] (must be non-negative).",
+            "validators": [
+                "@field_validator('salt_ice')\n@classmethod\ndef validate_salt_ice(cls, v):\n    if not isinstance(v, float) or v < 0:\n        raise ValueError('salt_ice must be a non-negative float')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "salt_water": {
+            "description": "Salinity for water [PSU] (must be non-negative).",
+            "validators": [
+                "@field_validator('salt_water')\n@classmethod\ndef validate_salt_water(cls, v):\n    if not isinstance(v, float) or v < 0:\n        raise ValueError('salt_water must be a non-negative float')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "lead_closing": {
+            "description": "Lead closing parameter [m]. Larger values slow down freezing-up but increase sea ice thickness.",
+            "validators": [
+                "@field_validator('lead_closing')\n@classmethod\ndef validate_lead_closing(cls, v):\n    if not isinstance(v, float) or v <= 0:\n        raise ValueError('lead_closing must be a positive float')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "saterm": {
+            "description": "Semter constant. Smaller values could slow down melting.",
+            "validators": [
+                "@field_validator('saterm')\n@classmethod\ndef validate_saterm(cls, v):\n    if not isinstance(v, float) or v <= 0 or v > 1:\n        raise ValueError('saterm must be a float between 0 and 1')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "albsn": {
+            "description": "Albedo for frozen snow.",
+            "validators": [
+                "@field_validator('albsn')\n@classmethod\ndef validate_albsn(cls, v):\n    if not isinstance(v, float) or v <= 0 or v > 1:\n        raise ValueError('albsn must be a float between 0 and 1')\n    return v"
+            ],
+            "cross_validators": []
+        },
+        "albsnm": {
+            "description": "Albedo for melting snow (must be less than or equal to albsn).",
+            "validators": [
+                "@field_validator('albsnm')\n@classmethod\ndef validate_albsnm(cls, v):\n    if not isinstance(v, float) or v <= 0 or v > 1:\n        raise ValueError('albsnm must be a float between 0 and 1')\n    return v"
+            ],
+            "cross_validators": [
+                "@model_validator(mode='after')\ndef validate_albsnm_relation(self):\n    if self.albsnm > self.albsn:\n        raise ValueError('albsnm must be less than or equal to albsn')"
+            ]
+        },
+        "albi": {
+            "description": "Albedo for frozen ice (must be less than or equal to albsn).",
+            "validators": [
+                "@field_validator('albi')\n@classmethod\ndef validate_albi(cls, v):\n    if not isinstance(v, float) or v <= 0 or v > 1:\n        raise ValueError('albi must be a float between 0 and 1')\n    return v"
+            ],
+            "cross_validators": [
+                "@model_validator(mode='after')\ndef validate_albi_relation(self):\n    if self.albi > self.albsn:\n        raise ValueError('albi must be less than or equal to albsn')"
+            ]
+        },
+        "albm": {
+            "description": "Albedo for melting ice (must be less than or equal to albi).",
+            "validators": [
+                "@field_validator('albm')\n@classmethod\ndef validate_albm(cls, v):\n    if not isinstance(v, float) or v <= 0 or v > 1:\n        raise ValueError('albm must be a float between 0 and 1')\n    return v"
+            ],
+            "cross_validators": [
+                "@model_validator(mode='after')\ndef validate_albm_relation(self):\n    if self.albm > self.albi:\n        raise ValueError('albm must be less than or equal to albi')"
+            ]
+        }
+    }
+}
