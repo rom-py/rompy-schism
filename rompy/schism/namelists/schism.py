@@ -14,8 +14,7 @@ from .icm import Icm
 from .mice import Mice
 from .param import Param
 from .sediment import Sediment
-from .wwminput_spectra import Wwminput as Wwminput_specstra
-from .wwminput_WW3 import Wwminput as Wwminput_ww3
+from .wwminput import Wwminput
 
 logger = logging.getLogger(__name__)
 
@@ -31,10 +30,7 @@ class NML(NamelistBaseModel):
     cosine: Optional[Cosine] = Field(
         description="Sediment model parameters", default=None
     )
-    wmminput_spectra: Optional[Wwminput_specstra] = Field(
-        description="Wave model input parameters", default=None
-    )
-    wwminput_WW3: Optional[Wwminput_ww3] = Field(
+    wmminput: Optional[Wwminput] = Field(
         description="Wave model input parameters", default=None
     )
 
@@ -102,8 +98,7 @@ class NML(NamelistBaseModel):
             "mice",
             "sediment",
             "cosine",
-            "wmminput_spectra",
-            "wwminput_WW3",
+            "wwminput",
         ]:
             attr = getattr(self, nml)
             if attr is not None:

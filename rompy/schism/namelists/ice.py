@@ -1,142 +1,395 @@
-# This file was auto generated from a schism namelist file on 2024-09-06.
+# This file was auto generated from a SCHISM namelist file on 2024-09-13.
 
-from typing import Optional
+from typing import List, Optional
 
-from pydantic import Field
+from pydantic import Field, field_validator, model_validator
 from rompy.schism.namelists.basemodel import NamelistBaseModel
 
 
 class Ice_in(NamelistBaseModel):
-    ice_tests: Optional[int] = Field(None, description="box test flag")
-    ice_advection: Optional[int] = Field(None, description="advection on/off")
-    ice_therm_on: Optional[int] = Field(
-        None, description="ice thermodynamics on/off flag"
+    ice_tests: Optional[int] = Field(
+        0, description="Flag for box test. 0 disables, 1 enables."
     )
-    ievp: Optional[int] = Field(None, description="1: EVP; 2: mEVP")
+    ice_advection: Optional[int] = Field(
+        1, description="Flag to enable/disable ice advection. 1 enables, 0 disables."
+    )
+    ice_therm_on: Optional[int] = Field(
+        1,
+        description="Flag to enable/disable ice thermodynamics. 1 enables, 0 disables.",
+    )
+    ievp: Optional[int] = Field(
+        2,
+        description="Selects the rheology model. 1 for EVP (Elastic-Viscous-Plastic), 2 for mEVP (modified EVP).",
+    )
     ice_cutoff: Optional[str] = Field(
-        None,
-        description="cut-off thickness [m] or fraction for ice. No ice velocity if *<=ice_cuttoff",
+        "1.e-3",
+        description="Cut-off thickness [m] or fraction for ice. No ice velocity if ice thickness is less than or equal to ice_cutoff.",
     )
     evp_rheol_steps: Optional[int] = Field(
-        None, description="the number of sybcycling steps in EVP"
+        200, description="Number of subcycling steps in EVP rheology model."
     )
     mevp_rheol_steps: Optional[int] = Field(
-        None, description="the number of iterations in mEVP"
+        200, description="Number of iterations in mEVP rheology model."
     )
-    ice_atmos_stress_form: Optional[int] = Field(None, description="")
+    ice_atmos_stress_form: Optional[int] = Field(
+        1,
+        description="Form of atmospheric stress calculation. 0 for constant Cd, 1 for FESOM formulation.",
+    )
     cdwin0: Optional[str] = Field(
-        None, description="needed if ice_atmos_stress_form=0 (const Cdw)"
+        "2.e-3",
+        description="Constant drag coefficient for wind stress, used if ice_atmos_stress_form=0.",
     )
     delta_min: Optional[str] = Field(
-        None, description="(1/s) Limit for minimum divergence (Hibler, Hunke"
+        "2.0e-9",
+        description="Limit for minimum divergence (1/s). Used in both VP and EVP rheology models.",
     )
     theta_io: Optional[float] = Field(
-        None,
-        description="ice/ocean rotation angle. [degr]. Usually 0 unless vgrid is too coarse",
+        0.0,
+        description="Ice/ocean rotation angle in degrees. Usually 0 unless vertical grid is too coarse.",
     )
-    mevp_coef: Optional[int] = Field(None, description="")
+    mevp_coef: Optional[int] = Field(
+        0,
+        description="Options for specifying 2 relax coefficients in mEVP. 0 for constant, 1 for variable coefficients.",
+    )
     mevp_alpha1: Optional[float] = Field(
-        None, description="const used in mEVP (constitutive eq), if mevp_coef=0"
+        200.0,
+        description="Constant used in mEVP for constitutive equation if mevp_coef=0.",
     )
     mevp_alpha2: Optional[float] = Field(
-        None, description="const used in mEVP for momentum eq, if mevp_coef=0"
+        200.0, description="Constant used in mEVP for momentum equation if mevp_coef=0."
     )
-    mevp_alpha3: Optional[float] = Field(None, description="if mevp_coef=1")
-    mevp_alpha4: Optional[str] = Field(None, description="if mevp_coef=1")
-    pstar: Optional[float] = Field(None, description="[N/m^2]")
-    ellipse: Optional[float] = Field(None, description="ellipticity")
-    c_pressure: Optional[float] = Field(None, description="C [-]")
-    ncyc_fct: Optional[int] = Field(None, description="# of subcycling in transport")
+    mevp_alpha3: Optional[float] = Field(
+        200.0, description="Minimum value for variable coefficients if mevp_coef=1."
+    )
+    mevp_alpha4: Optional[str] = Field(
+        "2.e-2",
+        description="Coefficient used in variable coefficient calculation if mevp_coef=1.",
+    )
+    pstar: Optional[float] = Field(
+        15000.0, description="Ice strength parameter [N/m^2]."
+    )
+    ellipse: Optional[float] = Field(2.0, description="Ellipticity of the yield curve.")
+    c_pressure: Optional[float] = Field(
+        20.0, description="Ice concentration parameter C [-]."
+    )
+    ncyc_fct: Optional[int] = Field(
+        1, description="Number of subcycling steps in transport for FCT scheme."
+    )
     niter_fct: Optional[int] = Field(
-        None, description="# of iterartions in higher-order solve"
+        3, description="Number of iterations in higher-order solve for FCT scheme."
     )
     ice_gamma_fct: Optional[float] = Field(
-        None, description="smoothing parameter; 1 for max positivity preserving"
+        0.25,
+        description="Smoothing parameter for FCT scheme. 1 for maximum positivity preserving.",
     )
     depth_ice_fct: Optional[float] = Field(
-        None, description="cut off depth (m) for non-FCT"
+        5.0, description="Cut-off depth (m) for non-FCT zone in ice_fct.gr3."
     )
-    h_ml0: Optional[float] = Field(None, description="ocean mixed layer depth [m]")
-    salt_ice: Optional[float] = Field(None, description="salinity for ice [PSU] (>=0)")
+    h_ml0: Optional[float] = Field(
+        0.1, description="Ocean mixed layer depth [m] for thermodynamics calculations."
+    )
+    salt_ice: Optional[float] = Field(
+        5.0, description="Salinity for ice [PSU] (must be non-negative)."
+    )
     salt_water: Optional[float] = Field(
-        None, description="salinity for water [PSU] (>=0)"
+        34.0, description="Salinity for water [PSU] (must be non-negative)."
     )
     lead_closing: Optional[float] = Field(
-        None,
-        description="lead closing parameter [m] - larger values slow down freezing-up but increase sea ice thickness",
+        0.5,
+        description="Lead closing parameter [m]. Larger values slow down freezing-up but increase sea ice thickness.",
     )
-    saterm: Optional[float] = Field(
-        None, description="Semter const -smaller value could slow down melting"
+    Saterm: Optional[float] = Field(
+        0.5, description="Semter const -smaller value could slow down melting"
     )
-    albsn: Optional[float] = Field(None, description="Albedo: frozen snow")
-    albsnm: Optional[float] = Field(None, description="melting snow (<=albsn)")
-    albi: Optional[float] = Field(None, description="frozen ice (<=albsn)")
-    albm: Optional[float] = Field(None, description="melting ice (<=albi)")
+    albsn: Optional[float] = Field(0.85, description="Albedo for frozen snow.")
+    albsnm: Optional[float] = Field(
+        0.75,
+        description="Albedo for melting snow (must be less than or equal to albsn).",
+    )
+    albi: Optional[float] = Field(
+        0.75, description="Albedo for frozen ice (must be less than or equal to albsn)."
+    )
+    albm: Optional[float] = Field(
+        0.66, description="Albedo for melting ice (must be less than or equal to albi)."
+    )
+
+    @field_validator("ice_tests")
+    @classmethod
+    def validate_ice_tests(cls, v):
+        if not isinstance(v, int) or v not in [0, 1]:
+            raise ValueError("ice_tests must be 0 or 1")
+        return v
+
+    @field_validator("ice_advection")
+    @classmethod
+    def validate_ice_advection(cls, v):
+        if not isinstance(v, int) or v not in [0, 1]:
+            raise ValueError("ice_advection must be 0 or 1")
+        return v
+
+    @field_validator("ice_therm_on")
+    @classmethod
+    def validate_ice_therm_on(cls, v):
+        if not isinstance(v, int) or v not in [0, 1]:
+            raise ValueError("ice_therm_on must be 0 or 1")
+        return v
+
+    @field_validator("ievp")
+    @classmethod
+    def validate_ievp(cls, v):
+        if not isinstance(v, int) or v not in [1, 2]:
+            raise ValueError("ievp must be 1 or 2")
+        return v
+
+    @field_validator("ice_cutoff")
+    @classmethod
+    def validate_ice_cutoff(cls, v):
+        if not isinstance(v, float) or v <= 0:
+            raise ValueError("ice_cutoff must be a positive float")
+        return v
+
+    @field_validator("evp_rheol_steps")
+    @classmethod
+    def validate_evp_rheol_steps(cls, v):
+        if not isinstance(v, int) or v <= 0:
+            raise ValueError("evp_rheol_steps must be a positive integer")
+        return v
+
+    @field_validator("mevp_rheol_steps")
+    @classmethod
+    def validate_mevp_rheol_steps(cls, v):
+        if not isinstance(v, int) or v <= 0:
+            raise ValueError("mevp_rheol_steps must be a positive integer")
+        return v
+
+    @field_validator("ice_atmos_stress_form")
+    @classmethod
+    def validate_ice_atmos_stress_form(cls, v):
+        if not isinstance(v, int) or v not in [0, 1]:
+            raise ValueError("ice_atmos_stress_form must be 0 or 1")
+        return v
+
+    @field_validator("cdwin0")
+    @classmethod
+    def validate_cdwin0(cls, v):
+        if not isinstance(v, float) or v <= 0:
+            raise ValueError("cdwin0 must be a positive float")
+        return v
+
+    @field_validator("delta_min")
+    @classmethod
+    def validate_delta_min(cls, v):
+        if not isinstance(v, float) or v <= 0:
+            raise ValueError("delta_min must be a positive float")
+        return v
+
+    @field_validator("theta_io")
+    @classmethod
+    def validate_theta_io(cls, v):
+        if not isinstance(v, float) or v < 0 or v >= 360:
+            raise ValueError("theta_io must be a float between 0 and 360")
+        return v
+
+    @field_validator("mevp_coef")
+    @classmethod
+    def validate_mevp_coef(cls, v):
+        if not isinstance(v, int) or v not in [0, 1]:
+            raise ValueError("mevp_coef must be 0 or 1")
+        return v
+
+    @field_validator("mevp_alpha1")
+    @classmethod
+    def validate_mevp_alpha1(cls, v):
+        if not isinstance(v, float) or v <= 0:
+            raise ValueError("mevp_alpha1 must be a positive float")
+        return v
+
+    @field_validator("mevp_alpha2")
+    @classmethod
+    def validate_mevp_alpha2(cls, v):
+        if not isinstance(v, float) or v <= 0:
+            raise ValueError("mevp_alpha2 must be a positive float")
+        return v
+
+    @field_validator("mevp_alpha3")
+    @classmethod
+    def validate_mevp_alpha3(cls, v):
+        if not isinstance(v, float) or v <= 0:
+            raise ValueError("mevp_alpha3 must be a positive float")
+        return v
+
+    @field_validator("mevp_alpha4")
+    @classmethod
+    def validate_mevp_alpha4(cls, v):
+        if not isinstance(v, float) or v <= 0:
+            raise ValueError("mevp_alpha4 must be a positive float")
+        return v
+
+    @field_validator("pstar")
+    @classmethod
+    def validate_pstar(cls, v):
+        if not isinstance(v, float) or v <= 0:
+            raise ValueError("pstar must be a positive float")
+        return v
+
+    @field_validator("ellipse")
+    @classmethod
+    def validate_ellipse(cls, v):
+        if not isinstance(v, float) or v <= 1:
+            raise ValueError("ellipse must be a float greater than 1")
+        return v
+
+    @field_validator("c_pressure")
+    @classmethod
+    def validate_c_pressure(cls, v):
+        if not isinstance(v, float) or v <= 0:
+            raise ValueError("c_pressure must be a positive float")
+        return v
+
+    @field_validator("ncyc_fct")
+    @classmethod
+    def validate_ncyc_fct(cls, v):
+        if not isinstance(v, int) or v <= 0:
+            raise ValueError("ncyc_fct must be a positive integer")
+        return v
+
+    @field_validator("niter_fct")
+    @classmethod
+    def validate_niter_fct(cls, v):
+        if not isinstance(v, int) or v <= 0:
+            raise ValueError("niter_fct must be a positive integer")
+        return v
+
+    @field_validator("ice_gamma_fct")
+    @classmethod
+    def validate_ice_gamma_fct(cls, v):
+        if not isinstance(v, float) or v < 0 or v > 1:
+            raise ValueError("ice_gamma_fct must be a float between 0 and 1")
+        return v
+
+    @field_validator("depth_ice_fct")
+    @classmethod
+    def validate_depth_ice_fct(cls, v):
+        if not isinstance(v, float) or v <= 0:
+            raise ValueError("depth_ice_fct must be a positive float")
+        return v
+
+    @field_validator("h_ml0")
+    @classmethod
+    def validate_h_ml0(cls, v):
+        if not isinstance(v, float) or v <= 0:
+            raise ValueError("h_ml0 must be a positive float")
+        return v
+
+    @field_validator("salt_ice")
+    @classmethod
+    def validate_salt_ice(cls, v):
+        if not isinstance(v, float) or v < 0:
+            raise ValueError("salt_ice must be a non-negative float")
+        return v
+
+    @field_validator("salt_water")
+    @classmethod
+    def validate_salt_water(cls, v):
+        if not isinstance(v, float) or v < 0:
+            raise ValueError("salt_water must be a non-negative float")
+        return v
+
+    @field_validator("lead_closing")
+    @classmethod
+    def validate_lead_closing(cls, v):
+        if not isinstance(v, float) or v <= 0:
+            raise ValueError("lead_closing must be a positive float")
+        return v
+
+    @field_validator("albsn")
+    @classmethod
+    def validate_albsn(cls, v):
+        if not isinstance(v, float) or v <= 0 or v > 1:
+            raise ValueError("albsn must be a float between 0 and 1")
+        return v
+
+    @field_validator("albsnm")
+    @classmethod
+    def validate_albsnm(cls, v):
+        if not isinstance(v, float) or v <= 0 or v > 1:
+            raise ValueError("albsnm must be a float between 0 and 1")
+        return v
+
+    @field_validator("albi")
+    @classmethod
+    def validate_albi(cls, v):
+        if not isinstance(v, float) or v <= 0 or v > 1:
+            raise ValueError("albi must be a float between 0 and 1")
+        return v
+
+    @field_validator("albm")
+    @classmethod
+    def validate_albm(cls, v):
+        if not isinstance(v, float) or v <= 0 or v > 1:
+            raise ValueError("albm must be a float between 0 and 1")
+        return v
+
+    @model_validator(mode="after")
+    def validate_rheol_steps(self):
+        if self.ievp == 1 and self.evp_rheol_steps <= 0:
+            raise ValueError("evp_rheol_steps must be positive when ievp is 1")
+        return self
+
+    @model_validator(mode="after")
+    def validate_rheol_steps(self):
+        if self.ievp == 2 and self.mevp_rheol_steps <= 0:
+            raise ValueError("mevp_rheol_steps must be positive when ievp is 2")
+        return self
+
+    @model_validator(mode="after")
+    def validate_cdwin0_usage(self):
+        if self.ice_atmos_stress_form == 0 and self.cdwin0 <= 0:
+            raise ValueError("cdwin0 must be positive when ice_atmos_stress_form is 0")
+        return self
+
+    @model_validator(mode="after")
+    def validate_mevp_alpha1_usage(self):
+        if self.mevp_coef == 0 and self.mevp_alpha1 <= 0:
+            raise ValueError("mevp_alpha1 must be positive when mevp_coef is 0")
+        return self
+
+    @model_validator(mode="after")
+    def validate_mevp_alpha2_usage(self):
+        if self.mevp_coef == 0 and self.mevp_alpha2 <= 0:
+            raise ValueError("mevp_alpha2 must be positive when mevp_coef is 0")
+        return self
+
+    @model_validator(mode="after")
+    def validate_mevp_alpha3_usage(self):
+        if self.mevp_coef == 1 and self.mevp_alpha3 <= 0:
+            raise ValueError("mevp_alpha3 must be positive when mevp_coef is 1")
+        return self
+
+    @model_validator(mode="after")
+    def validate_mevp_alpha4_usage(self):
+        if self.mevp_coef == 1 and self.mevp_alpha4 <= 0:
+            raise ValueError("mevp_alpha4 must be positive when mevp_coef is 1")
+        return self
+
+    @model_validator(mode="after")
+    def validate_albsnm_relation(self):
+        if self.albsnm > self.albsn:
+            raise ValueError("albsnm must be less than or equal to albsn")
+        return self
+
+    @model_validator(mode="after")
+    def validate_albi_relation(self):
+        if self.albi > self.albsn:
+            raise ValueError("albi must be less than or equal to albsn")
+        return self
+
+    @model_validator(mode="after")
+    def validate_albm_relation(self):
+        if self.albm > self.albi:
+            raise ValueError("albm must be less than or equal to albi")
+        return self
 
 
 class Ice(NamelistBaseModel):
-    """
-
-    The full contents of the namelist file are shown below providing
-    associated documentation for the objects:
-
-    !parameter inputs via namelist convention.
-    !(1)Use '' for chars; (2) integer values are fine for real vars/arrays;
-    !(3) if multiple entries for a parameter are found, the last one wins - please avoid this
-    !(4) array inputs follow column major and can spill to multiple lines
-    !(5) space allowed before/after '='
-    !(6) Not all required variables need to be present, but all that are present must belong to the list below. Best to list _all_ parameters.
-
-    &ice_in
-      !All values shown are default unless otherwise stated
-      ice_tests = 0  !box test flag
-      ice_advection = 1 !advection on/off
-      ice_therm_on = 1 !ice thermodynamics on/off flag
-      ievp=2 !1: EVP; 2: mEVP
-      ice_cutoff=1.e-3 !cut-off thickness [m] or fraction for ice. No ice velocity if *<=ice_cuttoff
-      evp_rheol_steps=200  ! the number of sybcycling steps in EVP
-      mevp_rheol_steps=200  ! the number of iterations in mEVP
-      !ice_atmos_stress_form: 0-const Cd; 1: FESOM formulation
-      ice_atmos_stress_form=1
-      cdwin0=2.e-3 !needed if ice_atmos_stress_form=0 (const Cdw)
-
-      delta_min=2.0e-9     ! (1/s) Limit for minimum divergence (Hibler, Hunke
-                           ! normally use 2.0e-9, which does much stronger
-                           ! limiting; valid for both VP and EVP
-      theta_io=0.       ! ice/ocean rotation angle. [degr]. Usually 0 unless vgrid is too coarse
-
-      !Options for specifying 2 relax coefficients in mEVP only (mevp_coef)
-      !0: constant (mevp_alpha[12] below); 1: both coefficients equal to: mevp_alpha3/tanh(mevp_alpha4*area/dt_ice)
-      !In this case, mevp_alpha3 is the min, and at the finer end of mesh, the coeff's are approximately ~mevp_alpha4^-1
-      mevp_coef=0
-      mevp_alpha1=200. !const used in mEVP (constitutive eq), if mevp_coef=0
-      mevp_alpha2=200. !const used in mEVP for momentum eq, if mevp_coef=0
-      mevp_alpha3=200. !if mevp_coef=1
-      mevp_alpha4=2.e-2 !if mevp_coef=1
-
-      pstar=15000. ![N/m^2]
-      ellipse=2.  !ellipticity
-      c_pressure=20.0  !C [-]
-
-      !FCT
-      ncyc_fct=1 !# of subcycling in transport
-      niter_fct=3 !# of iterartions in higher-order solve
-      ice_gamma_fct=0.25 ! smoothing parameter; 1 for max positivity preserving
-      !non-FCT zone is delineated by h<=depth_ice_fct OR depth=0 in ice_fct.gr3
-      depth_ice_fct=5. !cut off depth (m) for non-FCT
-
-      !Thermodynamics
-      h_ml0=0.1 !ocean mixed layer depth [m]
-      salt_ice=5. !salinity for ice [PSU] (>=0)
-      salt_water=34. !salinity for water [PSU] (>=0)
-      lead_closing=0.5 !lead closing parameter [m] - larger values slow down freezing-up but increase sea ice thickness
-      Saterm=0.5 !Semter const -smaller value could slow down melting
-      albsn=0.85 !Albedo: frozen snow
-      albsnm=0.75  !melting snow (<=albsn)
-      albi=0.75  !frozen ice (<=albsn)
-      albm=0.66  !melting ice (<=albi)
-    /
-
-    """
-
-    ice_in: Optional[Ice_in] = Field(default=None)
+    ice_in: Optional[Ice_in] = Field(default_factory=Ice_in)

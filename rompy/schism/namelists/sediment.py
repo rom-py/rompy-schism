@@ -1,476 +1,209 @@
-# This file was auto generated from a schism namelist file on 2024-09-06.
+# This file was auto generated from a SCHISM namelist file on 2024-09-13.
 
-from typing import Optional
+from typing import List, Optional
 
-from pydantic import Field
+from pydantic import Field, field_validator, model_validator
 from rompy.schism.namelists.basemodel import NamelistBaseModel
 
 
 class Sed_core(NamelistBaseModel):
-    sd50: Optional[list] = Field(None, description="")
-    erate: Optional[list] = Field(None, description="ierosion=0")
+    Sd50: Optional[list] = Field(
+        ["0.12d0", "0.18d0", "0.39d0", "0.60d0", "1.2d0"], description=""
+    )
+    Erate: Optional[list] = Field(
+        ["1.6d-3", "1.6d-3", "1.6d-3", "1.6d-3", "1.6d-3"], description="ierosion=0"
+    )
+
+    @model_validator(mode="after")
+    def validate_erate_length(self):
+        if len(self.erate) != len(self.sd50):
+            raise ValueError("Erate and Sd50 must have the same number of elements")
+        return self
 
 
 class Sed_opt(NamelistBaseModel):
-    isedtype: Optional[list] = Field(None, description="5 classes")
-    srho: Optional[list] = Field(None, description="")
-    comp_ws: Optional[int] = Field(None, description="")
-    comp_tauce: Optional[int] = Field(None, description="")
-    wsed: Optional[list] = Field(None, description="")
-    tau_ce: Optional[list] = Field(None, description="")
-    sed_debug: Optional[int] = Field(None, description="")
-    ised_dump: Optional[int] = Field(None, description="")
-    bedload: Optional[int] = Field(None, description="")
-    bedload_filter: Optional[int] = Field(None, description="")
-    bedload_limiter: Optional[int] = Field(None, description="")
-    suspended_load: Optional[int] = Field(None, description="")
-    iasym: Optional[int] = Field(None, description="")
-    w_asym_max: Optional[str] = Field(None, description="")
-    elfrink_filter: Optional[int] = Field(None, description="")
-    ech_uorb: Optional[int] = Field(None, description="")
-    bedload_acc: Optional[int] = Field(None, description="")
-    bedload_acc_filter: Optional[int] = Field(None, description="")
-    kacc_hoe: Optional[str] = Field(None, description="")
-    kacc_dub: Optional[str] = Field(None, description="")
-    thresh_acc_opt: Optional[int] = Field(None, description="")
-    acrit: Optional[str] = Field(None, description="")
-    tau_option: Optional[int] = Field(None, description="")
-    tau_max: Optional[str] = Field(None, description="[Pa]")
-    zstress: Optional[str] = Field(None, description="[m]; only used if tau_option/=1")
-    ierosion: Optional[int] = Field(None, description="")
-    slope_formulation: Optional[int] = Field(None, description="")
+    iSedtype: Optional[list] = Field([1, 1, 1, 1, 1], description="5 classes")
+    Srho: Optional[list] = Field(
+        ["2650.0d0", "2650.0d0", "2650.0d0", "2650.0d0", "2650.0d0"], description=""
+    )
+    comp_ws: Optional[int] = Field(
+        0,
+        description="Flag to enable/disable computation of sediment settling velocity. 0: Disabled (user-defined), 1: Enabled (computed from SAND_SD50 and SAND_SRHO)",
+    )
+    comp_tauce: Optional[int] = Field(
+        0,
+        description="Flag to enable/disable computation of sediment critical shear stress. 0: Disabled (user-defined), 1: Enabled (computed from SAND_SD50 and SAND_SRHO)",
+    )
+    Wsed: Optional[list] = Field(
+        ["1.06d0", "3.92d0", "5.43d0", "10.19d0", "28.65d0"], description=""
+    )
+    tau_ce: Optional[list] = Field(
+        ["0.15d0", "0.17d0", "0.23d0", "0.3d0", "0.6d0"],
+        description="Critical shear stress for erosion (Pa) for each sediment class",
+    )
+    sed_debug: Optional[int] = Field(
+        0,
+        description="Debug flag. 0: silent, 1: output variables to outputs/nonfatal_*",
+    )
+    ised_dump: Optional[int] = Field(
+        0, description="Dumping/dredging option. 0: no, 1: needs input sed_dump.in"
+    )
+    bedload: Optional[int] = Field(
+        1,
+        description="Bedload transport formula. 0: Disabled, 1: van Rijn (2007), 3: Soulsby and Damgaard (2005), 4: Wu and Lin (2014)",
+    )
+    bedload_filter: Optional[int] = Field(
+        0,
+        description="Flag to enable/disable diffusive filter for bedload fluxes. 0: Disabled, 1: Enabled",
+    )
+    bedload_limiter: Optional[int] = Field(
+        0,
+        description="Flag to enable/disable limiting of bedload flux components. 0: Disabled, 1: Enabled",
+    )
+    suspended_load: Optional[int] = Field(
+        1,
+        description="Flag to enable/disable suspended load transport. 0: Disabled, 1: Enabled",
+    )
+    iasym: Optional[int] = Field(0, description="")
+    w_asym_max: Optional[str] = Field("0.4d0", description="")
+    elfrink_filter: Optional[int] = Field(0, description="")
+    ech_uorb: Optional[int] = Field(200, description="")
+    bedload_acc: Optional[int] = Field(0, description="")
+    bedload_acc_filter: Optional[int] = Field(0, description="")
+    kacc_hoe: Optional[str] = Field("1.4d-4", description="")
+    kacc_dub: Optional[str] = Field("0.631d-4", description="")
+    thresh_acc_opt: Optional[int] = Field(2, description="")
+    acrit: Optional[str] = Field("0.2d0", description="")
+    tau_option: Optional[int] = Field(1, description="")
+    tau_max: Optional[str] = Field("10.0d0", description="[Pa]")
+    zstress: Optional[str] = Field(
+        "0.2d0", description="[m]; only used if tau_option/=1"
+    )
+    ierosion: Optional[int] = Field(0, description="")
+    slope_formulation: Optional[int] = Field(4, description="")
     alpha_bs: Optional[str] = Field(
-        None, description="only used if slope_formulation=4"
+        "1.0d0", description="only used if slope_formulation=4"
     )
     alpha_bn: Optional[str] = Field(
-        None, description="only used if slope_formulation=4"
+        "1.5d0", description="only used if slope_formulation=4"
     )
-    ised_bc_bot: Optional[int] = Field(None, description="")
-    alphd: Optional[float] = Field(None, description="")
-    refht: Optional[float] = Field(None, description="suggested value: 0.75;")
-    tbp: Optional[float] = Field(None, description="suggested value: 100;")
-    im_pick_up: Optional[int] = Field(None, description="")
-    sed_morph: Optional[int] = Field(None, description="")
-    sed_morph_time: Optional[str] = Field(None, description="")
-    morph_fac: Optional[str] = Field(None, description="for all classes")
-    drag_formulation: Optional[int] = Field(None, description="")
-    ddensed: Optional[int] = Field(None, description="")
-    bedforms_rough: Optional[int] = Field(None, description="")
-    iwave_ripple: Optional[int] = Field(None, description="")
-    irough_bdld: Optional[int] = Field(None, description="")
-    slope_avalanching: Optional[int] = Field(None, description="")
-    dry_slope_cr: Optional[float] = Field(None, description="")
-    wet_slope_cr: Optional[float] = Field(None, description="")
-    bedmass_filter: Optional[int] = Field(None, description="")
-    bedmass_threshold: Optional[float] = Field(None, description="")
-    bdldiffu: Optional[float] = Field(None, description="")
-    bedload_coeff: Optional[str] = Field(None, description="")
-    cdb_min: Optional[str] = Field(None, description="")
-    cdb_max: Optional[float] = Field(None, description="")
-    actv_max: Optional[str] = Field(None, description="")
-    nbed: Optional[int] = Field(None, description="")
-    sedlay_ini_opt: Optional[int] = Field(None, description="")
-    toplay_inithick: Optional[str] = Field(None, description="")
-    newlayer_thick: Optional[str] = Field(None, description="")
-    imeth_bed_evol: Optional[int] = Field(None, description="")
-    poro_option: Optional[int] = Field(None, description="")
-    porosity: Optional[float] = Field(None, description="")
-    awooster: Optional[float] = Field(None, description="")
-    bwooster: Optional[float] = Field(None, description="")
+    ised_bc_bot: Optional[int] = Field(1, description="")
+    alphd: Optional[float] = Field(1.0, description="")
+    refht: Optional[float] = Field(0.75, description="suggested value: 0.75;")
+    Tbp: Optional[float] = Field(100.0, description="suggested value: 100;")
+    im_pick_up: Optional[int] = Field(4, description="")
+    sed_morph: Optional[int] = Field(0, description="")
+    sed_morph_time: Optional[str] = Field("1.d0", description="")
+    morph_fac: Optional[str] = Field("1.0d0", description="for all classes")
+    drag_formulation: Optional[int] = Field(1, description="")
+    ddensed: Optional[int] = Field(0, description="")
+    bedforms_rough: Optional[int] = Field(0, description="")
+    iwave_ripple: Optional[int] = Field(1, description="")
+    irough_bdld: Optional[int] = Field(1, description="")
+    slope_avalanching: Optional[int] = Field(1, description="")
+    dry_slope_cr: Optional[float] = Field(1.0, description="")
+    wet_slope_cr: Optional[float] = Field(0.3, description="")
+    bedmass_filter: Optional[int] = Field(0, description="")
+    bedmass_threshold: Optional[float] = Field(0.025, description="")
+    bdldiffu: Optional[float] = Field(0.5, description="")
+    bedload_coeff: Optional[str] = Field("1.0d0", description="")
+    Cdb_min: Optional[str] = Field("1.d-6", description="")
+    Cdb_max: Optional[float] = Field(0.01, description="")
+    actv_max: Optional[str] = Field("0.05d0", description="")
+    Nbed: Optional[int] = Field(1, description="")
+    sedlay_ini_opt: Optional[int] = Field(0, description="")
+    toplay_inithick: Optional[str] = Field("10.0d-2", description="")
+    newlayer_thick: Optional[str] = Field("0.001d0", description="")
+    imeth_bed_evol: Optional[int] = Field(2, description="")
+    poro_option: Optional[int] = Field(1, description="")
+    porosity: Optional[float] = Field(0.4, description="")
+    Awooster: Optional[float] = Field(0.42, description="")
+    Bwooster: Optional[float] = Field(-0.458, description="")
+
+    @field_validator("comp_ws")
+    @classmethod
+    def validate_comp_ws(cls, v):
+        if v not in [0, 1]:
+            raise ValueError("comp_ws must be 0 or 1")
+        return v
+
+    @field_validator("comp_tauce")
+    @classmethod
+    def validate_comp_tauce(cls, v):
+        if v not in [0, 1]:
+            raise ValueError("comp_tauce must be 0 or 1")
+        return v
+
+    @field_validator("tau_ce")
+    @classmethod
+    def validate_tau_ce(cls, v):
+        if any(x < 0 for x in v):
+            raise ValueError("tau_ce values must be non-negative")
+        return v
+
+    @field_validator("sed_debug")
+    @classmethod
+    def validate_sed_debug(cls, v):
+        if v not in [0, 1]:
+            raise ValueError("sed_debug must be 0 or 1")
+        return v
+
+    @field_validator("ised_dump")
+    @classmethod
+    def validate_ised_dump(cls, v):
+        if v not in [0, 1]:
+            raise ValueError("ised_dump must be 0 or 1")
+        return v
+
+    @field_validator("bedload")
+    @classmethod
+    def validate_bedload(cls, v):
+        if v not in [0, 1, 3, 4]:
+            raise ValueError("bedload must be 0, 1, 3, or 4")
+        return v
+
+    @field_validator("bedload_filter")
+    @classmethod
+    def validate_bedload_filter(cls, v):
+        if v not in [0, 1]:
+            raise ValueError("bedload_filter must be 0 or 1")
+        return v
+
+    @field_validator("bedload_limiter")
+    @classmethod
+    def validate_bedload_limiter(cls, v):
+        if v not in [0, 1]:
+            raise ValueError("bedload_limiter must be 0 or 1")
+        return v
+
+    @field_validator("suspended_load")
+    @classmethod
+    def validate_suspended_load(cls, v):
+        if v not in [0, 1]:
+            raise ValueError("suspended_load must be 0 or 1")
+        return v
+
+    @model_validator(mode="after")
+    def check_wsed_comp_ws(self):
+        if self.comp_ws == 1 and any(
+            self.isedtype[i] == 1 for i in range(len(self.isedtype))
+        ):
+            print(
+                "Warning: wsed values will be overwritten for SAND-like classes when comp_ws=1"
+            )
+        return self
+
+    @model_validator(mode="after")
+    def check_tau_ce_comp_tauce(self):
+        if self.comp_tauce == 1 and any(
+            self.isedtype[i] == 1 for i in range(len(self.isedtype))
+        ):
+            print(
+                "Warning: tau_ce values will be overwritten for SAND-like classes when comp_tauce=1"
+            )
+        return self
 
 
 class Sediment(NamelistBaseModel):
-    """
-
-    The full contents of the namelist file are shown below providing
-    associated documentation for the objects:
-
-    !  Non-cohesive Sediment Model Parameters.
-    !! May 2020                                                        !
-
-    !Core parameters
-    &SED_CORE
-    !- D50 MEDIAN SEDIMENT GRAIN DIAMETER (mm) - [1:Ntracers] ---------------------
-    !------------------------------------------------------------------------------
-    Sd50 = 0.12d0, 0.18d0, 0.39d0, 0.60d0, 1.2d0
-
-    !- SURFACE EROSION RATE, E0 - [1:Ntracers] --------------------------
-    !  If ierosion=0, dimension is kg/m/m/s
-    !  If ierosion=1, dimension is s/m (see M_E of Table 1 of Winterwerp et al. 2012, JGR, vol 117)
-    !------------------------------------------------------------------------------
-    Erate = 1.6d-3, 1.6d-3, 1.6d-3, 1.6d-3, 1.6d-3 !ierosion=0
-    !Erate = 1.d-4, 1.d-4, 1.d-4, 1.d-4, 1.d-4 !ierosion=1
-    /
-
-    !Optional parameters shown below are default values unless otherwise stated
-    &SED_OPT
-    !==============================================================================
-    !-               SEDIMENT CHARACTERISTICS FOR EACH CLASS                      -
-    !-             IN THIS SECTION [1:Ntracers] values expected                   -
-    !==============================================================================
-    !- SEDIMENT TYPE - [1:Ntracers] -----------------------------------------------
-    !- Use to distinguish different sediment behavior:
-    !- 0 = MUD-like : transport only in suspension, no bedload transport
-    !- 1 = SAND-like: suspension + bedload with Van Rijn formulations (with limits
-    !-                on grain size: 0.05 <= D50 < 2.0 mm)
-    !- 2 = GRAVEL-like: NOT AVAILABLE NOW (only bedload transport expected)
-    !-
-    !- IMPORTANT NOTE: if the computation of settling velocity or of critical bed
-    !- shear stress are activated (comp_ws=1 or comp_tauce=1), computed values
-    !-  will only be applied to SAND-like classes (SED_TYPE=1). For other types
-    !- (MUD-like or GRAVEL-like) user-defined values (defined below) will be
-    !- applied.
-    !------------------------------------------------------------------------------
-    iSedtype= 1, 1, 1, 1, 1 !5 classes
-
-    !- SEDIMENT GRAIN DENSITY (kg/m3) - [1:Ntracers] ------------------------------
-    !------------------------------------------------------------------------------
-    Srho = 2650.0d0, 2650.0d0, 2650.0d0, 2650.0d0, 2650.0d0
-
-    !- COMPUTATION OF SEDIMENT SETTLING VELOCITY ----------------------------------
-    !- (Soulsby, 1997)
-    !- 0 = Disabled (user-defined settling velocity)
-    !- 1 = Enabled (Computed from SAND_SD50 and SAND_SRHO)
-    !------------------------------------------------------------------------------
-    comp_ws = 0
-
-    !- COMPUTATION OF SEDIMENT CRITICAL SHEAR STRESS ------------------------------
-    !- (Soulsby, 1997), from critical Shields parameter
-    !- 0 = Disabled (user defined)
-    !- 1 = Enabled (Computed from SAND_SD50 and SAND_SRHO)
-    !------------------------------------------------------------------------------
-    comp_tauce = 0
-
-    !- PATICLES SETTLING VELOCITY (mm/s) - [1:Ntracers] ---------------------------
-    ! These will be overwritten if comp_ws=1 & Sedtype(i)=1  (so in that case you can
-    ! comment this line out)
-    !------------------------------------------------------------------------------
-    Wsed = 1.06d0, 3.92d0, 5.43d0, 10.19d0, 28.65d0
-
-    !- CRITICAL SHEAR STRESS FOR EROSION (Pa) - [1:Ntracers] -----
-    !  These will be overwritten if comp_tauce=1 and Sedtype(i)=1 (so in that case you can
-    ! comment this line out)
-    !------------------------------------------------------------------------------
-    tau_ce = 0.15d0, 0.17d0, 0.23d0, 0.3d0, 0.6d0
-
-
-    !- DEBUG ----------------------------------------------------------------------
-    !- 0 = silent
-    !- 1 = will output lots of variables to outputs/nonfatal_*
-    !------------------------------------------------------------------------------
-    sed_debug = 0
-
-    !- Dumping/dredging option
-    !- 0: no; 1: needs input sed_dump.in
-    ised_dump = 0
-
-    !- BEDLOAD --------------------------------------------------------------------
-    !- 0 = Disabled
-    !- 1 = van rijn (2007)
-    !- 2 = Meyer-Peter and Mueller (1948) - not active
-    !- 3 = Soulsby and Damgaard (2005)
-    !- 4 = Wu and Lin (2014)
-    !------------------------------------------------------------------------------
-    bedload = 1
-
-    !- FILTER and LIMITER for bedload fluxes --------------------------------------
-    !- > bedload_filter: a diffusive filter (sed2d_filter_diffu) is applied
-    !-   to bedload fluxes
-    !-   0 = Disabled
-    !-   1 = Enabled
-    !- > bedload_limiter: limiting the bedload flux components
-    !-   according to the sediment mass available within the active layer
-    !-   0 = Disabled
-    !-   1 = Enabled
-    !------------------------------------------------------------------------------
-    bedload_filter = 0
-    bedload_limiter = 0
-
-
-    !- SUSPENDED LOAD -------------------------------------------------------------
-    !- 0 = Disabled
-    !- 1 = Enabled
-    !------------------------------------------------------------------------------
-    suspended_load = 1
-
-
-    !- WAVE ASYMMETRY AND BEDLOAD TRANSPORT DUE TO WAVE ACCELERATION-SKEWNESS -----
-    !  Activation usually requires WWM to make sense.
-    !- > iasym
-    !-    0 = Disabled
-    !-    1 = Enabled (based on Elfrink et al., Coastal Engineering, 2006)
-    !- > w_asym_max: Maximum asymmetry coefficient considered for waves
-    !- > elfrink_filter (diffusive filter based on SED2D)
-    !-    0 = Disabled
-    !-    1 = Enabled
-    !- > ech_uorb
-    !-    Number of bins considered to reconstitute orbital velocity temporal
-    !-    series along a wave period (Elfrink et al., 2006)
-    !- > bedload_acc
-    !-    Methods to compute bedload transport caused by acceleration-skewness Qacc
-    !-    0 = Disabled
-    !-    1 = Hoefel and Elgar, Science, 2003
-    !-    2 = Dubarbier et al., Coastal Engineering, 2015
-    !- > bedload_acc_filter (diffusive filter based on SED2D)
-    !-    0 = Disabled
-    !-    1 = Enabled
-    !- > kacc_hoe (only used if bedload_acc=1)
-    !-    Constant [m.s] used in Hoefel and Elgar formulation (default 1.4d-4)
-    !- > kacc_dub (only used if bedload_acc=2)
-    !-    Constant [m.s] used in Dubarbier et al. formulation (default 0.631d-4)
-    !- > thresh_acc_opt
-    !-    Method to compute the critical mobility parameter that must be exceeded
-    !-    for the initiation of sediment transport caused by acceleration-skewness
-    !-    0 = No threshold
-    !-    1 = criterion is a Shields mobility parameter
-    !-    2 = criterion is a critical acceleration [m.s-2], acrit parameter
-    !- > acrit
-    !-    critical acceleration [m.s-2] for Qacc, used if thresh_acc_opt = 2
-    !-    Default value used by Hoefel and Elgar (2003) is 0.2 m.s-2
-    !------------------------------------------------------------------------------
-    iasym = 0
-    w_asym_max = 0.4d0
-    elfrink_filter = 0
-    ech_uorb = 200
-    bedload_acc = 0
-    bedload_acc_filter = 0
-    kacc_hoe = 1.4d-4
-    kacc_dub = 0.631d-4
-    thresh_acc_opt = 2
-    acrit = 0.2d0
-
-    !- BOTTOM SHEAR STRESS --------------------------------------------------------
-    !- > tau_option: controls at which height above the bed the current-induced
-    !-               bottom shear stress is derived
-    !-   1 = at the first vertical level above the bed [original option]
-    !-   2 = at a given and constant height of the bed, zstress (in m)
-    !-   3 = mix of 1 and 2: if the near-bed layer thickness is higher than zstress,
-    !-       the current-induced stress is derived at the first vertical level.
-    !-       Otherwise, it is derived at zstress.
-    !- > tau_max: maximum shear stress value authorised for current and waves (in Pa)
-    !------------------------------------------------------------------------------
-    tau_option = 1
-    tau_max = 10.0d0 ![Pa]
-    zstress = 0.2d0 ![m]; only used if tau_option/=1
-
-    !- Erosional formulations
-    !- 0 = Ariathurai & Arulanandan (1978)
-    !- 1 = Winterwerp et al. (2012)
-    !  The dimension of the erosion constant SAND_ERATE varies with different formulations
-    !------------------------------------------------------------------------------
-    ierosion = 0
-
-    !- SLOPE FORMULATION ----------------------------------------------------------
-    !- To account for contributions of transversal and longitudinal slopes to
-    !- bedload fluxes
-    !- 0 = No bed slope effects
-    !- 1 = Damgaard et al. (1997) ! inactive
-    !- 2 = Delft                  ! inactive
-    !- 3 = Carmo                  ! inactive
-    !- 4 = Lesser et al. (2004)   ! operational
-    !-     2 coefficients involved in this formulation:
-    !-       alpha_bs: coefficient for longitudinal slopes (default 1.0)
-    !-       alpha_bn: coefficient for transversal slopes (default 1.5)
-    !------------------------------------------------------------------------------
-    slope_formulation = 4
-    alpha_bs = 1.0d0 !only used if slope_formulation=4
-    alpha_bn = 1.5d0 !only used if slope_formulation=4
-
-
-    !- BOTTOM BOUNDARY CONDITION OPTION
-    !- 1 = Warner (2008)
-    !- 2 = Tsinghua Univ group (under dev)
-    !------------------------------------------------------------------------------
-    ised_bc_bot = 1
-
-    !==============================================================================
-    !-                             TSINGHUA GROUP PARAMETERS
-    !
-    !==============================================================================
-    !- SED DEPOSIT CORRECTION COEFFICIENT (-) -------------------------------------
-    !  Used only if ised_bc_bot=2
-    !------------------------------------------------------------------------------
-    alphd = 1.00
-
-    !- REFERENCE HEIGHT (-) -------------------------------------------------------
-    !- Reference height for pick-up flux (Zhong et al. 2014)
-    !  Used only if ised_bc_bot=1
-    !------------------------------------------------------------------------------
-    refht = 0.75 !suggested value: 0.75;
-
-    !- BURSTING PERIOD (-) --------------------------------------------------------
-    !- Nodimesional bursting period Cao(1997)
-    !  Used only if ised_bc_bot=1 and im_pick_up = 2
-    !------------------------------------------------------------------------------
-    Tbp = 100.0 !suggested value: 100;
-
-    !- BOTTOM PICK-UP OPTION-------------------------------------------------------
-    !- 0 = Zhong (2014)
-    !- 1 = Van Rijin (1984)
-    !- 2 = Cao (1997)
-    !- 3 = Nian-Sheng Cheng
-    !- 4 = Zhou
-    !------------------------------------------------------------------------------
-    im_pick_up = 4
-
-    ! end of TSINGHUA GROUP PARAMETERS
-    !-----------------------------------------------------------------------------
-
-    !------------------------------------------------------------------------------
-    !- MORPHOLOGY -----------------------------------------------------------------
-    !- 0 = Disabled
-    !- 1 = Fully Enabled (Bed characteristics + bathymetry are updated)
-    !- 2 = Partially Enabled (Only bed characteristics are updated for BCG purpose)
-    !- > If sed_morph=1, sed_morph_time (in days) is the time after which active morphology is turned on.
-    !- > morph_fac: Morphological time-scale factor (>= 1.)
-    !                   A value of 1.0 leads to no scale effect.
-    !------------------------------------------------------------------------------
-    sed_morph = 0
-    sed_morph_time = 1.d0
-    morph_fac = 1.0d0 !for all classes
-
-
-    !- DRAG FORMULATION -----------------------------------------------------------
-    !- 1 = Logarithmic
-    !- 2 = Quadratic   (Not functionnal now)
-    !- 3 = Ldrag       (Not functionnal now)
-    !------------------------------------------------------------------------------
-    drag_formulation = 1
-
-    !- SEDIMENT DENSITY IN STATE EQUATION -----------------------------------------
-    !- 0 = Disabled
-    !- 1 = Enabled
-    !------------------------------------------------------------------------------
-    ddensed = 0
-
-    !- ROUGHNESS LENGTH PREDICTION FROM BEDFORMS ----------------------------------
-    !- bedforms_rough:
-    !- 0 = Disabled (rough.gr3 for hydrodynamic and sediment)
-    !- 1 = Z0 bedforms for hydrodynamics (if bfric=1) / Nikurasde for sediment  (Van Rijn, 2007)
-    !- 2 = Z0 bedforms for both hydrodynamics (if bfric=1) and sediment
-    !  (so '1' and '2' will send total roughness back to hydro, but total roughness
-    !   is limited to dzb_min*1.e-2 - see sed_friction.F90)
-    !- iwave_ripple:
-    !- 0 = wave ripples computes following Grant and Madsen (1982)
-    !- 1 = wave ripples computes following Nielsen (1992)
-    !- irough_bdld:
-    !- 0 = no roughness induced by sediment transport
-    !- 1 = roughness induced by sediment transport (method following iwave_ripple)
-    ! Note: iwave_ripple and irough_bdld are only used when WWM is invoked
-    !------------------------------------------------------------------------------
-    bedforms_rough = 0
-    iwave_ripple = 1
-    irough_bdld = 1
-
-    !- SLUMPING OF SEDIMENTS (AVALANCHING) ----------------------------------------
-    !- slope_avalanching:
-    !- 0 = Disabled
-    !- 1 = Enabled
-    !- dry_slope_cr: Critical slope for dry element
-    !- wet_slope_cr: Critical slope for wet element
-    !------------------------------------------------------------------------------
-    slope_avalanching = 1
-    dry_slope_cr = 1.0
-    wet_slope_cr = 0.3
-
-    !- BED MASS FILTER ------------------------------------------------------------
-    !- Filter bed_mass for each sediment class to prevent instabilites in spatial
-    !- sediment distribution (multi-class) due to bedload transport
-    !- (mass-conservative and element-centered).
-    !- See more in subroutine sed_bedmass_filter.F90
-    !- bedmass_filter:
-    !- 0 = Disabled
-    !- 1 = Weak filter  (not quite working)
-    !- 2 = Strong filter (not quite working)
-    !- bedmass_threshold: threshold value for D50 instabilities [mm] (0.01-0.05)
-    !------------------------------------------------------------------------------
-    bedmass_filter = 0
-    bedmass_threshold = 0.025
-
-    !==============================================================================
-    !-                        GENERAL AND CONSTANT PARAMETERS                     -
-    !==============================================================================
-    !- BEDLOAD DIFFUSION COEFFICIENT (-) (>=0.0) ----------------------------------
-    !------------------------------------------------------------------------------
-    bdldiffu = 0.5
-
-    !- BEDLOAD TRANSPORT RATE COEFFICIENT (-) -------------------------------------
-    ! [0,\infty]; original flux is applied with 1
-    !------------------------------------------------------------------------------
-    bedload_coeff = 1.0d0
-
-    !- MINIMUM AND MAXIMUM THRESHOLD FOR bottom drag coefficient [-]
-    !------------------------------------------------------------------------------
-    Cdb_min = 1.d-6
-    Cdb_max = 0.01
-
-
-    !- ACTIVE LAYER THICKNESS -----------------------------------------------------
-    !- > actv_max [m]: Maximum thickness of sediment remobilised
-    !-   during one time step (typically a few centimeters). A large value is
-    !-   equivalent to no limitation of the active layer thickness computed
-    !-   according to Harris and Wiberg (1997)
-    !------------------------------------------------------------------------------
-    actv_max = 0.05d0
-
-
-    !==============================================================================
-    !-                             BED SEDIMENT PARAMETERS                        -
-    !==============================================================================
-    !- NUMBER OF BED LAYERS (-) ---------------------------------------------------
-    !------------------------------------------------------------------------------
-    Nbed = 1
-
-    !- INITIAL VERTICAL DISCRETISATION OF SEDIMENT LAYERS -------------------------
-    !- > sedlay_ini_opt refers to the following options:
-    !-   0 = the overall bed compartment is discretised in Nbed layers of equivalent
-    !-       thickness
-    !-   1 = Top layer thickness = toplay_inithick
-    !-       Thickness of layers 2:Nbed = (bedthick_overall-toplay_inithick)/(Nbed-1)
-    !-       Require Nbed > 1
-    !- > toplay_inithick (m):  Initial top layer thickness, only used for
-    !-   sedlay_ini_opt = 1
-    !------------------------------------------------------------------------------
-    sedlay_ini_opt = 0
-    toplay_inithick = 10.0d-2
-
-    !- BED LAYER THICKNESS THRESHOLD (m) ------------------------------------------
-    !- If deposition exceeds this value, a new layer is created
-    !  but the active layer thickness is given in bottom(:,:,iactv)
-    !------------------------------------------------------------------------------
-    newlayer_thick = 0.001d0
-
-    !- EXNER EQUATION -------------------------------------------------------------
-    !- Numerical method for the resolution of the sediment continuity equation to
-    !- simulate the bed evolution resulting from bedload transport
-    !- 1 = basic node-centered ﬁnite volume method
-    !- 2 = Weighted Essentially Non-Oscillatory (WENO) formalism
-    !------------------------------------------------------------------------------
-    imeth_bed_evol = 2
-
-    !- SEDIMENT POROSITY [-] (0.-1.) ----------------------------------------------
-    !- > poro_option
-    !-   1: constant porosity in space and time --> porosity=porosity [original option]
-    !-   2: the porosity is computed according to  Wooster et al. (2008), as a
-    !-      function of the grain diameter heterogeneity (geometric standard
-    !-      deviation). In this case, two coefficients need to be defined, Awooster
-    !-      and Bwooster.
-    !-      The Awooster parameter corresponds to the average porosity of a well-sorted
-    !-      non-cohesive sediment. According to Table 5 in Soulsby (1997), a good
-    !-      value can be 0.42. Bwooster represents the porosity decrease when
-    !-      the sediment mixture becomes more heteregeneous. It must be defined
-    !-      in accordance with Awooster to mimic Wooster's relation (i.e.
-    !-      porosity around 0.25 for a very high grain diameter heterogeneity).
-    !-      With Awooster=0.42, Bwooster=-0.46 is fine.
-    !------------------------------------------------------------------------------
-    poro_option = 1
-    porosity = 0.4
-    Awooster = 0.42
-    Bwooster = -0.458
-
-    /
-
-    """
-
-    sed_core: Optional[Sed_core] = Field(default=None)
-    sed_opt: Optional[Sed_opt] = Field(default=None)
+    sed_core: Optional[Sed_core] = Field(default_factory=Sed_core)
+    sed_opt: Optional[Sed_opt] = Field(default_factory=Sed_opt)

@@ -1,1207 +1,2827 @@
-# This file was auto generated from a schism namelist file on 2024-09-06.
+# This file was auto generated from a SCHISM namelist file on 2024-09-13.
 
-from typing import Optional
+from typing import List, Optional
 
-from pydantic import Field
+from pydantic import Field, field_validator, model_validator
 from rompy.schism.namelists.basemodel import NamelistBaseModel
 
 
 class Hotfile(NamelistBaseModel):
-    lhotf: Optional[str] = Field(None, description="Write hotfile")
-    begtc: Optional[str] = Field(None, description="Starting time of hotfile writing")
-    deltc: Optional[int] = Field(None, description="time between hotfile writes")
-    unitc: Optional[str] = Field(None, description="unit used above")
-    endtc: Optional[str] = Field(None, description="Ending time of hotfile writing")
-    lcyclehot: Optional[str] = Field(None, description="Applies only to netcdf")
-    hotstyle_out: Optional[int] = Field(
-        None, description="1: binary hotfile of data as output"
+    LHOTF: Optional[str] = Field(
+        "T", description="Boolean flag to enable writing of hotfile output."
     )
-    multipleout: Optional[int] = Field(
-        None, description="0: hotfile in a single file (binary or netcdf)"
+    BEGTC: Optional[str] = Field(
+        "'19980901.000000'",
+        description="Starting time of hotfile writing in the format 'YYYYMMDD.HHMMSS'.",
     )
-    filehot_out: Optional[str] = Field(None, description="name of hot outputs")
+    DELTC: Optional[int] = Field(
+        3600,
+        description="Time interval between hotfile writes, specified in the units defined by UNITC.",
+    )
+    UNITC: Optional[str] = Field(
+        "'SEC'",
+        description="Unit of time used for DELTC, currently set to 'SEC' for seconds.",
+    )
+    ENDTC: Optional[str] = Field(
+        "'19980901.060000'",
+        description="Ending time of hotfile writing in the format 'YYYYMMDD.HHMMSS'.",
+    )
+    LCYCLEHOT: Optional[str] = Field(
+        "T",
+        description="Boolean flag to determine hotfile record behavior for netCDF. If True, hotfile contains 2 last records (1st record is most recent). If False, hotfile contains N records if N outputs have been done. For binary, only one record is used regardless of this setting.",
+    )
+    HOTSTYLE_OUT: Optional[int] = Field(
+        2,
+        description="Integer flag to specify the output format of the hotfile. 1 for binary, 2 for netCDF (default).",
+    )
+    MULTIPLEOUT: Optional[int] = Field(
+        0,
+        description="Integer flag to determine the output file structure. 0 for a single file (binary or netCDF) using MPI_REDUCE, 1 for separate files associated with each process.",
+    )
+    FILEHOT_OUT: Optional[str] = Field(
+        "'hotfile_out_WWM.nc'", description="Name of the hotfile output file."
+    )
+
+    @field_validator("LHOTF")
+    @classmethod
+    def validate_lhotf(cls, v: bool) -> bool:
+        return v
+
+    @field_validator("BEGTC")
+    @classmethod
+    def validate_begtc(cls, v: str) -> str:
+        if not re.match(r"\d{8}\.\d{6}", v):
+            raise ValueError("BEGTC must be in format YYYYMMDD.HHMMSS")
+        return v
+
+    @field_validator("DELTC")
+    @classmethod
+    def validate_deltc(cls, v: int) -> int:
+        if v <= 0:
+            raise ValueError("DELTC must be a positive integer")
+        return v
+
+    @field_validator("UNITC")
+    @classmethod
+    def validate_unitc(cls, v: str) -> str:
+        if v.upper() != "SEC":
+            raise ValueError("UNITC must be SEC")
+        return v.upper()
+
+    @field_validator("ENDTC")
+    @classmethod
+    def validate_endtc(cls, v: str) -> str:
+        if not re.match(r"\d{8}\.\d{6}", v):
+            raise ValueError("ENDTC must be in format YYYYMMDD.HHMMSS")
+        return v
+
+    @field_validator("LCYCLEHOT")
+    @classmethod
+    def validate_lcyclehot(cls, v: bool) -> bool:
+        return v
+
+    @field_validator("HOTSTYLE_OUT")
+    @classmethod
+    def validate_hotstyle_out(cls, v: int) -> int:
+        if v not in [1, 2]:
+            raise ValueError("HOTSTYLE_OUT must be 1 or 2")
+        return v
+
+    @field_validator("MULTIPLEOUT")
+    @classmethod
+    def validate_multipleout(cls, v: int) -> int:
+        if v not in [0, 1]:
+            raise ValueError("MULTIPLEOUT must be 0 or 1")
+        return v
+
+    @field_validator("FILEHOT_OUT")
+    @classmethod
+    def validate_filehot_out(cls, v: str) -> str:
+        if not v.endswith(".nc"):
+            raise ValueError("FILEHOT_OUT must end with .nc")
+        return v
+
+    @model_validator(mode="after")
+    def validate_time_range(self) -> "Model":
+        if self.BEGTC >= self.ENDTC:
+            raise ValueError("BEGTC must be earlier than ENDTC")
+        return self
+
+    @model_validator(mode="after")
+    def validate_filehot_out_consistency(self) -> "Model":
+        if self.HOTSTYLE_OUT == 2 and not self.FILEHOT_OUT.endswith(".nc"):
+            raise ValueError("FILEHOT_OUT must end with .nc when HOTSTYLE_OUT is 2")
+        return self
 
 
 class Proc(NamelistBaseModel):
-    procname: Optional[str] = Field(None, description="Project Name")
-    dimmode: Optional[int] = Field(
-        None,
-        description="Mode of run (ex: 1 = 1D, 2 = 2D) always 2D when coupled to SCHISM",
+    PROCNAME: Optional[str] = Field(
+        "'limon'", description="Project Name for the simulation"
     )
-    lstea: Optional[str] = Field(None, description="steady mode; under development")
-    lqstea: Optional[str] = Field(
-        None,
-        description="Quasi-Steady Mode; In this case WWM-II is doing subiterations defined as DELTC/NQSITER unless QSCONVI is not reached",
+    DIMMODE: Optional[int] = Field(
+        2, description="Dimension mode of the run. Always 2 when coupled to SCHISM"
     )
-    lsphe: Optional[str] = Field(None, description="Spherical coordinates (lon/lat)")
-    lnautin: Optional[str] = Field(
-        None,
-        description="Nautical convention for all inputs given in degrees (suggestion: T)",
+    LSTEA: Optional[str] = Field(
+        "F", description="Flag for steady mode (under development)"
     )
-    lmono_in: Optional[str] = Field(None, description="")
-    lmono_out: Optional[str] = Field(None, description="")
-    lnautout: Optional[str] = Field(
-        None, description="Nautical output of all quantities in degrees"
+    LQSTEA: Optional[str] = Field(
+        "F",
+        description="Flag for Quasi-Steady Mode. If True, WWM-II performs subiterations defined as DELTC/NQSITER unless QSCONVI is reached",
     )
-    begtc: Optional[str] = Field(
-        None, description="Time for start the simulation, ex:yyyymmdd. hhmmss"
+    LSPHE: Optional[str] = Field(
+        "F", description="Flag for using spherical coordinates (longitude/latitude)"
     )
-    deltc: Optional[int] = Field(
-        None, description="Time step (MUST match dt*nstep_wwm in SCHISM!)"
+    LNAUTIN: Optional[str] = Field(
+        "T",
+        description="Flag for using nautical convention for all inputs given in degrees. If True, 0 is from north, 90 is from east. If False, mathematical convention is used (0: to east; 90: to north)",
     )
-    unitc: Optional[str] = Field(None, description="Unity of time step")
-    endtc: Optional[str] = Field(
-        None, description="Time for stop the simulation, ex:yyyymmdd. hhmmss"
+    LMONO_IN: Optional[str] = Field("F", description="Flag for mono input")
+    LMONO_OUT: Optional[str] = Field("F", description="Flag for mono output")
+    LNAUTOUT: Optional[str] = Field(
+        "T", description="Flag for nautical output of all quantities in degrees"
     )
-    dmin: Optional[float] = Field(
-        None, description="Minimum water depth. This must be the same as h0 in SCHISM"
+    BEGTC: Optional[str] = Field(
+        "'19980901.000000'",
+        description="Start time of the simulation in format 'yyyymmdd.hhmmss'",
     )
+    DELTC: Optional[int] = Field(
+        5, description="Time step in seconds. Must match dt*nstep_wwm in SCHISM"
+    )
+    UNITC: Optional[str] = Field("'SEC'", description="Unit of time step")
+    ENDTC: Optional[str] = Field(
+        "'19980901.060000'",
+        description="End time of the simulation in format 'yyyymmdd.hhmmss'",
+    )
+    DMIN: Optional[float] = Field(
+        0.01, description="Minimum water depth. Must be the same as h0 in SCHISM"
+    )
+
+    @field_validator("PROCNAME")
+    @classmethod
+    def validate_procname(cls, v):
+        if not v or not isinstance(v, str):
+            raise ValueError("PROCNAME must be a non-empty string")
+        return v
+
+    @field_validator("DIMMODE")
+    @classmethod
+    def validate_dimmode(cls, v):
+        if v != 2:
+            raise ValueError("DIMMODE must be 2 when coupled to SCHISM")
+        return v
+
+    @field_validator("LSTEA")
+    @classmethod
+    def validate_lstea(cls, v):
+        return v
+
+    @field_validator("LQSTEA")
+    @classmethod
+    def validate_lqstea(cls, v):
+        return v
+
+    @field_validator("LSPHE")
+    @classmethod
+    def validate_lsphe(cls, v):
+        return v
+
+    @field_validator("LNAUTIN")
+    @classmethod
+    def validate_lnautin(cls, v):
+        return v
+
+    @field_validator("LMONO_IN")
+    @classmethod
+    def validate_lmono_in(cls, v):
+        return v
+
+    @field_validator("LMONO_OUT")
+    @classmethod
+    def validate_lmono_out(cls, v):
+        return v
+
+    @field_validator("LNAUTOUT")
+    @classmethod
+    def validate_lnautout(cls, v):
+        return v
+
+    @field_validator("BEGTC")
+    @classmethod
+    def validate_begtc(cls, v):
+        try:
+            datetime.strptime(v, "%Y%m%d.%H%M%S")
+        except ValueError:
+            raise ValueError("BEGTC must be in format yyyymmdd.hhmmss")
+        return v
+
+    @field_validator("DELTC")
+    @classmethod
+    def validate_deltc(cls, v):
+        if v <= 0:
+            raise ValueError("DELTC must be positive")
+        return v
+
+    @field_validator("UNITC")
+    @classmethod
+    def validate_unitc(cls, v):
+        if v.upper() != "SEC":
+            raise ValueError("UNITC must be SEC")
+        return v.upper()
+
+    @field_validator("ENDTC")
+    @classmethod
+    def validate_endtc(cls, v):
+        try:
+            datetime.strptime(v, "%Y%m%d.%H%M%S")
+        except ValueError:
+            raise ValueError("ENDTC must be in format yyyymmdd.hhmmss")
+        return v
+
+    @field_validator("DMIN")
+    @classmethod
+    def validate_dmin(cls, v):
+        if v < 0:
+            raise ValueError("DMIN must be non-negative")
+        return v
+
+    @model_validator(mode="after")
+    def validate_time_range(self):
+        start = datetime.strptime(self.BEGTC, "%Y%m%d.%H%M%S")
+        end = datetime.strptime(self.ENDTC, "%Y%m%d.%H%M%S")
+        if end <= start:
+            raise ValueError("ENDTC must be later than BEGTC")
+        return self
 
 
 class Coupl(NamelistBaseModel):
-    lcpl: Optional[str] = Field(
-        None,
-        description="Couple with current model ... main switch - keep it on for SCHISM-WWM",
+    LCPL: Optional[str] = Field(
+        "T",
+        description="Main switch for coupling with current model. Should be kept on for SCHISM-WWM coupling.",
     )
-    lroms: Optional[str] = Field(None, description="ROMS (set as F)")
-    ltimor: Optional[str] = Field(None, description="TIMOR (set as F)")
-    lshyfem: Optional[str] = Field(None, description="SHYFEM (set as F)")
-    radflag: Optional[str] = Field(None, description="")
-    letot: Optional[str] = Field(
-        None,
-        description="Option to compute the wave induced radiation stress. If .T. the radiation stress is based on the integrated wave spectrum",
+    LROMS: Optional[str] = Field(
+        "F", description="Switch for ROMS coupling. Should be set to False."
     )
-    nlvt: Optional[int] = Field(
-        None, description="Number of vertical Layers; not used with SCHISM"
+    LTIMOR: Optional[str] = Field(
+        "F", description="Switch for TIMOR coupling. Should be set to False."
     )
-    dtcoup: Optional[float] = Field(
-        None, description="Couple time step - not used when coupled to SCHISM"
+    LSHYFEM: Optional[str] = Field(
+        "F", description="Switch for SHYFEM coupling. Should be set to False."
     )
+    RADFLAG: Optional[str] = Field(
+        "'LON'",
+        description="Flag for radiation stress calculation method. Currently set to 'LON'.",
+    )
+    LETOT: Optional[str] = Field(
+        "F",
+        description="Option to compute wave-induced radiation stress. If True, radiation stress is based on the integrated wave spectrum. If False (recommended), it's estimated based on the directional spectra itself as given in Roland et al. (2008). False is preferred to preserve spectral information.",
+    )
+    NLVT: Optional[int] = Field(
+        10, description="Number of vertical layers. Not used with SCHISM."
+    )
+    DTCOUP: Optional[float] = Field(
+        600.0,
+        description="Coupling time step in seconds. Not used when coupled to SCHISM.",
+    )
+
+    @field_validator("LCPL")
+    @classmethod
+    def validate_lcpl(cls, v):
+        if not isinstance(v, bool):
+            raise ValueError("LCPL must be a boolean")
+        return v
+
+    @field_validator("LROMS")
+    @classmethod
+    def validate_lroms(cls, v):
+        if not isinstance(v, bool):
+            raise ValueError("LROMS must be a boolean")
+        if v:
+            raise ValueError("LROMS should be set to False")
+        return v
+
+    @field_validator("LTIMOR")
+    @classmethod
+    def validate_ltimor(cls, v):
+        if not isinstance(v, bool):
+            raise ValueError("LTIMOR must be a boolean")
+        if v:
+            raise ValueError("LTIMOR should be set to False")
+        return v
+
+    @field_validator("LSHYFEM")
+    @classmethod
+    def validate_lshyfem(cls, v):
+        if not isinstance(v, bool):
+            raise ValueError("LSHYFEM must be a boolean")
+        if v:
+            raise ValueError("LSHYFEM should be set to False")
+        return v
+
+    @field_validator("RADFLAG")
+    @classmethod
+    def validate_radflag(cls, v):
+        if not isinstance(v, str):
+            raise ValueError("RADFLAG must be a string")
+        return v
+
+    @field_validator("LETOT")
+    @classmethod
+    def validate_letot(cls, v):
+        if not isinstance(v, bool):
+            raise ValueError("LETOT must be a boolean")
+        if v:
+            import warnings
+
+            warnings.warn("Setting LETOT to True is only for testing and developers.")
+        return v
+
+    @field_validator("NLVT")
+    @classmethod
+    def validate_nlvt(cls, v):
+        if not isinstance(v, int) or v <= 0:
+            raise ValueError("NLVT must be a positive integer")
+        return v
+
+    @field_validator("DTCOUP")
+    @classmethod
+    def validate_dtcoup(cls, v):
+        if not isinstance(v, (int, float)) or v <= 0:
+            raise ValueError("DTCOUP must be a positive number")
+        return v
 
 
 class Grid(NamelistBaseModel):
-    lcird: Optional[str] = Field(None, description="Full circle in directional space")
-    lstag: Optional[str] = Field(
-        None,
-        description="Stagger directional bins with a half Dtheta; may use T only for regular grid to avoid char. line aligning with grid line",
+    LCIRD: Optional[str] = Field(
+        "T",
+        description="Boolean flag to use full circle in directional space. If True, MINDIR and MAXDIR are not used.",
     )
-    mindir: Optional[float] = Field(
-        None,
-        description="Minimum direction for simulation (unit: degrees; nautical convention; 0: from N; 90: from E); not used if LCIRD = .T.",
+    LSTAG: Optional[str] = Field(
+        "F",
+        description="Boolean flag to stagger directional bins with a half Dtheta. Can only be True for regular grids to avoid characteristic lines aligning with grid lines.",
     )
-    maxdir: Optional[float] = Field(
-        None,
-        description="Maximum direction for simulation (unit: degrees); may be < MINDIR; not used if LCIRD = .T.",
+    MINDIR: Optional[float] = Field(
+        0.0,
+        description="Minimum direction for simulation in degrees (nautical convention; 0: from N; 90: from E). Not used if LCIRD is True.",
     )
-    mdc: Optional[int] = Field(None, description="Number of directional bins")
-    frlow: Optional[float] = Field(
-        None,
-        description="Low frequency limit of the discrete wave period (Hz; 1/period)",
+    MAXDIR: Optional[float] = Field(
+        360.0,
+        description="Maximum direction for simulation in degrees. May be less than MINDIR. Not used if LCIRD is True.",
     )
-    frhigh: Optional[float] = Field(
-        None, description="High frequency limit of the discrete wave period."
+    MDC: Optional[int] = Field(
+        36, description="Number of directional bins for the simulation."
     )
-    msc: Optional[int] = Field(None, description="Number of frequency bins")
-    igridtype: Optional[int] = Field(
-        None,
-        description="Gridtype used. 1 ~ XFN, 2 ~ WWM-PERIODIC, 3 ~ SCHISM, 4 ~ OLD WWM GRID",
+    FRLOW: Optional[float] = Field(
+        0.04,
+        description="Low frequency limit of the discrete wave period in Hz (1/period).",
     )
-    filegrid: Optional[str] = Field(
-        None,
-        description="Name of the grid file. hgridi_WWM.gr3 if IGRIDTYPE = 3 (SCHISM)",
+    FRHIGH: Optional[float] = Field(
+        1.0, description="High frequency limit of the discrete wave period in Hz."
     )
-    lslop: Optional[str] = Field(None, description="Bottom Slope limiter (default=F)")
-    slmax: Optional[float] = Field(None, description="Max Slope;")
-    lvar1d: Optional[str] = Field(
-        None, description="For 1d-mode if variable dx is used; not used with SCHISM"
+    MSC: Optional[int] = Field(
+        36, description="Number of frequency bins for the simulation."
     )
+    IGRIDTYPE: Optional[int] = Field(
+        3,
+        description="Grid type used for the simulation. 1: XFN, 2: WWM-PERIODIC, 3: SCHISM, 4: OLD WWM GRID",
+    )
+    FILEGRID: Optional[str] = Field(
+        "'hgrid_WWM.gr3'",
+        description="Name of the grid file. Should be 'hgrid_WWM.gr3' if IGRIDTYPE is 3 (SCHISM).",
+    )
+    LSLOP: Optional[str] = Field(
+        "F", description="Boolean flag to enable bottom slope limiter."
+    )
+    SLMAX: Optional[float] = Field(
+        0.2, description="Maximum slope value when bottom slope limiter is enabled."
+    )
+    LVAR1D: Optional[str] = Field(
+        "F",
+        description="Boolean flag for 1D mode with variable dx. Not used with SCHISM.",
+    )
+
+    @field_validator("LCIRD")
+    @classmethod
+    def validate_lcird(cls, v: bool) -> bool:
+        return v
+
+    @field_validator("LSTAG")
+    @classmethod
+    def validate_lstag(cls, v: bool) -> bool:
+        return v
+
+    @field_validator("MINDIR")
+    @classmethod
+    def validate_mindir(cls, v: float) -> float:
+        if v < 0 or v >= 360:
+            raise ValueError("MINDIR must be between 0 and 360")
+        return v
+
+    @field_validator("MAXDIR")
+    @classmethod
+    def validate_maxdir(cls, v: float) -> float:
+        if v <= 0 or v > 360:
+            raise ValueError("MAXDIR must be between 0 and 360")
+        return v
+
+    @field_validator("MDC")
+    @classmethod
+    def validate_mdc(cls, v: int) -> int:
+        if v <= 0:
+            raise ValueError("MDC must be a positive integer")
+        return v
+
+    @field_validator("FRLOW")
+    @classmethod
+    def validate_frlow(cls, v: float) -> float:
+        if v <= 0:
+            raise ValueError("FRLOW must be positive")
+        return v
+
+    @field_validator("FRHIGH")
+    @classmethod
+    def validate_frhigh(cls, v: float) -> float:
+        if v <= 0:
+            raise ValueError("FRHIGH must be positive")
+        return v
+
+    @field_validator("MSC")
+    @classmethod
+    def validate_msc(cls, v: int) -> int:
+        if v <= 0:
+            raise ValueError("MSC must be a positive integer")
+        return v
+
+    @field_validator("IGRIDTYPE")
+    @classmethod
+    def validate_igridtype(cls, v: int) -> int:
+        if v not in [1, 2, 3, 4]:
+            raise ValueError("IGRIDTYPE must be 1, 2, 3, or 4")
+        return v
+
+    @field_validator("FILEGRID")
+    @classmethod
+    def validate_filegrid(cls, v: str) -> str:
+        if not v:
+            raise ValueError("FILEGRID must not be empty")
+        return v
+
+    @field_validator("LSLOP")
+    @classmethod
+    def validate_lslop(cls, v: bool) -> bool:
+        return v
+
+    @field_validator("SLMAX")
+    @classmethod
+    def validate_slmax(cls, v: float) -> float:
+        if v <= 0:
+            raise ValueError("SLMAX must be positive")
+        return v
+
+    @field_validator("LVAR1D")
+    @classmethod
+    def validate_lvar1d(cls, v: bool) -> bool:
+        return v
+
+    @model_validator(mode="after")
+    def validate_mindir_maxdir(self) -> "Model":
+        if not self.LCIRD and self.MINDIR >= self.MAXDIR:
+            raise ValueError("MINDIR must be less than MAXDIR when LCIRD is False")
+        return self
+
+    @model_validator(mode="after")
+    def validate_frequency_range(self) -> "Model":
+        if self.FRLOW >= self.FRHIGH:
+            raise ValueError("FRLOW must be less than FRHIGH")
+        return self
+
+    @model_validator(mode="after")
+    def validate_filegrid_igridtype(self) -> "Model":
+        if self.IGRIDTYPE == 3 and self.FILEGRID != "hgrid_WWM.gr3":
+            raise ValueError("FILEGRID must be hgrid_WWM.gr3 when IGRIDTYPE is 3")
+        return self
+
+    @model_validator(mode="after")
+    def validate_lvar1d_igridtype(self) -> "Model":
+        if self.LVAR1D and self.IGRIDTYPE == 3:
+            raise ValueError("LVAR1D is not used with SCHISM (IGRIDTYPE=3)")
+        return self
 
 
 class Bouc(NamelistBaseModel):
-    lbcse: Optional[str] = Field(
-        None, description="The wave boundary data is time dependent"
+    LBCSE: Optional[str] = Field(
+        "F", description="Flag indicating if wave boundary data is time-dependent"
     )
-    lbinter: Optional[str] = Field(
-        None,
-        description="Do interpolation in time if LBCSE=T (not available for quasi-steady mode within the subtime steps)",
+    LBINTER: Optional[str] = Field(
+        "F",
+        description="Flag to enable time interpolation when LBCSE is True (not available for quasi-steady mode within subtime steps)",
     )
-    lbcwa: Optional[str] = Field(None, description="Parametric Wave Spectra")
-    linhom: Optional[str] = Field(None, description="Non-uniform wave b.c. in space")
-    lbcsp: Optional[str] = Field(
-        None,
-        description="Specify (non-parametric) wave spectra, specified in 'FILEWAVE' below",
+    LBCWA: Optional[str] = Field(
+        "T", description="Flag to enable parametric wave spectra"
     )
-    lindsprdeg: Optional[str] = Field(
-        None,
-        description="If 1-d wave spectra are read this flag defines whether the input for the directional spreading is in degrees (true) or exponent (false)",
+    LINHOM: Optional[str] = Field(
+        "F", description="Flag for non-uniform wave boundary conditions in space"
     )
-    lparmdir: Optional[str] = Field(
-        None,
-        description="If LPARMDIR is true than directional spreading is read from WBDS and must be in exponential format at this time, only valid for 1d Spectra",
+    LBCSP: Optional[str] = Field(
+        "F",
+        description="Flag to specify non-parametric wave spectra (defined in FILEWAVE)",
     )
-    filewave: Optional[str] = Field(
-        None, description="Boundary file including discrete wave spectra"
+    LINDSPRDEG: Optional[str] = Field(
+        "F",
+        description="Flag indicating if directional spreading input is in degrees (True) or exponent (False) for 1-D wave spectra",
     )
-    lbsp1d: Optional[str] = Field(
-        None,
-        description="1D (freq. space only) format for FILEWAVE if LBCSP=T and LINHOM=F",
+    LPARMDIR: Optional[str] = Field(
+        "F",
+        description="Flag to read directional spreading from WBDS in exponential format (only valid for 1D spectra)",
     )
-    lbsp2d: Optional[str] = Field(
-        None, description="not functional (freq. + directional space)"
+    FILEWAVE: Optional[str] = Field(
+        "'wwmbnd.gr3'",
+        description="Filename for boundary file containing discrete wave spectra",
     )
-    begtc: Optional[str] = Field(
-        None, description="Begin time of the wave boundary file (FILEWAVE)"
+    LBSP1D: Optional[str] = Field(
+        "F",
+        description="Flag for 1D (frequency space only) format in FILEWAVE when LBCSP is True and LINHOM is False",
     )
-    deltc: Optional[int] = Field(None, description="Time step in FILEWAVE")
-    unitc: Optional[str] = Field(None, description="Unit can be HR, MIN, SEC")
-    endtc: Optional[str] = Field(None, description="End time")
-    filebound: Optional[str] = Field(
-        None, description="Boundary file defining boundary and Neumann nodes."
+    LBSP2D: Optional[str] = Field(
+        "F",
+        description="Flag for 2D (frequency + directional space) format (not functional)",
     )
-    iboundformat: Optional[int] = Field(
-        None,
-        description="1 ~ WWM, 3 ~ WW3 (2D spectra in netcdf format only - LBCWA=T).",
+    BEGTC: Optional[str] = Field(
+        "'19980901.000000'",
+        description="Begin time of the wave boundary file (FILEWAVE)",
     )
-    wbhs: Optional[float] = Field(
-        None, description="Hs at the boundary for parametric spectra"
+    DELTC: Optional[int] = Field(1, description="Time step in FILEWAVE")
+    UNITC: Optional[str] = Field(
+        "'HR'", description="Time unit for DELTC (HR, MIN, or SEC)"
     )
-    wbss: Optional[float] = Field(
-        None,
-        description="1 or -1: Pierson-Moskowitz, 2 or -2: JONSWAP, 3 or -3: all in one BIN,",
+    ENDTC: Optional[str] = Field(
+        "'19981002.000000'", description="End time of the wave boundary file"
     )
-    wbtp: Optional[float] = Field(
-        None,
-        description="Tp at the boundary (sec); mean or peak depending on the sign of WBSS",
+    FILEBOUND: Optional[str] = Field(
+        "'wwmbnd.gr3'",
+        description="Filename for boundary file defining boundary and Neumann nodes",
     )
-    wbdm: Optional[float] = Field(
-        None, description="Avg. Wave Direction at the boundary"
+    IBOUNDFORMAT: Optional[int] = Field(
+        1,
+        description="Boundary format indicator (1: WWM, 3: WW3 2D spectra in netCDF, 6: WW3 2D spectra in netCDF with prescribed spectra)",
     )
-    wbdsms: Optional[float] = Field(
-        None,
-        description="Directional spreading value in degrees (1) or as exponent (2)",
+    WBHS: Optional[float] = Field(
+        4.0,
+        description="Significant wave height at the boundary for parametric spectra",
     )
-    wbds: Optional[float] = Field(
-        None, description="Directional spreading at the boundary (degrees/exponent)"
+    WBSS: Optional[float] = Field(
+        2.0, description="Spectral shape parameter for parametric spectra"
     )
-    wbgauss: Optional[float] = Field(
-        None, description="factor for gaussian distribution if WBSS=1"
+    WBTP: Optional[float] = Field(
+        8.0, description="Peak or mean wave period at the boundary (seconds)"
     )
-    wbpken: Optional[float] = Field(
-        None, description="Peak enhancement factor for Jonswap Spectra if WBSS=2"
+    WBDM: Optional[float] = Field(
+        90.0, description="Average wave direction at the boundary (degrees)"
     )
-    ncdf_hs_name: Optional[str] = Field(
-        None,
-        description="NETCDF var. name for the significant wave height (normally it is just 'hs')",
+    WBDSMS: Optional[float] = Field(
+        1.0,
+        description="Flag indicating if directional spreading value is in degrees (1) or exponent (2)",
     )
-    ncdf_dir_name: Optional[str] = Field(
-        None,
-        description="NETCDF var. name for the mean wave direction (normally it is just 'dir')",
+    WBDS: Optional[float] = Field(
+        20.0, description="Directional spreading at the boundary (degrees or exponent)"
     )
-    ncdf_spr_name: Optional[str] = Field(
-        None,
-        description="NETCDF var. name for the mean directional spreading (normally it is just 'spr')",
+    WBGAUSS: Optional[float] = Field(
+        0.1, description="Factor for Gaussian distribution if WBSS=4"
     )
-    ncdf_fp_name: Optional[str] = Field(
-        None,
-        description="NETCDF var. name for the peak freq. (normally it is just 'fp')",
+    WBPKEN: Optional[float] = Field(
+        3.3, description="Peak enhancement factor for JONSWAP spectra if WBSS=2"
     )
-    ncdf_f02_name: Optional[str] = Field(
-        None,
-        description="NETCDF var. name for the zero down crossing freq. (normally it is just 't02')",
+    NCDF_HS_NAME: Optional[str] = Field(
+        "'hs'", description="NetCDF variable name for significant wave height"
     )
+    NCDF_DIR_NAME: Optional[str] = Field(
+        "'dir'", description="NetCDF variable name for mean wave direction"
+    )
+    NCDF_SPR_NAME: Optional[str] = Field(
+        "'spr'", description="NetCDF variable name for mean directional spreading"
+    )
+    NCDF_FP_NAME: Optional[str] = Field(
+        "'fp'", description="NetCDF variable name for peak frequency"
+    )
+    NCDF_F02_NAME: Optional[str] = Field(
+        "'t02'", description="NetCDF variable name for zero down-crossing frequency"
+    )
+
+    @field_validator("LBCSE")
+    def validate_lbcse(cls, v):
+        return v
+
+    @field_validator("LBINTER")
+    def validate_lbinter(cls, v):
+        return v
+
+    @field_validator("LBCWA")
+    def validate_lbcwa(cls, v):
+        return v
+
+    @field_validator("LINHOM")
+    def validate_linhom(cls, v):
+        return v
+
+    @field_validator("LBCSP")
+    def validate_lbcsp(cls, v):
+        return v
+
+    @field_validator("LINDSPRDEG")
+    def validate_lindsprdeg(cls, v):
+        return v
+
+    @field_validator("LPARMDIR")
+    def validate_lparmdir(cls, v):
+        return v
+
+    @field_validator("FILEWAVE")
+    def validate_filewave(cls, v):
+        if not v.endswith(".gr3"):
+            raise ValueError("FILEWAVE must end with .gr3")
+        return v
+
+    @field_validator("LBSP1D")
+    def validate_lbsp1d(cls, v):
+        return v
+
+    @field_validator("LBSP2D")
+    def validate_lbsp2d(cls, v):
+        return v
+
+    @field_validator("BEGTC")
+    def validate_begtc(cls, v):
+        try:
+            datetime.strptime(v, "%Y%m%d.%H%M%S")
+        except ValueError:
+            raise ValueError("BEGTC must be in format 'YYYYMMDD.HHMMSS'")
+        return v
+
+    @field_validator("DELTC")
+    def validate_deltc(cls, v):
+        if v <= 0:
+            raise ValueError("DELTC must be positive")
+        return v
+
+    @field_validator("UNITC")
+    def validate_unitc(cls, v):
+        if v not in ["HR", "MIN", "SEC"]:
+            raise ValueError("UNITC must be 'HR', 'MIN', or 'SEC'")
+        return v
+
+    @field_validator("ENDTC")
+    def validate_endtc(cls, v):
+        try:
+            datetime.strptime(v, "%Y%m%d.%H%M%S")
+        except ValueError:
+            raise ValueError("ENDTC must be in format 'YYYYMMDD.HHMMSS'")
+        return v
+
+    @field_validator("FILEBOUND")
+    def validate_filebound(cls, v):
+        if not v.endswith(".gr3"):
+            raise ValueError("FILEBOUND must end with .gr3")
+        return v
+
+    @field_validator("IBOUNDFORMAT")
+    def validate_iboundformat(cls, v):
+        if v not in [1, 3, 6]:
+            raise ValueError("IBOUNDFORMAT must be 1, 3, or 6")
+        return v
+
+    @field_validator("WBHS")
+    def validate_wbhs(cls, v):
+        if v <= 0:
+            raise ValueError("WBHS must be positive")
+        return v
+
+    @field_validator("WBSS")
+    def validate_wbss(cls, v):
+        if v not in [-3, -2, -1, 1, 2, 3, 4]:
+            raise ValueError("WBSS must be -3, -2, -1, 1, 2, 3, or 4")
+        return v
+
+    @field_validator("WBTP")
+    def validate_wbtp(cls, v):
+        if v <= 0:
+            raise ValueError("WBTP must be positive")
+        return v
+
+    @field_validator("WBDM")
+    def validate_wbdm(cls, v):
+        if not 0 <= v <= 360:
+            raise ValueError("WBDM must be between 0 and 360")
+        return v
+
+    @field_validator("WBDSMS")
+    def validate_wbdsms(cls, v):
+        if v not in [1, 2]:
+            raise ValueError("WBDSMS must be 1 or 2")
+        return v
+
+    @field_validator("WBDS")
+    def validate_wbds(cls, v):
+        if v <= 0:
+            raise ValueError("WBDS must be positive")
+        return v
+
+    @field_validator("WBGAUSS")
+    def validate_wbgauss(cls, v):
+        if v <= 0:
+            raise ValueError("WBGAUSS must be positive")
+        return v
+
+    @field_validator("WBPKEN")
+    def validate_wbpken(cls, v):
+        if v <= 0:
+            raise ValueError("WBPKEN must be positive")
+        return v
+
+    @field_validator("NCDF_HS_NAME")
+    def validate_ncdf_hs_name(cls, v):
+        return v
+
+    @field_validator("NCDF_DIR_NAME")
+    def validate_ncdf_dir_name(cls, v):
+        return v
+
+    @field_validator("NCDF_SPR_NAME")
+    def validate_ncdf_spr_name(cls, v):
+        return v
+
+    @field_validator("NCDF_FP_NAME")
+    def validate_ncdf_fp_name(cls, v):
+        return v
+
+    @field_validator("NCDF_F02_NAME")
+    def validate_ncdf_f02_name(cls, v):
+        return v
+
+    @model_validator(mode="after")
+    def validate_lbinter_lbcse(self):
+        if self.LBINTER and not self.LBCSE:
+            raise ValueError("LBINTER can only be True if LBCSE is True")
+        return self
+
+    @model_validator(mode="after")
+    def validate_lbsp1d_conditions(self):
+        if self.LBSP1D and not (self.LBCSP and not self.LINHOM):
+            raise ValueError(
+                "LBSP1D can only be True if LBCSP is True and LINHOM is False"
+            )
+        return self
+
+    @model_validator(mode="after")
+    def validate_time_range(self):
+        begin = datetime.strptime(self.BEGTC, "%Y%m%d.%H%M%S")
+        end = datetime.strptime(self.ENDTC, "%Y%m%d.%H%M%S")
+        if end <= begin:
+            raise ValueError("ENDTC must be later than BEGTC")
+        return self
 
 
 class Engs(NamelistBaseModel):
-    mesnl: Optional[int] = Field(
-        None,
-        description="Nonlinear Interaction NL4 , 1 ~ on, 0 ~ off (Discrete Interaction approx.)",
+    MESNL: Optional[int] = Field(
+        1,
+        description="Controls the nonlinear wave-wave interaction calculation using the Discrete Interaction Approximation (DIA). 1 enables the calculation, 0 disables it.",
     )
-    mesin: Optional[int] = Field(
-        None, description="Wind input: Ardhuin et al. (1) (use LSOURCESWAM = F);"
+    MESIN: Optional[int] = Field(
+        1,
+        description="Specifies the wind input formulation. Options include: 1 (Ardhuin et al.), 2 (ECMWF physics), 3 (Makin & Stam), 4 (Babanin et al.), 5 (Cycle 3), 0 (no wind).",
     )
-    ifric: Optional[int] = Field(
-        None,
-        description="Formulation for atmospheric boundary layer, (IFRIC = 1 for MESIN = 1, IFRIC = 4 for MESIN=3);",
+    IFRIC: Optional[int] = Field(
+        1,
+        description="Specifies the formulation for the atmospheric boundary layer. Use 1 when MESIN=1, and 4 when MESIN=3.",
     )
-    mesbf: Optional[int] = Field(
-        None,
-        description="Bottom friction: 1 - JONSWAP (Default); 2 - Madsen et al. (1989); 3 - SHOWEX",
+    MESBF: Optional[int] = Field(
+        1,
+        description="Specifies the bottom friction formulation. 1 for JONSWAP (Default), 2 for Madsen et al. (1989), 3 for SHOWEX.",
     )
-    fricc: Optional[float] = Field(
-        None,
-        description="if MESBF=1: JONSWAP bottom friction coefficient [0.038,0.067]. If MESBF=2: physical bottom roughness (ignored if given in rough.gr3). If MESBF=3: D50 (if negative read from SHOWEX_D50.gr3)",
+    FRICC: Optional[float] = Field(
+        0.067,
+        description="Bottom friction coefficient. For MESBF=1: JONSWAP coefficient [0.038,0.067]. For MESBF=2: physical bottom roughness. For MESBF=3: D50 (if negative, read from SHOWEX_D50.gr3).",
     )
-    mesbr: Optional[int] = Field(
-        None, description="Shallow water wave breaking; 0: off; 1: on"
+    MESBR: Optional[int] = Field(
+        1,
+        description="Controls shallow water wave breaking calculation. 0 disables it, 1 enables it.",
     )
-    ibreak: Optional[int] = Field(
-        None, description="Wave breaking formulation: 1 - Battjes and Janssen (1978)"
+    IBREAK: Optional[int] = Field(
+        1,
+        description="Specifies the wave breaking formulation. Options range from 1 to 6, each representing a different method.",
     )
-    icrit: Optional[int] = Field(
-        None,
-        description="Wave breaking criterion: 1   - Constant breaker index (gamma) or gamma_TG defined with BRCR",
+    ICRIT: Optional[int] = Field(
+        1,
+        description="Specifies the wave breaking criterion. Options range from 1 to 6, each representing a different method or calculation.",
     )
-    brcr: Optional[float] = Field(
-        None,
-        description="either gamma, default is 0.73 for IBREAK=1,5 or gamma_TG, default is 0.42 for IBREAK=2,3 or biphase_ref, default is -4pi/9 = -1.3963 for IBREAK=4",
+    BRCR: Optional[float] = Field(
+        0.78,
+        description="Breaking criterion parameter. Its meaning depends on IBREAK and ICRIT values.",
     )
-    a_brcr: Optional[float] = Field(None, description="cf ICRIT = 4, 5")
-    b_brcr: Optional[float] = Field(None, description="cf ICRIT = 4, 5")
-    min_brcr: Optional[float] = Field(None, description="cf ICRIT = 4, 5")
-    max_brcr: Optional[float] = Field(None, description="cf ICRIT = 4, 5")
-    a_biph: Optional[float] = Field(
-        None, description="Biphase coefficient, default 0.2 (intended for IBREAK=3)"
+    a_BRCR: Optional[float] = Field(
+        0.76,
+        description="Coefficient used in breaking criterion calculations when ICRIT is 4 or 5.",
     )
-    br_coef_method: Optional[int] = Field(
-        None,
-        description="Method for the breaking coefficient: 1 - constant, 2 - adaptive",
+    b_BRCR: Optional[float] = Field(
+        0.29,
+        description="Coefficient used in breaking criterion calculations when ICRIT is 4 or 5.",
     )
-    b_alp: Optional[float] = Field(
-        None, description="breaking coefficient. If BR_COEF_METHOD = 2, B_ALP ~ 40"
+    min_BRCR: Optional[float] = Field(
+        0.25, description="Minimum value for breaking criterion when ICRIT is 4 or 5."
     )
-    zprof_break: Optional[int] = Field(
-        None,
-        description="Vertical distribution function of wave breaking source term, only used in 3D run",
+    max_BRCR: Optional[float] = Field(
+        0.8, description="Maximum value for breaking criterion when ICRIT is 4 or 5."
     )
-    bc_break: Optional[int] = Field(
-        None,
-        description="Apply depth-limited breaking at the boundaries: 1 - On; 0 - Off",
+    a_BIPH: Optional[float] = Field(
+        0.2, description="Biphase coefficient, used when IBREAK is 3."
     )
-    iroller: Optional[int] = Field(
-        None,
-        description="Wave roller model (e.g., see Uchiyama et al., 2010): 1 - On; 0 - Off; not used at the moment",
+    BR_COEF_METHOD: Optional[int] = Field(
+        1,
+        description="Method for calculating the breaking coefficient. 1 for constant, 2 for adaptive.",
     )
-    alprol: Optional[float] = Field(
-        None,
-        description="Alpha coefficient for the wave roller model (between 0 and 1): 1 - full conversion; 0 - no energy transferred to the roller",
+    B_ALP: Optional[float] = Field(
+        0.5,
+        description="Breaking coefficient. If BR_COEF_METHOD is 2, B_ALP should be around 40.",
     )
-    meveg: Optional[int] = Field(
-        None, description="Vegetation on/off. If on, isav must = 1 in param.nml"
+    ZPROF_BREAK: Optional[int] = Field(
+        2,
+        description="Specifies the vertical distribution function of wave breaking source term in 3D runs. Options range from 1 to 6.",
     )
-    lmaxetot: Optional[str] = Field(
-        None,
-        description="Limit shallow water wave height by wave breaking limiter (default=T)",
+    BC_BREAK: Optional[int] = Field(
+        1,
+        description="Controls the application of depth-limited breaking at boundaries. 1 enables it, 0 disables it.",
     )
-    mesds: Optional[int] = Field(
-        None,
-        description="Formulation for the whitecapping source function; same value as MESIN",
+    IROLLER: Optional[int] = Field(
+        0,
+        description="Controls the wave roller model. 1 enables it, 0 disables it. Currently not used.",
     )
-    mestr: Optional[int] = Field(
-        None,
-        description="Formulation for the triad 3 wave interactions (MESTR = 0 (off), MESTR = 1 (Lumped Triad Approx. (LTA)), MESTR = 2 (corrected version of LTA by Salmon et al. (2016)))",
+    ALPROL: Optional[float] = Field(
+        0.85,
+        description="Alpha coefficient for the wave roller model. Range is between 0 and 1.",
     )
-    trico: Optional[float] = Field(
-        None, description="proportionality const. (\alpha_EB); default is 0.1"
+    MEVEG: Optional[int] = Field(
+        0,
+        description="Controls vegetation effects. 1 enables it, 0 disables it. If enabled, isav must be 1 in param.nml.",
     )
-    trira: Optional[float] = Field(
-        None,
-        description="ratio of max. freq. considered in triads over mean freq.; 2.5 is suggested",
+    LMAXETOT: Optional[str] = Field(
+        "T",
+        description="Controls the limitation of shallow water wave height by wave breaking limiter.",
     )
-    triurs: Optional[float] = Field(
-        None,
-        description="critical Ursell number; if Ursell # < TRIURS; triads are not computed",
+    MESDS: Optional[int] = Field(
+        1,
+        description="Specifies the formulation for the whitecapping source function. Should have the same value as MESIN.",
     )
+    MESTR: Optional[int] = Field(
+        1,
+        description="Specifies the formulation for the triad 3 wave interactions. 0 disables it, 1 uses Lumped Triad Approx. (LTA), 2 uses corrected version of LTA by Salmon et al. (2016).",
+    )
+    TRICO: Optional[float] = Field(
+        0.1, description="Proportionality constant (alpha_EB) for triad interactions."
+    )
+    TRIRA: Optional[float] = Field(
+        2.5,
+        description="Ratio of maximum frequency considered in triads over mean frequency.",
+    )
+    TRIURS: Optional[float] = Field(
+        0.1,
+        description="Critical Ursell number for triad calculations. Triads are not computed if Ursell number is less than TRIURS.",
+    )
+
+    @field_validator("MESNL")
+    @classmethod
+    def validate_mesnl(cls, v):
+        if v not in [0, 1]:
+            raise ValueError("MESNL must be 0 or 1")
+        return v
+
+    @field_validator("MESIN")
+    @classmethod
+    def validate_mesin(cls, v):
+        if v not in range(6):
+            raise ValueError("MESIN must be between 0 and 5")
+        return v
+
+    @field_validator("IFRIC")
+    @classmethod
+    def validate_ifric(cls, v):
+        if v not in [1, 4]:
+            raise ValueError("IFRIC must be 1 or 4")
+        return v
+
+    @field_validator("MESBF")
+    @classmethod
+    def validate_mesbf(cls, v):
+        if v not in [1, 2, 3]:
+            raise ValueError("MESBF must be 1, 2, or 3")
+        return v
+
+    @field_validator("FRICC")
+    @classmethod
+    def validate_fricc(cls, v):
+        return v
+
+    @field_validator("MESBR")
+    @classmethod
+    def validate_mesbr(cls, v):
+        if v not in [0, 1]:
+            raise ValueError("MESBR must be 0 or 1")
+        return v
+
+    @field_validator("IBREAK")
+    @classmethod
+    def validate_ibreak(cls, v):
+        if v not in range(1, 7):
+            raise ValueError("IBREAK must be between 1 and 6")
+        return v
+
+    @field_validator("ICRIT")
+    @classmethod
+    def validate_icrit(cls, v):
+        if v not in range(1, 7):
+            raise ValueError("ICRIT must be between 1 and 6")
+        return v
+
+    @field_validator("BRCR")
+    @classmethod
+    def validate_brcr(cls, v):
+        return v
+
+    @field_validator("a_BRCR")
+    @classmethod
+    def validate_a_brcr(cls, v):
+        return v
+
+    @field_validator("b_BRCR")
+    @classmethod
+    def validate_b_brcr(cls, v):
+        return v
+
+    @field_validator("min_BRCR")
+    @classmethod
+    def validate_min_brcr(cls, v):
+        return v
+
+    @field_validator("max_BRCR")
+    @classmethod
+    def validate_max_brcr(cls, v):
+        return v
+
+    @field_validator("a_BIPH")
+    @classmethod
+    def validate_a_biph(cls, v):
+        return v
+
+    @field_validator("BR_COEF_METHOD")
+    @classmethod
+    def validate_br_coef_method(cls, v):
+        if v not in [1, 2]:
+            raise ValueError("BR_COEF_METHOD must be 1 or 2")
+        return v
+
+    @field_validator("B_ALP")
+    @classmethod
+    def validate_b_alp(cls, v):
+        return v
+
+    @field_validator("ZPROF_BREAK")
+    @classmethod
+    def validate_zprof_break(cls, v):
+        if v not in range(1, 7):
+            raise ValueError("ZPROF_BREAK must be between 1 and 6")
+        return v
+
+    @field_validator("BC_BREAK")
+    @classmethod
+    def validate_bc_break(cls, v):
+        if v not in [0, 1]:
+            raise ValueError("BC_BREAK must be 0 or 1")
+        return v
+
+    @field_validator("IROLLER")
+    @classmethod
+    def validate_iroller(cls, v):
+        if v not in [0, 1]:
+            raise ValueError("IROLLER must be 0 or 1")
+        return v
+
+    @field_validator("ALPROL")
+    @classmethod
+    def validate_alprol(cls, v):
+        if not 0 <= v <= 1:
+            raise ValueError("ALPROL must be between 0 and 1")
+        return v
+
+    @field_validator("MEVEG")
+    @classmethod
+    def validate_meveg(cls, v):
+        if v not in [0, 1]:
+            raise ValueError("MEVEG must be 0 or 1")
+        return v
+
+    @field_validator("LMAXETOT")
+    @classmethod
+    def validate_lmaxetot(cls, v):
+        if not isinstance(v, bool):
+            raise ValueError("LMAXETOT must be a boolean")
+        return v
+
+    @field_validator("MESDS")
+    @classmethod
+    def validate_mesds(cls, v):
+        return v
+
+    @field_validator("MESTR")
+    @classmethod
+    def validate_mestr(cls, v):
+        if v not in [0, 1, 2]:
+            raise ValueError("MESTR must be 0, 1, or 2")
+        return v
+
+    @field_validator("TRICO")
+    @classmethod
+    def validate_trico(cls, v):
+        return v
+
+    @field_validator("TRIRA")
+    @classmethod
+    def validate_trira(cls, v):
+        return v
+
+    @field_validator("TRIURS")
+    @classmethod
+    def validate_triurs(cls, v):
+        return v
+
+    @model_validator(mode="after")
+    def validate_mesin_lsourceswam(self) -> "Model":
+        if self.MESIN == 1 and self.LSOURCESWAM:
+            raise ValueError("When MESIN=1, LSOURCESWAM should be False")
+        if self.MESIN == 2 and not self.LSOURCESWAM:
+            raise ValueError("When MESIN=2, LSOURCESWAM should be True")
+        return self
+
+    @model_validator(mode="after")
+    def validate_ifric_mesin(self) -> "Model":
+        if self.MESIN == 1 and self.IFRIC != 1:
+            raise ValueError("When MESIN=1, IFRIC should be 1")
+        if self.MESIN == 3 and self.IFRIC != 4:
+            raise ValueError("When MESIN=3, IFRIC should be 4")
+        return self
+
+    @model_validator(mode="after")
+    def validate_fricc_mesbf(self) -> "Model":
+        if self.MESBF == 1 and not 0.038 <= self.FRICC <= 0.067:
+            raise ValueError("When MESBF=1, FRICC should be between 0.038 and 0.067")
+        return self
+
+    @model_validator(mode="after")
+    def validate_b_alp_br_coef_method(self) -> "Model":
+        if self.BR_COEF_METHOD == 2 and self.B_ALP < 30:
+            raise ValueError("When BR_COEF_METHOD=2, B_ALP should be around 40")
+        return self
+
+    @model_validator(mode="after")
+    def validate_mesds_mesin(self) -> "Model":
+        if self.MESDS != self.MESIN:
+            raise ValueError("MESDS should have the same value as MESIN")
+        return self
 
 
 class Sin4(NamelistBaseModel):
-    zwnd: Optional[list] = Field(None, description="")
-    alpha0: Optional[list] = Field(None, description="")
-    z0max: Optional[list] = Field(None, description="")
-    betamax: Optional[list] = Field(None, description="")
-    sinthp: Optional[list] = Field(None, description="")
-    zalp: Optional[list] = Field(None, description="")
-    tauwshelter: Optional[list] = Field(None, description="")
-    swellfpar: Optional[list] = Field(None, description="")
-    swellf: Optional[list] = Field(None, description="")
-    swellf2: Optional[list] = Field(None, description="")
-    swellf3: Optional[list] = Field(None, description="")
-    swellf4: Optional[list] = Field(None, description="")
-    swellf5: Optional[list] = Field(None, description="")
-    swellf6: Optional[list] = Field(None, description="")
-    swellf7: Optional[list] = Field(None, description="")
-    z0rat: Optional[list] = Field(None, description="")
-    sinbr: Optional[str] = Field(None, description="")
+    ZWND: Optional[list] = Field(
+        [10.0, ""],
+        description="Wind input height in meters. Used to define the reference height for wind measurements.",
+    )
+    ALPHA0: Optional[list] = Field(
+        ["9.499999694526196E-003", ""],
+        description="Charnock coefficient for wind stress calculation. Controls the roughness of the sea surface.",
+    )
+    Z0MAX: Optional[list] = Field(
+        ["0.000000000000000E+000", ""],
+        description="Maximum value for the roughness length. Limits the sea surface roughness in high wind conditions.",
+    )
+    BETAMAX: Optional[list] = Field(
+        [1.54, ""],
+        description="Maximum value for the wave growth parameter. Used for tuning the model to specific wind data sources (e.g., ECMWF = 1.52, CFRS = 1.34).",
+    )
+    SINTHP: Optional[list] = Field(
+        [2.0, ""],
+        description="Power of cosine in angular distribution of wind input. Controls the directional spread of wind-generated waves.",
+    )
+    ZALP: Optional[list] = Field(
+        ["6.000000052154064E-003", ""],
+        description="Wave age parameter for wind input. Affects the growth rate of young wind waves.",
+    )
+    TAUWSHELTER: Optional[list] = Field(
+        [0.300000011920929, ""],
+        description="Sheltering coefficient for short waves. Affects the energy transfer from wind to waves in the presence of longer waves.",
+    )
+    SWELLFPAR: Optional[list] = Field(
+        [1.0, ""],
+        description="Swell dissipation parameter. Controls the overall strength of swell dissipation.",
+    )
+    SWELLF: Optional[list] = Field(
+        [0.660000026226044, ""],
+        description="Swell dissipation coefficient. Part of the swell dissipation parameterization.",
+    )
+    SWELLF2: Optional[list] = Field(
+        ["-1.799999922513962E-002", ""],
+        description="Second swell dissipation coefficient. Affects the dependence of swell dissipation on wave steepness.",
+    )
+    SWELLF3: Optional[list] = Field(
+        ["2.199999988079071E-002", ""],
+        description="Third swell dissipation coefficient. Modifies the swell dissipation rate.",
+    )
+    SWELLF4: Optional[list] = Field(
+        [150000.0, ""],
+        description="Reynolds number threshold for swell dissipation. Controls the onset of turbulent flow around swell.",
+    )
+    SWELLF5: Optional[list] = Field(
+        [1.20000004768372, ""],
+        description="Coefficient for swell dissipation in turbulent flow. Affects the strength of swell dissipation above the Reynolds number threshold.",
+    )
+    SWELLF6: Optional[list] = Field(
+        ["0.000000000000000E+000", ""],
+        description="Lower limit of Reynolds number for swell dissipation. Sets a minimum threshold for swell dissipation.",
+    )
+    SWELLF7: Optional[list] = Field(
+        [360000.0, ""],
+        description="Upper limit of Reynolds number for swell dissipation. Sets a maximum threshold for swell dissipation.",
+    )
+    Z0RAT: Optional[list] = Field(
+        ["3.999999910593033E-002", ""],
+        description="Ratio of roughness lengths for momentum and energy transfer. Affects the coupling between wind and waves.",
+    )
+    SINBR: Optional[str] = Field(
+        "0.000000000000000E+000",
+        description="Bottom friction coefficient for wave dissipation. Controls the rate of energy loss due to bottom friction.",
+    )
+
+    @field_validator("ZWND")
+    @classmethod
+    def validate_zwnd(cls, v):
+        if v <= 0:
+            raise ValueError("ZWND must be positive")
+        return v
+
+    @field_validator("ALPHA0")
+    @classmethod
+    def validate_alpha0(cls, v):
+        if v < 0 or v > 1:
+            raise ValueError("ALPHA0 must be between 0 and 1")
+        return v
+
+    @field_validator("Z0MAX")
+    @classmethod
+    def validate_z0max(cls, v):
+        if v < 0:
+            raise ValueError("Z0MAX must be non-negative")
+        return v
+
+    @field_validator("BETAMAX")
+    @classmethod
+    def validate_betamax(cls, v):
+        if v <= 0:
+            raise ValueError("BETAMAX must be positive")
+        return v
+
+    @field_validator("SINTHP")
+    @classmethod
+    def validate_sinthp(cls, v):
+        if v <= 0:
+            raise ValueError("SINTHP must be positive")
+        return v
+
+    @field_validator("ZALP")
+    @classmethod
+    def validate_zalp(cls, v):
+        if v < 0 or v > 1:
+            raise ValueError("ZALP must be between 0 and 1")
+        return v
+
+    @field_validator("TAUWSHELTER")
+    @classmethod
+    def validate_tauwshelter(cls, v):
+        if v < 0 or v > 1:
+            raise ValueError("TAUWSHELTER must be between 0 and 1")
+        return v
+
+    @field_validator("SWELLFPAR")
+    @classmethod
+    def validate_swellfpar(cls, v):
+        if v <= 0:
+            raise ValueError("SWELLFPAR must be positive")
+        return v
+
+    @field_validator("SWELLF")
+    @classmethod
+    def validate_swellf(cls, v):
+        if v < 0 or v > 1:
+            raise ValueError("SWELLF must be between 0 and 1")
+        return v
+
+    @field_validator("SWELLF2")
+    @classmethod
+    def validate_swellf2(cls, v):
+        return v
+
+    @field_validator("SWELLF3")
+    @classmethod
+    def validate_swellf3(cls, v):
+        return v
+
+    @field_validator("SWELLF4")
+    @classmethod
+    def validate_swellf4(cls, v):
+        if v <= 0:
+            raise ValueError("SWELLF4 must be positive")
+        return v
+
+    @field_validator("SWELLF5")
+    @classmethod
+    def validate_swellf5(cls, v):
+        if v <= 0:
+            raise ValueError("SWELLF5 must be positive")
+        return v
+
+    @field_validator("SWELLF6")
+    @classmethod
+    def validate_swellf6(cls, v):
+        if v < 0:
+            raise ValueError("SWELLF6 must be non-negative")
+        return v
+
+    @field_validator("SWELLF7")
+    @classmethod
+    def validate_swellf7(cls, v):
+        if v <= 0:
+            raise ValueError("SWELLF7 must be positive")
+        return v
+
+    @field_validator("Z0RAT")
+    @classmethod
+    def validate_z0rat(cls, v):
+        if v <= 0 or v > 1:
+            raise ValueError("Z0RAT must be between 0 and 1")
+        return v
+
+    @field_validator("SINBR")
+    @classmethod
+    def validate_sinbr(cls, v):
+        if v < 0:
+            raise ValueError("SINBR must be non-negative")
+        return v
+
+    @model_validator(mode="after")
+    def validate_swellf_limits(self):
+        if self.SWELLF6 >= self.SWELLF7:
+            raise ValueError("SWELLF6 must be less than SWELLF7")
+        return self
 
 
 class Sds4(NamelistBaseModel):
-    sdsc1: Optional[list] = Field(None, description="")
-    fxpm3: Optional[list] = Field(None, description="")
-    fxfm3: Optional[list] = Field(None, description="")
-    fxfmage: Optional[list] = Field(None, description="")
-    sdsc2: Optional[list] = Field(None, description="")
-    sdscum: Optional[list] = Field(None, description="")
-    sdsstrain: Optional[list] = Field(None, description="")
-    sdsc4: Optional[list] = Field(None, description="")
-    sdsc5: Optional[list] = Field(None, description="")
-    sdsc6: Optional[list] = Field(None, description="")
-    sdsbr: Optional[list] = Field(None, description="")
-    sdsbr2: Optional[list] = Field(None, description="")
-    sdsp: Optional[list] = Field(None, description="")
-    sdsiso: Optional[list] = Field(None, description="")
-    sdsbck: Optional[list] = Field(None, description="")
-    sdsabk: Optional[list] = Field(None, description="")
-    sdspbk: Optional[list] = Field(None, description="")
-    sdsbint: Optional[list] = Field(None, description="")
-    sdshck: Optional[list] = Field(None, description="")
-    sdsdth: Optional[list] = Field(None, description="")
-    sdscos: Optional[list] = Field(None, description="")
-    sdsbrf1: Optional[list] = Field(None, description="")
-    sdsbrfdf: Optional[list] = Field(None, description="")
-    sdsbm0: Optional[list] = Field(None, description="")
-    sdsbm1: Optional[list] = Field(None, description="")
-    sdsbm2: Optional[list] = Field(None, description="")
-    sdsbm3: Optional[list] = Field(None, description="")
-    sdsbm4: Optional[list] = Field(None, description="")
-    sdshfgen: Optional[list] = Field(None, description="")
-    sdslfgen: Optional[list] = Field(None, description="")
-    whitecapwidth: Optional[list] = Field(None, description="")
-    fxincut: Optional[list] = Field(None, description="")
-    fxdscut: Optional[str] = Field(None, description="")
+    SDSC1: Optional[list] = Field(
+        ["0.000000000000000E+000", ""],
+        description="Constant parameter in source term formulation",
+    )
+    FXPM3: Optional[list] = Field(
+        [4.0, ""], description="Scaling factor for wave steepness in source term"
+    )
+    FXFM3: Optional[list] = Field(
+        [2.5, ""], description="Scaling factor for wave frequency in source term"
+    )
+    FXFMAGE: Optional[list] = Field(
+        ["0.000000000000000E+000", ""],
+        description="Age-dependent factor in source term formulation",
+    )
+    SDSC2: Optional[list] = Field(
+        ["-2.200000017182902E-005", ""],
+        description="Second constant parameter in source term formulation",
+    )
+    SDSCUM: Optional[list] = Field(
+        [-0.403439998626709, ""], description="Cumulative source term parameter"
+    )
+    SDSSTRAIN: Optional[list] = Field(
+        ["0.000000000000000E+000", ""],
+        description="Strain-related parameter in source term",
+    )
+    SDSC4: Optional[list] = Field(
+        [1.0, ""], description="Fourth constant parameter in source term formulation"
+    )
+    SDSC5: Optional[list] = Field(
+        ["0.000000000000000E+000", ""],
+        description="Fifth constant parameter in source term formulation",
+    )
+    SDSC6: Optional[list] = Field(
+        [0.300000011920929, ""],
+        description="Sixth constant parameter in source term formulation",
+    )
+    SDSBR: Optional[list] = Field(
+        ["8.999999845400453E-004", ""],
+        description="Breaking-related parameter in source term",
+    )
+    SDSBR2: Optional[list] = Field(
+        [0.800000011920929, ""], description="Secondary breaking-related parameter"
+    )
+    SDSP: Optional[list] = Field(
+        [2.0, ""], description="Power-related parameter in source term"
+    )
+    SDSISO: Optional[list] = Field(
+        [2.0, ""], description="Isotropic dissipation parameter"
+    )
+    SDSBCK: Optional[list] = Field(
+        ["0.000000000000000E+000", ""], description="Background dissipation parameter"
+    )
+    SDSABK: Optional[list] = Field(
+        [1.5, ""], description="Additional background dissipation parameter"
+    )
+    SDSPBK: Optional[list] = Field(
+        [4.0, ""], description="Power-related background dissipation parameter"
+    )
+    SDSBINT: Optional[list] = Field(
+        [0.300000011920929, ""], description="Intermediate-scale dissipation parameter"
+    )
+    SDSHCK: Optional[list] = Field(
+        [1.5, ""], description="High-frequency check parameter"
+    )
+    SDSDTH: Optional[list] = Field(
+        [80.0, ""], description="Directional spreading threshold parameter"
+    )
+    SDSCOS: Optional[list] = Field(
+        [2.0, ""], description="Cosine power parameter in directional spreading"
+    )
+    SDSBRF1: Optional[list] = Field(
+        [0.5, ""], description="Breaking-related frequency parameter"
+    )
+    SDSBRFDF: Optional[list] = Field(
+        ["0.000000000000000E+000", ""],
+        description="Breaking-related frequency difference parameter",
+    )
+    SDSBM0: Optional[list] = Field(
+        [1.0, ""], description="Breaking-related moment parameter 0"
+    )
+    SDSBM1: Optional[list] = Field(
+        ["0.000000000000000E+000", ""],
+        description="Breaking-related moment parameter 1",
+    )
+    SDSBM2: Optional[list] = Field(
+        ["0.000000000000000E+000", ""],
+        description="Breaking-related moment parameter 2",
+    )
+    SDSBM3: Optional[list] = Field(
+        ["0.000000000000000E+000", ""],
+        description="Breaking-related moment parameter 3",
+    )
+    SDSBM4: Optional[list] = Field(
+        ["0.000000000000000E+000", ""],
+        description="Breaking-related moment parameter 4",
+    )
+    SDSHFGEN: Optional[list] = Field(
+        ["0.000000000000000E+000", ""],
+        description="High-frequency generation parameter",
+    )
+    SDSLFGEN: Optional[list] = Field(
+        ["0.000000000000000E+000", ""], description="Low-frequency generation parameter"
+    )
+    WHITECAPWIDTH: Optional[list] = Field(
+        [0.300000011920929, ""], description="Width of the whitecap region"
+    )
+    FXINCUT: Optional[list] = Field(
+        ["0.000000000000000E+000", ""], description="Input cut-off frequency parameter"
+    )
+    FXDSCUT: Optional[str] = Field(
+        "0.000000000000000E+000", description="Dissipation cut-off frequency parameter"
+    )
+
+    @field_validator("SDSC1")
+    @classmethod
+    def validate_sdsc1(cls, v):
+        return float(v)
+
+    @field_validator("FXPM3")
+    @classmethod
+    def validate_fxpm3(cls, v):
+        if v <= 0:
+            raise ValueError("FXPM3 must be positive")
+        return float(v)
+
+    @field_validator("FXFM3")
+    @classmethod
+    def validate_fxfm3(cls, v):
+        if v <= 0:
+            raise ValueError("FXFM3 must be positive")
+        return float(v)
+
+    @field_validator("FXFMAGE")
+    @classmethod
+    def validate_fxfmage(cls, v):
+        return float(v)
+
+    @field_validator("SDSC2")
+    @classmethod
+    def validate_sdsc2(cls, v):
+        return float(v)
+
+    @field_validator("SDSCUM")
+    @classmethod
+    def validate_sdscum(cls, v):
+        return float(v)
+
+    @field_validator("SDSSTRAIN")
+    @classmethod
+    def validate_sdsstrain(cls, v):
+        return float(v)
+
+    @field_validator("SDSC4")
+    @classmethod
+    def validate_sdsc4(cls, v):
+        return float(v)
+
+    @field_validator("SDSC5")
+    @classmethod
+    def validate_sdsc5(cls, v):
+        return float(v)
+
+    @field_validator("SDSC6")
+    @classmethod
+    def validate_sdsc6(cls, v):
+        return float(v)
+
+    @field_validator("SDSBR")
+    @classmethod
+    def validate_sdsbr(cls, v):
+        if v < 0:
+            raise ValueError("SDSBR must be non-negative")
+        return float(v)
+
+    @field_validator("SDSBR2")
+    @classmethod
+    def validate_sdsbr2(cls, v):
+        if v < 0 or v > 1:
+            raise ValueError("SDSBR2 must be between 0 and 1")
+        return float(v)
+
+    @field_validator("SDSP")
+    @classmethod
+    def validate_sdsp(cls, v):
+        if v <= 0:
+            raise ValueError("SDSP must be positive")
+        return float(v)
+
+    @field_validator("SDSISO")
+    @classmethod
+    def validate_sdsiso(cls, v):
+        if v <= 0:
+            raise ValueError("SDSISO must be positive")
+        return float(v)
+
+    @field_validator("SDSBCK")
+    @classmethod
+    def validate_sdsbck(cls, v):
+        return float(v)
+
+    @field_validator("SDSABK")
+    @classmethod
+    def validate_sdsabk(cls, v):
+        if v < 0:
+            raise ValueError("SDSABK must be non-negative")
+        return float(v)
+
+    @field_validator("SDSPBK")
+    @classmethod
+    def validate_sdspbk(cls, v):
+        if v <= 0:
+            raise ValueError("SDSPBK must be positive")
+        return float(v)
+
+    @field_validator("SDSBINT")
+    @classmethod
+    def validate_sdsbint(cls, v):
+        if v < 0 or v > 1:
+            raise ValueError("SDSBINT must be between 0 and 1")
+        return float(v)
+
+    @field_validator("SDSHCK")
+    @classmethod
+    def validate_sdshck(cls, v):
+        if v <= 0:
+            raise ValueError("SDSHCK must be positive")
+        return float(v)
+
+    @field_validator("SDSDTH")
+    @classmethod
+    def validate_sdsdth(cls, v):
+        if v <= 0 or v > 360:
+            raise ValueError("SDSDTH must be between 0 and 360")
+        return float(v)
+
+    @field_validator("SDSCOS")
+    @classmethod
+    def validate_sdscos(cls, v):
+        if v <= 0:
+            raise ValueError("SDSCOS must be positive")
+        return float(v)
+
+    @field_validator("SDSBRF1")
+    @classmethod
+    def validate_sdsbrf1(cls, v):
+        if v < 0 or v > 1:
+            raise ValueError("SDSBRF1 must be between 0 and 1")
+        return float(v)
+
+    @field_validator("SDSBRFDF")
+    @classmethod
+    def validate_sdsbrfdf(cls, v):
+        return float(v)
+
+    @field_validator("SDSBM0")
+    @classmethod
+    def validate_sdsbm0(cls, v):
+        return float(v)
+
+    @field_validator("SDSBM1")
+    @classmethod
+    def validate_sdsbm1(cls, v):
+        return float(v)
+
+    @field_validator("SDSBM2")
+    @classmethod
+    def validate_sdsbm2(cls, v):
+        return float(v)
+
+    @field_validator("SDSBM3")
+    @classmethod
+    def validate_sdsbm3(cls, v):
+        return float(v)
+
+    @field_validator("SDSBM4")
+    @classmethod
+    def validate_sdsbm4(cls, v):
+        return float(v)
+
+    @field_validator("SDSHFGEN")
+    @classmethod
+    def validate_sdshfgen(cls, v):
+        return float(v)
+
+    @field_validator("SDSLFGEN")
+    @classmethod
+    def validate_sdslfgen(cls, v):
+        return float(v)
+
+    @field_validator("WHITECAPWIDTH")
+    @classmethod
+    def validate_whitecapwidth(cls, v):
+        if v < 0 or v > 1:
+            raise ValueError("WHITECAPWIDTH must be between 0 and 1")
+        return float(v)
+
+    @field_validator("FXINCUT")
+    @classmethod
+    def validate_fxincut(cls, v):
+        return float(v)
+
+    @field_validator("FXDSCUT")
+    @classmethod
+    def validate_fxdscut(cls, v):
+        return float(v)
 
 
 class Nums(NamelistBaseModel):
-    icomp: Optional[int] = Field(None, description="")
-    amethod: Optional[int] = Field(None, description="")
-    aspar_local_level: Optional[list] = Field(None, description="")
-    smethod: Optional[int] = Field(None, description="")
-    dmethod: Optional[int] = Field(None, description="")
-    rtheta: Optional[float] = Field(
-        None,
-        description="Weighing factor for DMETHOD = 1, not really useful since Crank Nicholson integration can only be monotone for CFL .le. 2",
+    ICOMP: Optional[int] = Field(
+        3,
+        description="Controls the splitting method and implicit/explicit schemes for spectral advection. 0: Explicit for all dimensions, 1: Implicit for geographical space, explicit for others, 2: Implicit for advection and semi-implicit for source terms, 3: Fully implicit with no splitting.",
     )
-    litersplit: Optional[str] = Field(
-        None,
-        description="T: double Strang split; F: simple split (more efficient). Default: F",
+    AMETHOD: Optional[int] = Field(
+        7,
+        description="Controls the methods used in geographical space. Values range from 0 to 7, with different schemes and solvers for each value.",
     )
-    lfilterth: Optional[str] = Field(None, description="")
-    maxcflth: Optional[float] = Field(
-        None, description="Max Cfl in Theta space; used only if LFILTERTH=T"
+    ASPAR_LOCAL_LEVEL: Optional[list] = Field(
+        [0, ""],
+        description="Locality level for memory usage. 0 uses a lot of memory, 10 uses no memory, values in between are hybrid levels.",
     )
-    fmethod: Optional[int] = Field(None, description="")
-    lfiltersig: Optional[str] = Field(
-        None, description="Limit the advection velocity in freq. space (usually F)"
+    SMETHOD: Optional[int] = Field(
+        1,
+        description="Controls the integration of source terms. 0: No source terms, 1: Splitting using RK-3 and SI, 2: Semi-implicit, 3: R-K3, 4: Dynamic Splitting, 6: Sub-time steps for breaking term integration.",
     )
-    maxcflsig: Optional[float] = Field(
-        None, description="Max Cfl in freq. space; used only if LFILTERSIG=T"
+    DMETHOD: Optional[int] = Field(
+        2,
+        description="Controls the numerical method in directional space. 0: No advection, 1: Crank-Nicholson or Euler Implicit, 2: Ultimate Quickest, 3: RK5-WENO, 4: Explicit FVM Upwind scheme.",
     )
-    llimt: Optional[str] = Field(
-        None,
-        description="Switch on/off Action limiter, Action limiter must mostly be turned on.",
+    RTHETA: Optional[float] = Field(
+        0.5,
+        description="Weighing factor for DMETHOD = 1. Useful only for Crank Nicholson integration.",
     )
-    lsigbound: Optional[str] = Field(
-        None, description="Theta space on wet land/island boundary"
+    LITERSPLIT: Optional[str] = Field(
+        "F",
+        description="Controls splitting method. True: double Strang split, False: simple split (more efficient).",
     )
-    lthbound: Optional[str] = Field(
-        None, description="Sigma space on wet land/island boundary"
+    LFILTERTH: Optional[str] = Field(
+        "F",
+        description="Use a CFL filter to limit the advection velocity in directional space.",
     )
-    lsoubound: Optional[str] = Field(
-        None, description="Source Terms on wet land/island boundary. Use T if SMETHOD=6"
+    MAXCFLTH: Optional[float] = Field(
+        1.0, description="Maximum CFL in Theta space, used only if LFILTERTH=True."
     )
-    melim: Optional[int] = Field(None, description="Formulation for the action limiter")
-    limfak: Optional[float] = Field(
-        None,
-        description="Proportionality coefficient for the action limiter MAX_DAC_DT = Limfak * Limiter; see notes above for value",
+    FMETHOD: Optional[int] = Field(
+        1,
+        description="Controls the numerical method used in frequency space. 0: No advection, 1: Ultimate Quickest as in WW3.",
     )
-    ldifr: Optional[str] = Field(
-        None,
-        description="Use phase decoupled diffraction approximation according to Holthuijsen et al. (2003) (usually T; if crash, use F)",
+    LFILTERSIG: Optional[str] = Field(
+        "F", description="Limit the advection velocity in frequency space."
     )
-    idiffr: Optional[int] = Field(
-        None,
-        description="Extended WAE accounting for higher order effects WAE becomes nonlinear; 1: Holthuijsen et al. ; 2: Liau et al. ; 3: Toledo et al. (in preparation)",
+    MAXCFLSIG: Optional[float] = Field(
+        1.0, description="Maximum CFL in frequency space, used only if LFILTERSIG=True."
     )
-    lconv: Optional[str] = Field(
-        None,
-        description="Estimate convergence criterian and write disk (quasi-steady - qstea.out)",
+    LLIMT: Optional[str] = Field(
+        "T", description="Switch on/off Action limiter. Must mostly be turned on."
     )
-    lcfl: Optional[str] = Field(
-        None, description="Write out CFL numbers; use F to save time"
+    LSIGBOUND: Optional[str] = Field(
+        "F", description="Theta space on wet land/island boundary."
     )
-    nqsiter: Optional[int] = Field(
-        None,
-        description="# of quasi-steady (Q-S) sub-divisions within each WWM time step (trial and errors)",
+    LTHBOUND: Optional[str] = Field(
+        "F", description="Sigma space on wet land/island boundary."
     )
-    qsconv1: Optional[float] = Field(
-        None,
-        description="Number of grid points [%/100] that have to fulfill abs. wave height criteria EPSH1",
+    LSOUBOUND: Optional[str] = Field(
+        "F",
+        description="Source Terms on wet land/island boundary. Use True if SMETHOD=6.",
     )
-    qsconv2: Optional[float] = Field(
-        None,
-        description="Number of grid points [%/100] that have to fulfill rel. wave height criteria EPSH2",
+    MELIM: Optional[int] = Field(
+        1,
+        description="Formulation for the action limiter. 1: WAM group (1988), 2: Hersbach Janssen (1999), 3: For Cycle 4 formulation.",
     )
-    qsconv3: Optional[float] = Field(
-        None,
-        description="Number of grid points [%/100] that have to fulfill sum. rel. wave action criteria EPSH3",
+    LIMFAK: Optional[float] = Field(
+        0.1,
+        description="Proportionality coefficient for the action limiter. Value depends on MESIN and MESDS settings.",
     )
-    qsconv4: Optional[float] = Field(
-        None,
-        description="Number of grid points [%/100] that have to fulfill avg. rel. wave period criteria EPSH4",
+    LDIFR: Optional[str] = Field(
+        "F",
+        description="Use phase decoupled diffraction approximation according to Holthuijsen et al. (2003).",
     )
-    qsconv5: Optional[float] = Field(
-        None,
-        description="Number of grid points [%/100] that have to fulfill avg. rel. wave steepness criteria EPSH5",
+    IDIFFR: Optional[int] = Field(
+        1,
+        description="Extended WAE accounting for higher order effects. 1: Holthuijsen et al., 2: Liau et al., 3: Toledo et al.",
     )
-    lexpimp: Optional[str] = Field(
-        None,
-        description="Use implicit schemes for freq. lower than given below by FREQEXP; used only if ICOMP=0",
+    LCONV: Optional[str] = Field(
+        "F",
+        description="Estimate convergence criteria and write to disk (quasi-steady - qstea.out).",
     )
-    freqexp: Optional[float] = Field(
-        None,
-        description="Minimum frequency for explicit schemes; only used if LEXPIMP=T and ICOMP=0",
+    LCFL: Optional[str] = Field(
+        "F", description="Write out CFL numbers. Use False to save time."
     )
-    epsh1: Optional[float] = Field(
-        None,
-        description="Convergence criteria for rel. wave height ! EPSH1 < CONVK1 = REAL(ABS(HSOLD(IP)-HS2)/HS2)",
+    NQSITER: Optional[int] = Field(
+        10,
+        description="Number of quasi-steady (Q-S) sub-divisions within each WWM time step.",
     )
-    epsh2: Optional[float] = Field(
-        None,
-        description="Convergence criteria for abs. wave height ! EPSH2 < CONVK2 = REAL(ABS(HS2-HSOLD(IP)))",
+    QSCONV1: Optional[float] = Field(
+        0.98,
+        description="Percentage of grid points that must fulfill absolute wave height criteria EPSH1.",
     )
-    epsh3: Optional[float] = Field(
-        None,
-        description="Convergence criteria for the rel. sum of wave action ! EPSH3 < CONVK3 = REAL(ABS(SUMACOLD(IP)-SUMAC)/SUMAC)",
+    QSCONV2: Optional[float] = Field(
+        0.98,
+        description="Percentage of grid points that must fulfill relative wave height criteria EPSH2.",
     )
-    epsh4: Optional[float] = Field(
-        None,
-        description="Convergence criteria for the rel. avg. wave steepness criteria ! EPSH4 < CONVK4 = REAL(ABS(KHS2-KHSOLD(IP))/KHSOLD(IP))",
+    QSCONV3: Optional[float] = Field(
+        0.98,
+        description="Percentage of grid points that must fulfill sum relative wave action criteria EPSH3.",
     )
-    epsh5: Optional[float] = Field(
-        None,
-        description="Convergence criteria for the rel. avg. waveperiod ! EPSH5 < REAL(ABS(TM02-TM02OLD(IP))/TM02OLD(IP))",
+    QSCONV4: Optional[float] = Field(
+        0.98,
+        description="Percentage of grid points that must fulfill average relative wave period criteria EPSH4.",
     )
-    lvector: Optional[str] = Field(
-        None,
-        description="Use optmized propagation routines for large high performance computers e.g. at least more than 128 CPU. Try LVECTOR=F first.",
+    QSCONV5: Optional[float] = Field(
+        0.98,
+        description="Percentage of grid points that must fulfill average relative wave steepness criteria EPSH5.",
     )
-    ivector: Optional[int] = Field(
-        None, description="USed if LVECTOR=T; Different flavours of communications"
+    LEXPIMP: Optional[str] = Field(
+        "F",
+        description="Use implicit schemes for frequencies lower than FREQEXP. Used only if ICOMP=0.",
     )
-    ladvtest: Optional[str] = Field(
-        None,
-        description="for testing the advection schemes, testcase will be added soon",
+    FREQEXP: Optional[float] = Field(
+        0.1,
+        description="Minimum frequency for explicit schemes. Only used if LEXPIMP=True and ICOMP=0.",
     )
-    lchkconv: Optional[str] = Field(
-        None,
-        description="needs to set to .true. for quasi-steady mode. in order to compute the QSCONVi criteria and check them",
+    EPSH1: Optional[float] = Field(
+        0.01, description="Convergence criteria for relative wave height."
     )
-    nb_block: Optional[list] = Field(None, description="")
-    wae_solverthr: Optional[list] = Field(None, description="")
-    maxiter: Optional[list] = Field(None, description="")
-    lsourceswam: Optional[list] = Field(
-        None, description="Use ECMWF WAM formualtion for deep water physics."
+    EPSH2: Optional[float] = Field(
+        0.01, description="Convergence criteria for absolute wave height."
     )
-    lnaninfchk: Optional[list] = Field(None, description="")
-    lzeta_setup: Optional[list] = Field(None, description="")
-    zeta_meth: Optional[list] = Field(None, description="")
-    pmin: Optional[list] = Field(None, description="")
-    block_gauss_seidel: Optional[list] = Field(None, description="")
-    lnonl: Optional[list] = Field(None, description="")
-    l_solver_norm: Optional[list] = Field(None, description="")
+    EPSH3: Optional[float] = Field(
+        0.01, description="Convergence criteria for the relative sum of wave action."
+    )
+    EPSH4: Optional[float] = Field(
+        0.01,
+        description="Convergence criteria for the relative average wave steepness.",
+    )
+    EPSH5: Optional[float] = Field(
+        0.01, description="Convergence criteria for the relative average wave period."
+    )
+    LVECTOR: Optional[str] = Field(
+        "F",
+        description="Use optimized propagation routines for large high performance computers.",
+    )
+    IVECTOR: Optional[int] = Field(
+        2,
+        description="Different flavors of communications when LVECTOR=True. Values range from 1 to 6.",
+    )
+    LADVTEST: Optional[str] = Field(
+        "F", description="For testing the advection schemes."
+    )
+    LCHKCONV: Optional[str] = Field(
+        "T",
+        description="Needs to be set to True for quasi-steady mode to compute and check the QSCONVi criteria.",
+    )
+    NB_BLOCK: Optional[list] = Field(
+        [3, ""], description="Number of blocks for some computational method."
+    )
+    WAE_SOLVERTHR: Optional[list] = Field(
+        ["1.E-6", ""], description="Solver threshold for WAE (Wave Action Equation)."
+    )
+    MAXITER: Optional[list] = Field(
+        [1000, ""],
+        description="Maximum number of iterations for some computational method.",
+    )
+    LSOURCESWAM: Optional[list] = Field(
+        ["F", ""], description="Use ECMWF WAM formulation for deep water physics."
+    )
+    LNANINFCHK: Optional[list] = Field(
+        ["F", ""], description="Check for NaN and Inf values."
+    )
+    LZETA_SETUP: Optional[list] = Field(
+        ["F", ""], description="Enable zeta setup calculation."
+    )
+    ZETA_METH: Optional[list] = Field(
+        [0, ""], description="Method for zeta calculation."
+    )
+    PMIN: Optional[list] = Field(
+        [5.0, ""], description="Minimum value for some parameter, possibly pressure."
+    )
+    BLOCK_GAUSS_SEIDEL: Optional[list] = Field(
+        ["T", ""], description="Use Block Gauss-Seidel method."
+    )
+    LNONL: Optional[list] = Field(
+        ["F", ""], description="Enable non-linear calculations."
+    )
+    L_SOLVER_NORM: Optional[list] = Field(
+        ["F", ""], description="Use solver normalization."
+    )
+
+    @field_validator("ICOMP")
+    @classmethod
+    def validate_icomp(cls, v):
+        if v not in [0, 1, 2, 3]:
+            raise ValueError("ICOMP must be 0, 1, 2, or 3")
+        return v
+
+    @field_validator("AMETHOD")
+    @classmethod
+    def validate_amethod(cls, v):
+        if v not in range(8):
+            raise ValueError("AMETHOD must be between 0 and 7")
+        return v
+
+    @field_validator("ASPAR_LOCAL_LEVEL")
+    @classmethod
+    def validate_aspar_local_level(cls, v):
+        if not 0 <= v <= 10:
+            raise ValueError("ASPAR_LOCAL_LEVEL must be between 0 and 10")
+        return v
+
+    @field_validator("SMETHOD")
+    @classmethod
+    def validate_smethod(cls, v):
+        if v not in [0, 1, 2, 3, 4, 6]:
+            raise ValueError("SMETHOD must be 0, 1, 2, 3, 4, or 6")
+        return v
+
+    @field_validator("DMETHOD")
+    @classmethod
+    def validate_dmethod(cls, v):
+        if v not in range(5):
+            raise ValueError("DMETHOD must be between 0 and 4")
+        return v
+
+    @field_validator("RTHETA")
+    @classmethod
+    def validate_rtheta(cls, v):
+        if not 0 <= v <= 1:
+            raise ValueError("RTHETA must be between 0 and 1")
+        return v
+
+    @field_validator("LITERSPLIT")
+    @classmethod
+    def validate_litersplit(cls, v):
+        return bool(v)
+
+    @field_validator("LFILTERTH")
+    @classmethod
+    def validate_lfilterth(cls, v):
+        return bool(v)
+
+    @field_validator("MAXCFLTH")
+    @classmethod
+    def validate_maxcflth(cls, v):
+        if v <= 0:
+            raise ValueError("MAXCFLTH must be positive")
+        return v
+
+    @field_validator("FMETHOD")
+    @classmethod
+    def validate_fmethod(cls, v):
+        if v not in [0, 1]:
+            raise ValueError("FMETHOD must be 0 or 1")
+        return v
+
+    @field_validator("LFILTERSIG")
+    @classmethod
+    def validate_lfiltersig(cls, v):
+        return bool(v)
+
+    @field_validator("MAXCFLSIG")
+    @classmethod
+    def validate_maxcflsig(cls, v):
+        if v <= 0:
+            raise ValueError("MAXCFLSIG must be positive")
+        return v
+
+    @field_validator("LLIMT")
+    @classmethod
+    def validate_llimt(cls, v):
+        return bool(v)
+
+    @field_validator("LSIGBOUND")
+    @classmethod
+    def validate_lsigbound(cls, v):
+        return bool(v)
+
+    @field_validator("LTHBOUND")
+    @classmethod
+    def validate_lthbound(cls, v):
+        return bool(v)
+
+    @field_validator("LSOUBOUND")
+    @classmethod
+    def validate_lsoubound(cls, v):
+        return bool(v)
+
+    @field_validator("MELIM")
+    @classmethod
+    def validate_melim(cls, v):
+        if v not in [1, 2, 3]:
+            raise ValueError("MELIM must be 1, 2, or 3")
+        return v
+
+    @field_validator("LIMFAK")
+    @classmethod
+    def validate_limfak(cls, v):
+        if v <= 0:
+            raise ValueError("LIMFAK must be positive")
+        return v
+
+    @field_validator("LDIFR")
+    @classmethod
+    def validate_ldifr(cls, v):
+        return bool(v)
+
+    @field_validator("IDIFFR")
+    @classmethod
+    def validate_idiffr(cls, v):
+        if v not in [1, 2, 3]:
+            raise ValueError("IDIFFR must be 1, 2, or 3")
+        return v
+
+    @field_validator("LCONV")
+    @classmethod
+    def validate_lconv(cls, v):
+        return bool(v)
+
+    @field_validator("LCFL")
+    @classmethod
+    def validate_lcfl(cls, v):
+        return bool(v)
+
+    @field_validator("NQSITER")
+    @classmethod
+    def validate_nqsiter(cls, v):
+        if v <= 0:
+            raise ValueError("NQSITER must be positive")
+        return v
+
+    @field_validator("QSCONV1")
+    @classmethod
+    def validate_qsconv1(cls, v):
+        if not 0 <= v <= 1:
+            raise ValueError("QSCONV1 must be between 0 and 1")
+        return v
+
+    @field_validator("QSCONV2")
+    @classmethod
+    def validate_qsconv2(cls, v):
+        if not 0 <= v <= 1:
+            raise ValueError("QSCONV2 must be between 0 and 1")
+        return v
+
+    @field_validator("QSCONV3")
+    @classmethod
+    def validate_qsconv3(cls, v):
+        if not 0 <= v <= 1:
+            raise ValueError("QSCONV3 must be between 0 and 1")
+        return v
+
+    @field_validator("QSCONV4")
+    @classmethod
+    def validate_qsconv4(cls, v):
+        if not 0 <= v <= 1:
+            raise ValueError("QSCONV4 must be between 0 and 1")
+        return v
+
+    @field_validator("QSCONV5")
+    @classmethod
+    def validate_qsconv5(cls, v):
+        if not 0 <= v <= 1:
+            raise ValueError("QSCONV5 must be between 0 and 1")
+        return v
+
+    @field_validator("LEXPIMP")
+    @classmethod
+    def validate_lexpimp(cls, v):
+        return bool(v)
+
+    @field_validator("FREQEXP")
+    @classmethod
+    def validate_freqexp(cls, v):
+        if v <= 0:
+            raise ValueError("FREQEXP must be positive")
+        return v
+
+    @field_validator("EPSH1")
+    @classmethod
+    def validate_epsh1(cls, v):
+        if v <= 0:
+            raise ValueError("EPSH1 must be positive")
+        return v
+
+    @field_validator("EPSH2")
+    @classmethod
+    def validate_epsh2(cls, v):
+        if v <= 0:
+            raise ValueError("EPSH2 must be positive")
+        return v
+
+    @field_validator("EPSH3")
+    @classmethod
+    def validate_epsh3(cls, v):
+        if v <= 0:
+            raise ValueError("EPSH3 must be positive")
+        return v
+
+    @field_validator("EPSH4")
+    @classmethod
+    def validate_epsh4(cls, v):
+        if v <= 0:
+            raise ValueError("EPSH4 must be positive")
+        return v
+
+    @field_validator("EPSH5")
+    @classmethod
+    def validate_epsh5(cls, v):
+        if v <= 0:
+            raise ValueError("EPSH5 must be positive")
+        return v
+
+    @field_validator("LVECTOR")
+    @classmethod
+    def validate_lvector(cls, v):
+        return bool(v)
+
+    @field_validator("IVECTOR")
+    @classmethod
+    def validate_ivector(cls, v):
+        if v not in range(1, 7):
+            raise ValueError("IVECTOR must be between 1 and 6")
+        return v
+
+    @field_validator("LADVTEST")
+    @classmethod
+    def validate_ladvtest(cls, v):
+        return bool(v)
+
+    @field_validator("LCHKCONV")
+    @classmethod
+    def validate_lchkconv(cls, v):
+        return bool(v)
+
+    @field_validator("NB_BLOCK")
+    @classmethod
+    def validate_nb_block(cls, v):
+        if v <= 0:
+            raise ValueError("NB_BLOCK must be positive")
+        return v
+
+    @field_validator("WAE_SOLVERTHR")
+    @classmethod
+    def validate_wae_solverthr(cls, v):
+        if v <= 0:
+            raise ValueError("WAE_SOLVERTHR must be positive")
+        return v
+
+    @field_validator("MAXITER")
+    @classmethod
+    def validate_maxiter(cls, v):
+        if v <= 0:
+            raise ValueError("MAXITER must be positive")
+        return v
+
+    @field_validator("LSOURCESWAM")
+    @classmethod
+    def validate_lsourceswam(cls, v):
+        return bool(v)
+
+    @field_validator("LNANINFCHK")
+    @classmethod
+    def validate_lnaninfchk(cls, v):
+        return bool(v)
+
+    @field_validator("LZETA_SETUP")
+    @classmethod
+    def validate_lzeta_setup(cls, v):
+        return bool(v)
+
+    @field_validator("ZETA_METH")
+    @classmethod
+    def validate_zeta_meth(cls, v):
+        if v not in [0, 1]:
+            raise ValueError("ZETA_METH must be 0 or 1")
+        return v
+
+    @field_validator("PMIN")
+    @classmethod
+    def validate_pmin(cls, v):
+        if v <= 0:
+            raise ValueError("PMIN must be positive")
+        return v
+
+    @field_validator("BLOCK_GAUSS_SEIDEL")
+    @classmethod
+    def validate_block_gauss_seidel(cls, v):
+        return bool(v)
+
+    @field_validator("LNONL")
+    @classmethod
+    def validate_lnonl(cls, v):
+        return bool(v)
+
+    @field_validator("L_SOLVER_NORM")
+    @classmethod
+    def validate_l_solver_norm(cls, v):
+        return bool(v)
+
+    @model_validator(mode="after")
+    def validate_amethod_icomp(self):
+        if self.ICOMP == 0 and self.AMETHOD in [1, 2, 3]:
+            return True
+        elif self.ICOMP > 0 and self.AMETHOD in [1, 2, 3, 4, 5, 6, 7]:
+            return True
+        raise ValueError("Invalid AMETHOD and ICOMP combination")
+        return self
+
+    @model_validator(mode="after")
+    def validate_maxcflth_lfilterth(self):
+        if self.LFILTERTH and self.MAXCFLTH <= 0:
+            raise ValueError("MAXCFLTH must be positive when LFILTERTH is True")
+        return self
+
+    @model_validator(mode="after")
+    def validate_maxcflsig_lfiltersig(self):
+        if self.LFILTERSIG and self.MAXCFLSIG <= 0:
+            raise ValueError("MAXCFLSIG must be positive when LFILTERSIG is True")
+        return self
+
+    @model_validator(mode="after")
+    def validate_lsoubound_smethod(self):
+        if self.SMETHOD == 6 and not self.LSOUBOUND:
+            raise ValueError("LSOUBOUND should be True when SMETHOD is 6")
+        return self
+
+    @model_validator(mode="after")
+    def validate_lexpimp_icomp(self):
+        if self.LEXPIMP and self.ICOMP != 0:
+            raise ValueError("LEXPIMP should only be True when ICOMP is 0")
+        return self
+
+    @model_validator(mode="after")
+    def validate_freqexp_lexpimp_icomp(self):
+        if self.LEXPIMP and self.ICOMP == 0 and self.FREQEXP <= 0:
+            raise ValueError(
+                "FREQEXP must be positive when LEXPIMP is True and ICOMP is 0"
+            )
+        return self
+
+    @model_validator(mode="after")
+    def validate_ivector_lvector(self):
+        if self.LVECTOR and self.IVECTOR not in range(1, 7):
+            raise ValueError("When LVECTOR is True, IVECTOR must be between 1 and 6")
+        return self
 
 
 class History(NamelistBaseModel):
-    begtc: Optional[str] = Field(
-        None, description="Start output time, yyyymmdd. hhmmss;"
+    BEGTC: Optional[str] = Field(
+        "'19980901.000000'",
+        description="Start output time in 'yyyymmdd.hhmmss' format. Must fit within the simulation time range, otherwise no output is generated. If not specified, defaults to PROC%BEGTC.",
     )
-    deltc: Optional[int] = Field(
-        None,
-        description="Time step for output; if smaller than simulation time step, the latter is used (output every step for better 1D 2D spectra analysis)",
+    DELTC: Optional[int] = Field(
+        1,
+        description="Time step for output in seconds. If smaller than the simulation time step, the latter is used. Useful for better 1D and 2D spectra analysis when set to output every step.",
     )
-    unitc: Optional[str] = Field(None, description="Unit")
-    endtc: Optional[str] = Field(None, description="Stop time output, yyyymmdd. hhmmss")
-    definetc: Optional[int] = Field(
-        None, description="Time for definition of history files"
+    UNITC: Optional[str] = Field(
+        "'SEC'",
+        description="Unit of time for DELTC. Currently only 'SEC' (seconds) is supported.",
     )
-    outstyle: Optional[str] = Field(
-        None, description="output option - use 'NO' for no output"
+    ENDTC: Optional[str] = Field(
+        "'19980910.000000'",
+        description="Stop time for output in 'yyyymmdd.hhmmss' format. If not specified, defaults to PROC%ENDC.",
     )
-    multipleout: Optional[int] = Field(None, description="0: output in a single netcdf")
-    use_single_out: Optional[str] = Field(
-        None,
-        description="T: Use single precision in the output of model variables (default)",
+    DEFINETC: Optional[int] = Field(
+        86400,
+        description="Time interval for defining history files in seconds. If unset or negative, only one file is generated. For example, 86400 creates daily output files.",
     )
-    paramwrite: Optional[str] = Field(
-        None, description="T/F: Write the physical parametrization and"
+    OUTSTYLE: Optional[str] = Field(
+        "'NO'",
+        description="Output option: 'NO' for no output, 'NC' for netCDF, 'XFN' for XFN output, 'SHP' for DARKO SHP output.",
     )
-    gridwrite: Optional[str] = Field(
-        None, description="T/F: Write the grid in the netcdf history file (default T)"
+    MULTIPLEOUT: Optional[int] = Field(
+        0,
+        description="Output style: 0 for single netCDF with MPI_GATHER, 1 for separate netCDF files per process, 2 for parallel netCDF library (not implemented).",
     )
-    printmma: Optional[str] = Field(
-        None, description="T/F: Print minimum, maximum and average"
+    USE_SINGLE_OUT: Optional[str] = Field(
+        "T",
+        description="Use single precision in output of model variables. Only impacts if rkind=8 is selected.",
     )
-    fileout: Optional[str] = Field(None, description="")
-    lwxfn: Optional[str] = Field(None, description="")
-    hs: Optional[str] = Field(None, description="significant wave height")
-    tm01: Optional[str] = Field(None, description="mean period")
-    tm02: Optional[str] = Field(None, description="zero-crossing mean period")
-    klm: Optional[str] = Field(None, description="mean wave number")
-    wlm: Optional[str] = Field(None, description="mean wave length")
-    etotc: Optional[str] = Field(None, description="Variable ETOTC")
-    etots: Optional[str] = Field(None, description="Variable ETOTS")
-    dm: Optional[str] = Field(None, description="mean wave direction")
-    dspr: Optional[str] = Field(None, description="directional spreading")
-    tppd: Optional[str] = Field(None, description="")
-    tpp: Optional[str] = Field(None, description="")
-    cpp: Optional[str] = Field(None, description="")
-    wnpp: Optional[str] = Field(None, description="peak wave number")
-    cgpp: Optional[str] = Field(None, description="peak group speed")
-    kpp: Optional[str] = Field(None, description="peak wave number")
-    lpp: Optional[str] = Field(None, description="peak")
-    peakd: Optional[str] = Field(None, description="peak direction")
-    peakdspr: Optional[str] = Field(None, description="peak directional spreading")
-    dpeak: Optional[str] = Field(None, description="")
-    ubot: Optional[str] = Field(None, description="")
-    orbital: Optional[str] = Field(None, description="")
-    botexper: Optional[str] = Field(None, description="")
-    tmbot: Optional[str] = Field(None, description="")
-    ursell: Optional[str] = Field(None, description="Ursell number")
-    ufric: Optional[str] = Field(None, description="air friction velocity")
-    z0: Optional[str] = Field(None, description="air roughness length")
-    alpha_ch: Optional[str] = Field(None, description="Charnoch coefficient for air")
-    windx: Optional[str] = Field(None, description="Wind in X direction")
-    windy: Optional[str] = Field(None, description="Wind in Y direction")
-    cd: Optional[str] = Field(None, description="Drag coefficient")
-    currtx: Optional[str] = Field(None, description="current in X direction")
-    currty: Optional[str] = Field(None, description="current in Y direction")
-    watlev: Optional[str] = Field(None, description="water level")
-    watlevold: Optional[str] = Field(
-        None, description="water level at previous time step"
+    PARAMWRITE: Optional[str] = Field(
+        "T",
+        description="Write physical parameterization and chosen numerical discretization in the netCDF history file.",
     )
-    dep: Optional[str] = Field(None, description="depth")
-    tauw: Optional[str] = Field(None, description="surface stress from the wave")
-    tauhf: Optional[str] = Field(None, description="high frequency surface stress")
-    tautot: Optional[str] = Field(None, description="total surface stress")
-    stokessurfx: Optional[str] = Field(
-        None, description="Surface Stokes drift in X direction"
+    GRIDWRITE: Optional[str] = Field(
+        "T", description="Write the grid in the netCDF history file."
     )
-    stokessurfy: Optional[str] = Field(
-        None, description="Surface Stokes drift in X direction"
+    PRINTMMA: Optional[str] = Field(
+        "F",
+        description="Print minimum, maximum, and average value of statistics during runtime.",
     )
-    stokesbarox: Optional[str] = Field(
-        None, description="Barotropic Stokes drift in X direction"
+    FILEOUT: Optional[str] = Field(
+        "'history.dat'", description="Filename for output data."
     )
-    stokesbaroy: Optional[str] = Field(
-        None, description="Barotropic Stokes drift in Y direction"
+    LWXFN: Optional[str] = Field("T", description="Enable or disable LWXFN output.")
+    HS: Optional[str] = Field("F", description="Output significant wave height.")
+    TM01: Optional[str] = Field("F", description="Output mean period.")
+    TM02: Optional[str] = Field("F", description="Output zero-crossing mean period.")
+    KLM: Optional[str] = Field("F", description="Output mean wave number.")
+    WLM: Optional[str] = Field("F", description="Output mean wave length.")
+    ETOTC: Optional[str] = Field("F", description="Output variable ETOTC.")
+    ETOTS: Optional[str] = Field("F", description="Output variable ETOTS.")
+    DM: Optional[str] = Field("T", description="Output mean wave direction.")
+    DSPR: Optional[str] = Field("F", description="Output directional spreading.")
+    TPPD: Optional[str] = Field("F", description="Output TPPD.")
+    TPP: Optional[str] = Field("F", description="Output TPP.")
+    CPP: Optional[str] = Field("F", description="Output CPP.")
+    WNPP: Optional[str] = Field("F", description="Output peak wave number.")
+    CGPP: Optional[str] = Field("F", description="Output peak group speed.")
+    KPP: Optional[str] = Field("F", description="Output peak wave number.")
+    LPP: Optional[str] = Field("F", description="Output peak wavelength.")
+    PEAKD: Optional[str] = Field("F", description="Output peak direction.")
+    PEAKDSPR: Optional[str] = Field(
+        "F", description="Output peak directional spreading."
     )
+    DPEAK: Optional[str] = Field("F", description="Output DPEAK.")
+    UBOT: Optional[str] = Field("F", description="Output UBOT.")
+    ORBITAL: Optional[str] = Field("F", description="Output ORBITAL.")
+    BOTEXPER: Optional[str] = Field("F", description="Output BOTEXPER.")
+    TMBOT: Optional[str] = Field("F", description="Output TMBOT.")
+    URSELL: Optional[str] = Field("F", description="Output Ursell number.")
+    UFRIC: Optional[str] = Field("F", description="Output air friction velocity.")
+    Z0: Optional[str] = Field("F", description="Output air roughness length.")
+    ALPHA_CH: Optional[str] = Field(
+        "F", description="Output Charnoch coefficient for air."
+    )
+    WINDX: Optional[str] = Field("F", description="Output wind in X direction.")
+    WINDY: Optional[str] = Field("F", description="Output wind in Y direction.")
+    CD: Optional[str] = Field("F", description="Output drag coefficient.")
+    CURRTX: Optional[str] = Field("F", description="Output current in X direction.")
+    CURRTY: Optional[str] = Field("F", description="Output current in Y direction.")
+    WATLEV: Optional[str] = Field("F", description="Output water level.")
+    WATLEVOLD: Optional[str] = Field(
+        "F", description="Output water level at previous time step."
+    )
+    DEP: Optional[str] = Field("F", description="Output depth.")
+    TAUW: Optional[str] = Field("F", description="Output surface stress from the wave.")
+    TAUHF: Optional[str] = Field(
+        "F", description="Output high frequency surface stress."
+    )
+    TAUTOT: Optional[str] = Field("F", description="Output total surface stress.")
+    STOKESSURFX: Optional[str] = Field(
+        "F", description="Output surface Stokes drift in X direction."
+    )
+    STOKESSURFY: Optional[str] = Field(
+        "F", description="Output surface Stokes drift in Y direction."
+    )
+    STOKESBAROX: Optional[str] = Field(
+        "F", description="Output barotropic Stokes drift in X direction."
+    )
+    STOKESBAROY: Optional[str] = Field(
+        "F", description="Output barotropic Stokes drift in Y direction."
+    )
+
+    @field_validator("BEGTC")
+    @classmethod
+    def validate_begtc(cls, v):
+        try:
+            datetime.strptime(v, "%Y%m%d.%H%M%S")
+            return v
+        except ValueError:
+            raise ValueError("BEGTC must be in format yyyymmdd.hhmmss")
+
+    @field_validator("DELTC")
+    @classmethod
+    def validate_deltc(cls, v):
+        if v <= 0:
+            raise ValueError("DELTC must be a positive integer")
+        return v
+
+    @field_validator("UNITC")
+    @classmethod
+    def validate_unitc(cls, v):
+        if v != "SEC":
+            raise ValueError("UNITC must be SEC")
+        return v
+
+    @field_validator("ENDTC")
+    @classmethod
+    def validate_endtc(cls, v):
+        try:
+            datetime.strptime(v, "%Y%m%d.%H%M%S")
+            return v
+        except ValueError:
+            raise ValueError("ENDTC must be in format yyyymmdd.hhmmss")
+
+    @field_validator("DEFINETC")
+    @classmethod
+    def validate_definetc(cls, v):
+        if v < 0:
+            return v
+        if not isinstance(v, int):
+            raise ValueError("DEFINETC must be an integer")
+        return v
+
+    @field_validator("OUTSTYLE")
+    @classmethod
+    def validate_outstyle(cls, v):
+        valid_options = ["NO", "NC", "XFN", "SHP"]
+        if v not in valid_options:
+            raise ValueError(f"OUTSTYLE must be one of {valid_options}")
+        return v
+
+    @field_validator("MULTIPLEOUT")
+    @classmethod
+    def validate_multipleout(cls, v):
+        if v not in [0, 1, 2]:
+            raise ValueError("MULTIPLEOUT must be 0, 1, or 2")
+        return v
+
+    @field_validator("USE_SINGLE_OUT")
+    @classmethod
+    def validate_use_single_out(cls, v):
+        return v
+
+    @field_validator("PARAMWRITE")
+    @classmethod
+    def validate_paramwrite(cls, v):
+        return v
+
+    @field_validator("GRIDWRITE")
+    @classmethod
+    def validate_gridwrite(cls, v):
+        return v
+
+    @field_validator("PRINTMMA")
+    @classmethod
+    def validate_printmma(cls, v):
+        return v
+
+    @field_validator("FILEOUT")
+    @classmethod
+    def validate_fileout(cls, v):
+        if not v:
+            raise ValueError("FILEOUT must not be empty")
+        return v
+
+    @field_validator("LWXFN")
+    @classmethod
+    def validate_lwxfn(cls, v):
+        return v
+
+    @field_validator("HS")
+    @classmethod
+    def validate_hs(cls, v):
+        return v
+
+    @field_validator("TM01")
+    @classmethod
+    def validate_tm01(cls, v):
+        return v
+
+    @field_validator("TM02")
+    @classmethod
+    def validate_tm02(cls, v):
+        return v
+
+    @field_validator("KLM")
+    @classmethod
+    def validate_klm(cls, v):
+        return v
+
+    @field_validator("WLM")
+    @classmethod
+    def validate_wlm(cls, v):
+        return v
+
+    @field_validator("ETOTC")
+    @classmethod
+    def validate_etotc(cls, v):
+        return v
+
+    @field_validator("ETOTS")
+    @classmethod
+    def validate_etots(cls, v):
+        return v
+
+    @field_validator("DM")
+    @classmethod
+    def validate_dm(cls, v):
+        return v
+
+    @field_validator("DSPR")
+    @classmethod
+    def validate_dspr(cls, v):
+        return v
+
+    @field_validator("TPPD")
+    @classmethod
+    def validate_tppd(cls, v):
+        return v
+
+    @field_validator("TPP")
+    @classmethod
+    def validate_tpp(cls, v):
+        return v
+
+    @field_validator("CPP")
+    @classmethod
+    def validate_cpp(cls, v):
+        return v
+
+    @field_validator("WNPP")
+    @classmethod
+    def validate_wnpp(cls, v):
+        return v
+
+    @field_validator("CGPP")
+    @classmethod
+    def validate_cgpp(cls, v):
+        return v
+
+    @field_validator("KPP")
+    @classmethod
+    def validate_kpp(cls, v):
+        return v
+
+    @field_validator("LPP")
+    @classmethod
+    def validate_lpp(cls, v):
+        return v
+
+    @field_validator("PEAKD")
+    @classmethod
+    def validate_peakd(cls, v):
+        return v
+
+    @field_validator("PEAKDSPR")
+    @classmethod
+    def validate_peakdspr(cls, v):
+        return v
+
+    @field_validator("DPEAK")
+    @classmethod
+    def validate_dpeak(cls, v):
+        return v
+
+    @field_validator("UBOT")
+    @classmethod
+    def validate_ubot(cls, v):
+        return v
+
+    @field_validator("ORBITAL")
+    @classmethod
+    def validate_orbital(cls, v):
+        return v
+
+    @field_validator("BOTEXPER")
+    @classmethod
+    def validate_botexper(cls, v):
+        return v
+
+    @field_validator("TMBOT")
+    @classmethod
+    def validate_tmbot(cls, v):
+        return v
+
+    @field_validator("URSELL")
+    @classmethod
+    def validate_ursell(cls, v):
+        return v
+
+    @field_validator("UFRIC")
+    @classmethod
+    def validate_ufric(cls, v):
+        return v
+
+    @field_validator("Z0")
+    @classmethod
+    def validate_z0(cls, v):
+        return v
+
+    @field_validator("ALPHA_CH")
+    @classmethod
+    def validate_alpha_ch(cls, v):
+        return v
+
+    @field_validator("WINDX")
+    @classmethod
+    def validate_windx(cls, v):
+        return v
+
+    @field_validator("WINDY")
+    @classmethod
+    def validate_windy(cls, v):
+        return v
+
+    @field_validator("CD")
+    @classmethod
+    def validate_cd(cls, v):
+        return v
+
+    @field_validator("CURRTX")
+    @classmethod
+    def validate_currtx(cls, v):
+        return v
+
+    @field_validator("CURRTY")
+    @classmethod
+    def validate_currty(cls, v):
+        return v
+
+    @field_validator("WATLEV")
+    @classmethod
+    def validate_watlev(cls, v):
+        return v
+
+    @field_validator("WATLEVOLD")
+    @classmethod
+    def validate_watlevold(cls, v):
+        return v
+
+    @field_validator("DEP")
+    @classmethod
+    def validate_dep(cls, v):
+        return v
+
+    @field_validator("TAUW")
+    @classmethod
+    def validate_tauw(cls, v):
+        return v
+
+    @field_validator("TAUHF")
+    @classmethod
+    def validate_tauhf(cls, v):
+        return v
+
+    @field_validator("TAUTOT")
+    @classmethod
+    def validate_tautot(cls, v):
+        return v
+
+    @field_validator("STOKESSURFX")
+    @classmethod
+    def validate_stokessurfx(cls, v):
+        return v
+
+    @field_validator("STOKESSURFY")
+    @classmethod
+    def validate_stokessurfy(cls, v):
+        return v
+
+    @field_validator("STOKESBAROX")
+    @classmethod
+    def validate_stokesbarox(cls, v):
+        return v
+
+    @field_validator("STOKESBAROY")
+    @classmethod
+    def validate_stokesbaroy(cls, v):
+        return v
 
 
 class Station(NamelistBaseModel):
-    begtc: Optional[str] = Field(
-        None,
-        description="Start simulation time, yyyymmdd. hhmmss; must fit the simulation time otherwise no output",
+    BEGTC: Optional[str] = Field(
+        "'19980901.000000'",
+        description="Start simulation time in format 'yyyymmdd.hhmmss'. Must match the simulation time for output to be generated. If not specified, defaults to PROC%BEGTC.",
     )
-    deltc: Optional[list] = Field(
-        None,
-        description="Time step for output; if smaller than simulation time step, the latter is used (output every step for better 1D 2D spectra analysis)",
+    DELTC: Optional[list] = Field(
+        [1, ""],
+        description="Time step for output in seconds. If smaller than simulation time step, the simulation time step is used. Smaller values allow for better 1D and 2D spectra analysis.",
     )
-    unitc: Optional[str] = Field(None, description="Unit")
-    endtc: Optional[str] = Field(
-        None, description="Stop time simulation, yyyymmdd. hhmmss"
+    UNITC: Optional[str] = Field(
+        "'SEC'",
+        description="Unit of time for DELTC. Currently only supports 'SEC' for seconds.",
     )
-    outstyle: Optional[str] = Field(
-        None,
-        description="output option - use 'NO' to maximize efficiency during parallel run when using MPI",
+    ENDTC: Optional[str] = Field(
+        "'20081101.000000'",
+        description="Stop time for simulation in format 'yyyymmdd.hhmmss'. If not specified, defaults to PROC%ENDC.",
     )
-    fileout: Optional[str] = Field(None, description="")
-    loutiter: Optional[str] = Field(None, description="")
-    llouts: Optional[str] = Field(None, description="station output flag")
-    ilouts: Optional[int] = Field(None, description="Number of output stations")
-    nlouts: Optional[list] = Field(None, description="Name of output locations")
-    iouts: Optional[int] = Field(None, description="")
-    nouts: Optional[list] = Field(None, description="")
-    xouts: Optional[list] = Field(None, description="X-Coordinate of output locations")
-    youts: Optional[list] = Field(None, description="Y-Coordinate of output locations")
-    cutoff: Optional[str] = Field(
-        None, description="cutoff freq (Hz) for each station - consistent with buoys"
+    OUTSTYLE: Optional[str] = Field(
+        "'STE'",
+        description="Output option. Use 'NO' to maximize efficiency during parallel runs using MPI. 'STE' is used for standard output.",
     )
-    lsp1d: Optional[str] = Field(None, description="1D spectral station output")
-    lsp2d: Optional[str] = Field(None, description="2D spectral station output")
-    lsigmax: Optional[str] = Field(
-        None,
-        description="Adjust the cut-freq. for the output (e.g. consistent with buoy cut-off freq.)",
+    FILEOUT: Optional[str] = Field(
+        "'station.dat'", description="Name of the output file for station data."
     )
+    LOUTITER: Optional[str] = Field(
+        "F",
+        description="Boolean flag for iteration output (purpose not specified in given content).",
+    )
+    LLOUTS: Optional[str] = Field("F", description="Boolean flag for station output.")
+    ILOUTS: Optional[int] = Field(1, description="Number of output stations.")
+    NLOUTS: Optional[list] = Field(
+        ["'P-1'", ""], description="Comma-separated list of names for output locations."
+    )
+    IOUTS: Optional[int] = Field(
+        1,
+        description="Index or identifier for output stations (purpose not clear from given content).",
+    )
+    NOUTS: Optional[list] = Field(
+        ["'P-1'", ""],
+        description="Name of output locations (purpose in relation to NLOUTS not clear from given content).",
+    )
+    XOUTS: Optional[list] = Field(
+        [1950.0, ""], description="X-Coordinate of output locations."
+    )
+    YOUTS: Optional[list] = Field(
+        [304.0, ""], description="Y-Coordinate of output locations."
+    )
+    CUTOFF: Optional[str] = Field(
+        "8*0.44",
+        description="Cutoff frequency (Hz) for each station, consistent with buoys. Specified as a list of 8 values.",
+    )
+    LSP1D: Optional[str] = Field(
+        "F", description="Boolean flag for 1D spectral station output."
+    )
+    LSP2D: Optional[str] = Field(
+        "F", description="Boolean flag for 2D spectral station output."
+    )
+    LSIGMAX: Optional[str] = Field(
+        "T",
+        description="Boolean flag to adjust the cut-off frequency for the output (e.g., to be consistent with buoy cut-off frequency).",
+    )
+
+    @field_validator("BEGTC")
+    @classmethod
+    def validate_begtc(cls, v):
+        if not re.match(r"\d{8}\.\d{6}$", v):
+            raise ValueError("BEGTC must be in format yyyymmdd.hhmmss")
+        return v
+
+    @field_validator("DELTC")
+    @classmethod
+    def validate_deltc(cls, v):
+        if not isinstance(v, int) or v <= 0:
+            raise ValueError("DELTC must be a positive integer")
+        return v
+
+    @field_validator("UNITC")
+    @classmethod
+    def validate_unitc(cls, v):
+        if v != "SEC":
+            raise ValueError("UNITC must be 'SEC'")
+        return v
+
+    @field_validator("ENDTC")
+    @classmethod
+    def validate_endtc(cls, v):
+        if not re.match(r"\d{8}\.\d{6}$", v):
+            raise ValueError("ENDTC must be in format yyyymmdd.hhmmss")
+        return v
+
+    @field_validator("OUTSTYLE")
+    @classmethod
+    def validate_outstyle(cls, v):
+        if v not in ["STE", "NO"]:
+            raise ValueError("OUTSTYLE must be either 'STE' or 'NO'")
+        return v
+
+    @field_validator("FILEOUT")
+    @classmethod
+    def validate_fileout(cls, v):
+        if not v.endswith(".dat"):
+            raise ValueError("FILEOUT must have a .dat extension")
+        return v
+
+    @field_validator("LOUTITER")
+    @classmethod
+    def validate_loutiter(cls, v):
+        return bool(v)
+
+    @field_validator("LLOUTS")
+    @classmethod
+    def validate_llouts(cls, v):
+        return bool(v)
+
+    @field_validator("ILOUTS")
+    @classmethod
+    def validate_ilouts(cls, v):
+        if not isinstance(v, int) or v <= 0:
+            raise ValueError("ILOUTS must be a positive integer")
+        return v
+
+    @field_validator("NLOUTS")
+    @classmethod
+    def validate_nlouts(cls, v):
+        if not all(name.strip() for name in v.split(",")):
+            raise ValueError("NLOUTS must not contain empty names")
+        return v
+
+    @field_validator("IOUTS")
+    @classmethod
+    def validate_iouts(cls, v):
+        if not isinstance(v, int) or v <= 0:
+            raise ValueError("IOUTS must be a positive integer")
+        return v
+
+    @field_validator("NOUTS")
+    @classmethod
+    def validate_nouts(cls, v):
+        if not v.strip():
+            raise ValueError("NOUTS must not be empty")
+        return v
+
+    @field_validator("XOUTS")
+    @classmethod
+    def validate_xouts(cls, v):
+        if not isinstance(v, (int, float)):
+            raise ValueError("XOUTS must be a number")
+        return v
+
+    @field_validator("YOUTS")
+    @classmethod
+    def validate_youts(cls, v):
+        if not isinstance(v, (int, float)):
+            raise ValueError("YOUTS must be a number")
+        return v
+
+    @field_validator("CUTOFF")
+    @classmethod
+    def validate_cutoff(cls, v):
+        values = [float(x) for x in v.split("*")]
+        if len(values) != 2 or values[0] != 8 or values[1] <= 0:
+            raise ValueError('CUTOFF must be in format "8*<positive_float>"')
+        return v
+
+    @field_validator("LSP1D")
+    @classmethod
+    def validate_lsp1d(cls, v):
+        return bool(v)
+
+    @field_validator("LSP2D")
+    @classmethod
+    def validate_lsp2d(cls, v):
+        return bool(v)
+
+    @field_validator("LSIGMAX")
+    @classmethod
+    def validate_lsigmax(cls, v):
+        return bool(v)
+
+    @model_validator(mode="after")
+    def validate_time_range(self):
+        start = datetime.strptime(self.BEGTC, "%Y%m%d.%H%M%S")
+        end = datetime.strptime(self.ENDTC, "%Y%m%d.%H%M%S")
+        if start >= end:
+            raise ValueError("BEGTC must be earlier than ENDTC")
+        return self
+
+    @model_validator(mode="after")
+    def validate_station_counts(self):
+        if self.ILOUTS != len(self.NLOUTS.split(",")):
+            raise ValueError("ILOUTS must match the number of stations in NLOUTS")
+        return self
 
 
 class Petscoptions(NamelistBaseModel):
-    ksptype: Optional[str] = Field(None, description="")
-    rtol: Optional[str] = Field(
-        None,
-        description="the relative convergence tolerance (relative decrease in the residual norm)",
+    KSPTYPE: Optional[str] = Field(
+        "'bcgs'",
+        description="Controls the linear solver algorithm used by PETSc. Options include GMRES, LGMRES, DGMRES, PGMRES, KSPBCGSL, and bcgs (BiCGStab). Each algorithm has specific characteristics suitable for different problem types.",
     )
-    abstol: Optional[str] = Field(
-        None,
-        description="the absolute convergence tolerance (absolute size of the residual norm)",
+    RTOL: Optional[str] = Field(
+        "1.E-20",
+        description="Relative convergence tolerance, representing the relative decrease in the residual norm required for convergence.",
     )
-    dtol: Optional[float] = Field(None, description="the divergence tolerance")
-    maxits: Optional[int] = Field(
-        None, description="maximum number of iterations to use"
+    ABSTOL: Optional[str] = Field(
+        "1.E-20",
+        description="Absolute convergence tolerance, representing the absolute size of the residual norm required for convergence.",
     )
-    initialguessnonzero: Optional[str] = Field(
-        None,
-        description="Tells the iterative solver that the initial guess is nonzero; otherwise KSP assumes the initial guess is to be zero",
+    DTOL: Optional[float] = Field(
+        10000.0,
+        description="Divergence tolerance, used to detect divergence in the iterative solver.",
     )
-    gmrespreallocate: Optional[str] = Field(
-        None,
-        description="Causes GMRES and FGMRES to preallocate all its needed work vectors at initial setup rather than the default, which is to allocate them in chunks when needed.",
+    MAXITS: Optional[int] = Field(
+        1000,
+        description="Maximum number of iterations allowed for the iterative solver.",
     )
-    pctype: Optional[str] = Field(None, description="")
+    INITIALGUESSNONZERO: Optional[str] = Field(
+        "T",
+        description="Boolean flag indicating whether the initial guess for the iterative solver is nonzero.",
+    )
+    GMRESPREALLOCATE: Optional[str] = Field(
+        "T",
+        description="Boolean flag to enable preallocation of all needed work vectors for GMRES and FGMRES at initial setup.",
+    )
+    PCTYPE: Optional[str] = Field(
+        "'sor'",
+        description="Controls the preconditioner type used by PETSc. Options include SOR, ASM, HYPRE, SPAI, and NONE. Each preconditioner is suitable for different problem types and solver configurations.",
+    )
+
+    @field_validator("KSPTYPE")
+    @classmethod
+    def validate_ksptype(cls, v):
+        valid_types = ["bcgs", "GMRES", "LGMRES", "DGMRES", "PGMRES", "KSPBCGSL"]
+        if v not in valid_types:
+            raise ValueError(f"KSPTYPE must be one of {valid_types}")
+        return v
+
+    @field_validator("RTOL")
+    @classmethod
+    def validate_rtol(cls, v):
+        if v <= 0 or v >= 1:
+            raise ValueError("RTOL must be between 0 and 1 exclusively")
+        return v
+
+    @field_validator("ABSTOL")
+    @classmethod
+    def validate_abstol(cls, v):
+        if v < 0:
+            raise ValueError("ABSTOL must be non-negative")
+        return v
+
+    @field_validator("DTOL")
+    @classmethod
+    def validate_dtol(cls, v):
+        if v <= 0:
+            raise ValueError("DTOL must be positive")
+        return v
+
+    @field_validator("MAXITS")
+    @classmethod
+    def validate_maxits(cls, v):
+        if v <= 0 or not isinstance(v, int):
+            raise ValueError("MAXITS must be a positive integer")
+        return v
+
+    @field_validator("INITIALGUESSNONZERO")
+    @classmethod
+    def validate_initialguessnonzero(cls, v):
+        return v
+
+    @field_validator("GMRESPREALLOCATE")
+    @classmethod
+    def validate_gmrespreallocate(cls, v):
+        return v
+
+    @field_validator("PCTYPE")
+    @classmethod
+    def validate_pctype(cls, v):
+        valid_types = ["sor", "SOR", "ASM", "HYPRE", "SPAI", "NONE"]
+        if v not in valid_types:
+            raise ValueError(f"PCTYPE must be one of {valid_types}")
+        return v
 
 
 class Wwminput(NamelistBaseModel):
-    """
-
-    The full contents of the namelist file are shown below providing
-    associated documentation for the objects:
-
-    ! This is the main input for WWM (based on limon)
-    ! Other mandatory inputs: wwmbnd.gr3 (boundary flag files; see below)
-    ! Depending on the choices of parameters below you may need additional inputs
-
-    !Notes on hotstart: (1) generate hotstart outputs from WWM; see &HOTFILE section. Turn on LHOTF and
-    ! match interval (see &HOTFILE) with SCHISM's so the 2 models can be hotstarted together. Use single nc output
-    ! with last 2 records (default setting). Also need to make sure the start/end time info is correct
-    ! in &PROC, &HOTFILE; (2) to restart both models, copy the hot out to input (e.g. hotfile_in_WWM.nc),
-    ! turn on &INIT->LHOTR and input hot input name in &HOTFILE. IHOTPOS_IN controls position of the 2 time records.
-    ! Adjust 'BEGTC' in all sections to reflect the new starting time.
-    ! Then do the usual things in SCHISM (ihot>0).
-    ! NOTES: WWM hotstart does not seem to work with quads.
-
-    &PROC
-     PROCNAME       = 'limon'            ! Project Name
-     DIMMODE        = 2                  ! Mode of run (ex: 1 = 1D, 2 = 2D) always 2D when coupled to SCHISM
-     LSTEA          = F                  ! steady mode; under development
-     LQSTEA         = F                  ! Quasi-Steady Mode; In this case WWM-II is doing subiterations defined as DELTC/NQSITER unless QSCONVI is not reached
-     LSPHE          = F                  ! Spherical coordinates (lon/lat)
-     LNAUTIN        = T                  ! Nautical convention for all inputs given in degrees (suggestion: T)
-                                         ! If T, 0 is _from_ north, 90 is from east etc;
-                                         ! If F, maths. convention - 0: to east; 90: going to north
-     LMONO_IN       = F
-     LMONO_OUT      = F
-     LNAUTOUT       = T                  ! Nautical output of all quantities in degrees
-     BEGTC          = '19980901.000000'  ! Time for start the simulation, ex:yyyymmdd. hhmmss
-     DELTC          = 5                 ! Time step (MUST match dt*nstep_wwm in SCHISM!)
-     UNITC          = 'SEC'              ! Unity of time step
-     ENDTC          = '19980901.060000'  ! Time for stop the simulation, ex:yyyymmdd. hhmmss
-     DMIN           = 0.01              ! Minimum water depth. This must be the same as h0 in SCHISM
-    /
-
-    &COUPL
-     LCPL           = T                  ! Couple with current model ... main switch - keep it on for SCHISM-WWM
-     LROMS          = F                  ! ROMS (set as F)
-     LTIMOR         = F                  ! TIMOR (set as F)
-     LSHYFEM        = F                  ! SHYFEM (set as F)
-     RADFLAG        = 'LON'
-     LETOT          = F                  ! Option to compute the wave induced radiation stress. If .T. the radiation stress is based on the integrated wave spectrum
-                                         ! e.g. Etot = Int,0,inf;Int,0,2*pi[N(sigma,theta)]dsigma,dtheta. If .F. the radiation stress is estimated as given in Roland et al. (2008) based
-                                         ! on the directional spectra itself. It is always desirable to use .F., since otherwise the spectral informations are truncated and therefore
-                                         ! LETOT = .T., is only for testing and developers!
-     NLVT           = 10                 ! Number of vertical Layers; not used with SCHISM
-     DTCOUP         = 600.               ! Couple time step - not used when coupled to SCHISM
-    /
-
-    &GRID
-     LCIRD          = T                  ! Full circle in directional space
-     LSTAG          = F                  ! Stagger directional bins with a half Dtheta; may use T only for regular grid to avoid char. line aligning with grid line
-     MINDIR         = 0.                 ! Minimum direction for simulation (unit: degrees; nautical convention; 0: from N; 90: from E); not used if LCIRD = .T.
-     MAXDIR         = 360.               ! Maximum direction for simulation (unit: degrees); may be < MINDIR; not used if LCIRD = .T.
-     MDC            = 36                 ! Number of directional bins
-     FRLOW          = 0.04               ! Low frequency limit of the discrete wave period (Hz; 1/period)
-     FRHIGH         = 1.                 ! High frequency limit of the discrete wave period.
-     MSC            = 36                 ! Number of frequency bins
-     IGRIDTYPE      = 3                  ! Gridtype used. 1 ~ XFN, 2 ~ WWM-PERIODIC, 3 ~ SCHISM, 4 ~ OLD WWM GRID
-     FILEGRID       = 'hgrid_WWM.gr3'    ! Name of the grid file. hgridi_WWM.gr3 if IGRIDTYPE = 3 (SCHISM)
-     LSLOP          = F                  ! Bottom Slope limiter (default=F)
-     SLMAX          = 0.2                ! Max Slope;
-     LVAR1D         = F                  ! For 1d-mode if variable dx is used; not used with SCHISM
-    /
-
-    &INIT
-     LHOTR          = F                  ! Use hotstart file. (see &HOTFILE section for input file)
-     LINID          = F                  ! Initial condition; F for default; use T if using WW3 as i.c. etc
-     INITSTYLE      = 1                  ! 1 - Parametric Jonswap, 2 - Read from Global NETCDF files, work only if IBOUNDFORMAT=3
-    /
-
-    &BOUC
-     LBCSE          = F                  ! The wave boundary data is time dependent
-     LBINTER        = F                  ! Do interpolation in time if LBCSE=T (not available for quasi-steady mode within the subtime steps)
-     LBCWA          = T                  ! Parametric Wave Spectra
-     LINHOM         = F                  ! Non-uniform wave b.c. in space
-     LBCSP          = F                  ! Specify (non-parametric) wave spectra, specified in 'FILEWAVE' below
-     LINDSPRDEG     = F                  ! If 1-d wave spectra are read this flag defines whether the input for the directional spreading is in degrees (true) or exponent (false)
-     LPARMDIR       = F                  ! If LPARMDIR is true than directional spreading is read from WBDS and must be in exponential format at this time, only valid for 1d Spectra
-     FILEWAVE       = 'wwmbnd.gr3'         ! Boundary file including discrete wave spectra
-     LBSP1D         = F                  ! 1D (freq. space only) format for FILEWAVE if LBCSP=T and LINHOM=F
-     LBSP2D         = F                  ! not functional (freq. + directional space)
-
-     BEGTC          = '19980901.000000'  ! Begin time of the wave boundary file (FILEWAVE)
-     DELTC          = 1                  ! Time step in FILEWAVE
-     UNITC          = 'HR'               ! Unit can be HR, MIN, SEC
-     ENDTC          = '19981002.000000'  ! End time
-     FILEBOUND      = 'wwmbnd.gr3'       ! Boundary file defining boundary and Neumann nodes.
-                                         ! Flag 0: not on bnd; 3: Neumann (0 gradient);
-                                         ! 2: active bnd (Dirichlet).
-     IBOUNDFORMAT   = 1                  ! 1 ~ WWM, 3 ~ WW3 (2D spectra in netcdf format only - LBCWA=T).
-                                         ! 6 ~ WW3 2D spectra in netcdf format with LBCSP=T (prescribed spectra).
-                                         ! For WW3 boundary input also set LINHOM=T, LBCSE=T and this works only for spherical coordinates
-                                         ! LMONO_IN = F ! incident wave is defined as monochromatic wave height, which is Hmono = sqrt(2) * Hs
-                                         ! The following are needed only if LBCWA=T and LINHOM=F
-     WBHS           = 4.                 ! Hs at the boundary for parametric spectra
-     WBSS           = 2.                 ! 1 or -1: Pierson-Moskowitz, 2 or -2: JONSWAP, 3 or -3: all in one BIN,
-                                         ! 4: Gauss. The sign decides whether WBTP below is
-                                         ! peak (+) or mean period (-)
-     WBTP           = 8.                 ! Tp at the boundary (sec); mean or peak depending on the sign of WBSS
-     WBDM           = 90.0               ! Avg. Wave Direction at the boundary
-     WBDSMS         = 1.                 ! Directional spreading value in degrees (1) or as exponent (2)
-     WBDS           = 20.                ! Directional spreading at the boundary (degrees/exponent)
-     WBGAUSS        = 0.1                ! factor for gaussian distribution if WBSS=1
-                                         ! End section for LBCWA=T and LINHOM=F
-     WBPKEN         = 3.3                ! Peak enhancement factor for Jonswap Spectra if WBSS=2
-     NCDF_HS_NAME   = 'hs'               ! NETCDF var. name for the significant wave height (normally it is just 'hs')
-     NCDF_DIR_NAME  = 'dir'              ! NETCDF var. name for the mean wave direction (normally it is just 'dir')
-     NCDF_SPR_NAME  = 'spr'              ! NETCDF var. name for the mean directional spreading (normally it is just 'spr')
-     NCDF_FP_NAME   = 'fp'               ! NETCDF var. name for the peak freq. (normally it is just 'fp')
-     NCDF_F02_NAME  = 't02'              ! NETCDF var. name for the zero down crossing freq. (normally it is just 't02')
-    /
-
-    &WIND
-    /
-
-    &CURR
-    /
-
-    &WALV
-    /
-
-
-    &ENGS !SOURCE TERMS
-     MESNL          = 1                  ! Nonlinear Interaction NL4 , 1 ~ on, 0 ~ off (Discrete Interaction approx.)
-     MESIN          = 1                  ! Wind input: Ardhuin et al. (1) (use LSOURCESWAM = F);
-                                         ! for ECMWF physics (2); Makin & Stam (3); Babanin et al. (4); Cycle 3 (5);
-                                         !no wind (0). Try MESIN=1, LSOURCESWAM=F or MESIN=2 and LSOURCESWAM=T
-     IFRIC          = 1                  ! Formulation for atmospheric boundary layer, (IFRIC = 1 for MESIN = 1, IFRIC = 4 for MESIN=3);
-     MESBF          = 1                  ! Bottom friction: 1 - JONSWAP (Default); 2 - Madsen et al. (1989); 3 - SHOWEX
-     FRICC          = 0.067              ! if MESBF=1: JONSWAP bottom friction coefficient [0.038,0.067]. If MESBF=2: physical bottom roughness (ignored if given in rough.gr3). If MESBF=3: D50 (if negative read from SHOWEX_D50.gr3)
-     MESBR          = 1                  ! Shallow water wave breaking; 0: off; 1: on
-     IBREAK         = 1                  ! Wave breaking formulation: 1 - Battjes and Janssen (1978)
-                                         !                            2 - Thornton and Guza (1983) - Constant weighting function
-                                         !                            3 - Thornton and Guza (1983) - Skewed weighting function
-                                         !                            4 - van der Westhuysen (2010)
-                                         !                            5 - Baldock et al (1998) modified by Janssen and Battjes (2007)
-                                         !                            6 - Church and Thornton (1993)
-     ICRIT          = 1                  ! Wave breaking criterion: 1   - Constant breaker index (gamma) or gamma_TG defined with BRCR
-                                         !                          2,6 - gamma computed with local steepness adapted from Battjes and Stive (1985)
-                                         !                          3   - Biphase threshold (intended for IBREAK=4)
-                                         !                          4   - gamma_TG = a_BRCR * slope + b_BRCR / min_BRCR < gamma_TG < max_BRCR
-                                         !                                e.g. Sallenger and Holman 1985
-                                         !                          5   - gamma = a_BRCR * k_ph + b_BRCR / min_BRCR < gamma < max_BRCR
-                                         !                                e.g. Ruessink et al (2003) with a_BRCR=0.76 and b_BRCR=0.29
-     BRCR           = 0.78               ! either gamma, default is 0.73 for IBREAK=1,5 or gamma_TG, default is 0.42 for IBREAK=2,3 or biphase_ref, default is -4pi/9 = -1.3963 for IBREAK=4
-     a_BRCR         = 0.76               ! cf ICRIT = 4, 5
-     b_BRCR         = 0.29               ! cf ICRIT = 4, 5
-     min_BRCR       = 0.25               ! cf ICRIT = 4, 5
-     max_BRCR       = 0.8                ! cf ICRIT = 4, 5
-     a_BIPH         = 0.2                ! Biphase coefficient, default 0.2 (intended for IBREAK=3)
-     BR_COEF_METHOD = 1                  ! Method for the breaking coefficient: 1 - constant, 2 - adaptive
-     B_ALP          = 0.5                  ! breaking coefficient. If BR_COEF_METHOD = 2, B_ALP ~ 40
-     ZPROF_BREAK    = 2                  ! Vertical distribution function of wave breaking source term, only used in 3D run
-                                         ! IS: side index, k: vertical layer index, dps: depth, zs: z vertical coordinate (/MSL), tmp0: Hs
-                                         ! 1 - Homogeneous vertical distribution (swild_3D(k) = 1)
-                                         ! 2 - swild_3D(k) = cosh((dps(IS)+zs(k,IS))/(0.2D0*tmp0))
-                                         ! 3 - swild_3D(k) = 1.D0 - dtanh(((eta_tmp-zs(k,IS))/(0.5D0*tmp0))**2.D0)
-                                         ! 4 - swild_3D(k) = 1.D0 - dtanh(((eta_tmp-zs(k,IS))/(0.5D0*tmp0))**4.D0)
-                                         ! 5 - swild_3D(k) = 1.D0 - dtanh(((eta_tmp-zs(k,IS))/(0.5D0*tmp0))**8.D0)
-                                         ! 6 - Sink of momentum applied in the two surface layers (IF (k .GE. NVRT-1) swild_3D(k)=1.D0)
-     BC_BREAK       = 1                  ! Apply depth-limited breaking at the boundaries: 1 - On; 0 - Off
-     IROLLER        = 0                  ! Wave roller model (e.g., see Uchiyama et al., 2010): 1 - On; 0 - Off; not used at the moment
-     ALPROL         = 0.85               ! Alpha coefficient for the wave roller model (between 0 and 1): 1 - full conversion; 0 - no energy transferred to the roller
-     MEVEG          = 0                  ! Vegetation on/off. If on, isav must = 1 in param.nml
-     LMAXETOT       = T                  ! Limit shallow water wave height by wave breaking limiter (default=T)
-     MESDS          = 1                  ! Formulation for the whitecapping source function; same value as MESIN
-     MESTR          = 1                  ! Formulation for the triad 3 wave interactions (MESTR = 0 (off), MESTR = 1 (Lumped Triad Approx. (LTA)), MESTR = 2 (corrected version of LTA by Salmon et al. (2016)))
-     TRICO          = 0.1                ! proportionality const. (\alpha_EB); default is 0.1
-     TRIRA          = 2.5                ! ratio of max. freq. considered in triads over mean freq.; 2.5 is suggested
-     TRIURS         = 0.1                ! critical Ursell number; if Ursell # < TRIURS; triads are not computed
-    /
-
-     &SIN4                               ! Various coefficients of Ardhuin et al., 2009, 2010, 2011 use BETAMAX for tuning the model to your wind data e.g. ECMWF = 1.52; CFRS = 1.34 etc.
-     ZWND    =   10.0000000000000     ,
-     ALPHA0  =  9.499999694526196E-003,
-     Z0MAX   =  0.000000000000000E+000,
-     BETAMAX =   1.54000000000000     ,
-     SINTHP  =   2.00000000000000     ,
-     ZALP    =  6.000000052154064E-003,
-     TAUWSHELTER     =  0.300000011920929     ,
-     SWELLFPAR       =   1.00000000000000     ,
-     SWELLF  =  0.660000026226044     ,
-     SWELLF2 = -1.799999922513962E-002,
-     SWELLF3 =  2.199999988079071E-002,
-     SWELLF4 =   150000.000000000     ,
-     SWELLF5 =   1.20000004768372     ,
-     SWELLF6 =  0.000000000000000E+000,
-     SWELLF7 =   360000.000000000     ,
-     Z0RAT   =  3.999999910593033E-002,
-     SINBR   =  0.000000000000000E+000
-     /
-     &SDS4
-     SDSC1   =  0.000000000000000E+000,
-     FXPM3   =   4.00000000000000     ,
-     FXFM3   =   2.50000000000000     ,
-     FXFMAGE =  0.000000000000000E+000,
-     SDSC2   = -2.200000017182902E-005,
-     SDSCUM  = -0.403439998626709     ,
-     SDSSTRAIN       =  0.000000000000000E+000,
-     SDSC4   =   1.00000000000000     ,
-     SDSC5   =  0.000000000000000E+000,
-     SDSC6   =  0.300000011920929     ,
-     SDSBR   =  8.999999845400453E-004,
-     SDSBR2  =  0.800000011920929     ,
-     SDSP    =   2.00000000000000     ,
-     SDSISO  =   2.00000000000000     ,
-     SDSBCK  =  0.000000000000000E+000,
-     SDSABK  =   1.50000000000000     ,
-     SDSPBK  =   4.00000000000000     ,
-     SDSBINT =  0.300000011920929     ,
-     SDSHCK  =   1.50000000000000     ,
-     SDSDTH  =   80.0000000000000     ,
-     SDSCOS  =   2.00000000000000     ,
-     SDSBRF1 =  0.500000000000000     ,
-     SDSBRFDF        =  0.000000000000000E+000,
-     SDSBM0  =   1.00000000000000     ,
-     SDSBM1  =  0.000000000000000E+000,
-     SDSBM2  =  0.000000000000000E+000,
-     SDSBM3  =  0.000000000000000E+000,
-     SDSBM4  =  0.000000000000000E+000,
-     SDSHFGEN        =  0.000000000000000E+000,
-     SDSLFGEN        =  0.000000000000000E+000,
-     WHITECAPWIDTH   =  0.300000011920929     ,
-     FXINCUT =  0.000000000000000E+000,
-     FXDSCUT =  0.000000000000000E+000
-     /
-
-
-    &NUMS
-     ICOMP          = 3
-                                         ! This parameter controls the way how the splitting is done and whether implicit or explicit schemes are used for spectral advection
-                                         ! ICOMP = 0
-                                         ! This means that all dimensions are integrated using explicit methods. Similar
-                                         ! to WW3, actually the same schemes are available in WW3 4.1.
-                                         ! ICOMP = 1
-                                         ! This mean that advection in geographical space is done using implicit
-                                         ! Methods, source terms and spectral space are still integrated as done in
-                                         ! WW3.
-                                         ! ICOMP = 2
-                                         ! This means that the advection is done using implicit methods and that the
-                                         ! source terms are integrated semi-implicit using Patankar rules and linearized
-                                         ! source terms as done in SWAN. Spectral part is still a fractional step
-                                         ! ICOMP = 3: fully implicit and no splitting
-
-     AMETHOD        = 7
-                                         ! AMETHOD controls the different Methods in geographical space
-                                         ! AMETHOD = 0
-                                         ! No Advection in geo. Space
-                                         ! AMETHOD = 1
-                                         ! Explicit N-Scheme for ICOMP = 0 and Implicit N-Scheme for ICOMP > 0
-                                         ! AMETHOD = 2
-                                         ! PSI-Scheme for ICOMP = 0 and Implicit
-                                         ! Crank-Nicholson N-Scheme for ICOMP > 0
-                                         ! AMETHOD = 3
-                                         ! LFPSI Scheme for ICOMP = 0 and Implicit two time level N2 scheme for ICOMP > 0
-
-                                         ! AMETHOD = 4
-                                         ! Like AMETHOD = 1 but using PETSc based on small matrices MNP**2. this can be efficient on small to medium scale cluster up to say 128 Nodes.
-
-                                         ! AMETHOD = 5
-                                         ! Like AMETHOD = 1 but using PETSc and assembling the full matrix and the source terms at once (MNP * MDC * MSC)**2. number of equations
-                                         ! this is for large scale applications
-
-                                         ! Remark for AMETHOD = 4 and 5. This methods are new and only tested on a few cases where the results look reasonable and do not depend on the number of CPU's which
-                                         ! validates the correct implementation. The scaling performance is anticipated to be "quite poor" at this time. Many different constituents influence the parallel speedup.
-                                         ! Please let me know all the information you have in order to improve and accelerate the development of implicit parallel WWM-III.
-                                         ! Have fun ... Aron and Thomas.
-                                         ! AMETHOD = 6 - BCGS Solver
-                                         ! AMETHOD = 7 - GAUSS and JACOBI SOLVER
-    ASPAR_LOCAL_LEVEL = 0               ! locality level 0 - a lot of memory 10 - no memory the rest r hybrid levels ... it is try and error stuff depends on architecture
-
-     SMETHOD        = 1
-                                         ! This switch controls the way the source terms are integrated. 0: no source terms;
-                                         ! 1: splitting using RK-3 and SI for fast and slow modes 2: semi-implicit;
-                                         ! 3: R-K3 (if ICOMP=0 or 1) - slow; 4: Dynamic Splitting (experimental)
-                                         ! 6: Sub-time steps for breaking term integration (subroutine INT_SHALLOW_SOURCETERMS) to enhance stability in surf zone if explicit method is used.
-
-     DMETHOD        = 2
-                                         ! This switch controls the numerical method in directional space.
-                                         ! DMETHOD = 0
-                                         ! No advection in directional space
-                                         ! DMETHOD = 1
-                                         ! Crank-Nicholson (RTHETA = 0.5) or Euler Implicit scheme (RTHETA = 1.0)
-                                         ! DMEHOD = 2
-                                         ! Ultimate Quickest as in WW3 (usually best)
-                                         ! DMETHOD = 3
-                                         ! RK5-WENO
-                                         ! DMETHOD = 4
-                                         ! Explicit FVM Upwind scheme
-
-     RTHETA         = 0.5                ! Weighing factor for DMETHOD = 1, not really useful since Crank Nicholson integration can only be monotone for CFL .le. 2
-     LITERSPLIT     = F                  ! T: double Strang split; F: simple split (more efficient). Default: F
-
-     LFILTERTH      = F
-                                         ! LFILTERTH: use a CFL filter to limit the advection vel. In directional space. This is similar to WW3.
-                                         ! Mostly not used. WWMII is always stable.
-     MAXCFLTH       = 1.0                ! Max Cfl in Theta space; used only if LFILTERTH=T
-     FMETHOD        = 1
-                                         ! This switch controls the numerical method used in freq. space
-                                         ! = 0
-                                         ! No Advection in spectral space
-                                         ! = 1
-                                         ! Ultimate Quickest as in WW3 (best)
-     LFILTERSIG     = F                  ! Limit the advection velocity in freq. space (usually F)
-     MAXCFLSIG      = 1.0                ! Max Cfl in freq. space; used only if LFILTERSIG=T
-     LLIMT          = T                  ! Switch on/off Action limiter, Action limiter must mostly be turned on.
-     LSIGBOUND      = F                  ! Theta space on wet land/island boundary
-     LTHBOUND       = F                  ! Sigma space on wet land/island boundary
-     LSOUBOUND      = F                  ! Source Terms on wet land/island boundary. Use T if SMETHOD=6
-     MELIM          = 1                  ! Formulation for the action limiter
-                                         ! MELIM = 1 (default)
-                                         ! Limiter according to the WAM group (1988)
-                                         ! MELIM = 2
-                                         ! Limiter according to Hersbach Janssen (1999)
-                                         ! For MESIN = 1 and MESDS = 1, which represents Cycle 3 formulation or Ardhuin, or other formulations except Cycle4, use MELIM = 1 and LIMFAK = 0.1
-                                         ! For MESIN = 2 and MESDS = 2, which represents Cycle 4 formulation, use MELIM = 3 and LIMFAK = 0.6
-     LIMFAK         = 0.1                ! Proportionality coefficient for the action limiter MAX_DAC_DT = Limfak * Limiter; see notes above for value
-     LDIFR          = F                  ! Use phase decoupled diffraction approximation according to Holthuijsen et al. (2003) (usually T; if crash, use F)
-     IDIFFR         = 1                  ! Extended WAE accounting for higher order effects WAE becomes nonlinear; 1: Holthuijsen et al. ; 2: Liau et al. ; 3: Toledo et al. (in preparation)
-     LCONV          = F                  ! Estimate convergence criterian and write disk (quasi-steady - qstea.out)
-     LCFL           = F                  ! Write out CFL numbers; use F to save time
-     NQSITER        = 10                 ! # of quasi-steady (Q-S) sub-divisions within each WWM time step (trial and errors)
-     QSCONV1        = 0.98               ! Number of grid points [%/100] that have to fulfill abs. wave height criteria EPSH1
-     QSCONV2        = 0.98               ! Number of grid points [%/100] that have to fulfill rel. wave height criteria EPSH2
-     QSCONV3        = 0.98               ! Number of grid points [%/100] that have to fulfill sum. rel. wave action criteria EPSH3
-     QSCONV4        = 0.98               ! Number of grid points [%/100] that have to fulfill avg. rel. wave period criteria EPSH4
-     QSCONV5        = 0.98               ! Number of grid points [%/100] that have to fulfill avg. rel. wave steepness criteria EPSH5
-     LEXPIMP        = F                  ! Use implicit schemes for freq. lower than given below by FREQEXP; used only if ICOMP=0
-     FREQEXP        = 0.1                ! Minimum frequency for explicit schemes; only used if LEXPIMP=T and ICOMP=0
-     EPSH1          = 0.01               ! Convergence criteria for rel. wave height ! EPSH1 < CONVK1 = REAL(ABS(HSOLD(IP)-HS2)/HS2)
-     EPSH2          = 0.01               ! Convergence criteria for abs. wave height ! EPSH2 < CONVK2 = REAL(ABS(HS2-HSOLD(IP)))
-     EPSH3          = 0.01               ! Convergence criteria for the rel. sum of wave action ! EPSH3 < CONVK3 = REAL(ABS(SUMACOLD(IP)-SUMAC)/SUMAC)
-     EPSH4          = 0.01               ! Convergence criteria for the rel. avg. wave steepness criteria ! EPSH4 < CONVK4 = REAL(ABS(KHS2-KHSOLD(IP))/KHSOLD(IP))
-     EPSH5          = 0.01               ! Convergence criteria for the rel. avg. waveperiod ! EPSH5 < REAL(ABS(TM02-TM02OLD(IP))/TM02OLD(IP))
-     LVECTOR        = F                  ! Use optmized propagation routines for large high performance computers e.g. at least more than 128 CPU. Try LVECTOR=F first.
-     IVECTOR        = 2                  ! USed if LVECTOR=T; Different flavours of communications
-                                         ! LVECTOR = 1; same propagation style as if LVECTOR = F, this is for testing and development
-                                         ! LVECTOR = 2; all spectral bins are propagated with the same time step and communications is done only once per sub-iteration
-                                         ! LVECTOR = 3; all directions with the same freq. are propagated using the same time step the communications is done for each freq.
-                                         ! LVECTOR = 4; 2 but for mixed open-mpi, code has to be compiled with -openmp
-                                         ! LVECTOR = 5; 3 but for mixed open-mpi, code has to be compiled with -openmp
-                                         ! LVECTOR = 6; same as 2 but highly optimized with respect to memory usage, of course it is must less efficient than 2
-                                         ! remarks: if you are using this routines be aware that the memory amount that is used is approx. for LVECTOR 1-5 around
-                                         ! 24 * MSC * MDC * MNP, so if you are trying this on 1 CPU you get a segmentation fault if your system has not enough memory or
-                                         ! if your system is not properly configured it may results into the fact that your computer starts blocking since it try's to swap to disk
-                                         ! The total amount of memory used per CPU = 24 * MSC * MDC * MNP / No.CPU
-     LADVTEST       = F                  ! for testing the advection schemes, testcase will be added soon
-     LCHKCONV       = T                  ! needs to set to .true. for quasi-steady mode. in order to compute the QSCONVi criteria and check them
-     NB_BLOCK       =           3,
-     WAE_SOLVERTHR   =  1.E-6,
-     MAXITER =          1000,
-     LSOURCESWAM = F,   ! Use ECMWF WAM formualtion for deep water physics.
-     LNANINFCHK      = F,
-     LZETA_SETUP     = F,
-     ZETA_METH       =           0,
-     PMIN    =   5.,
-     BLOCK_GAUSS_SEIDEL = T,
-     LNONL   = F,
-     L_SOLVER_NORM   = F,
-     ASPAR_LOCAL_LEVEL =  0,
-    /
-
-
-
-    ! output of statistical variables over the whole domain at specified times.
-    &HISTORY
-     BEGTC          = '19980901.000000'  ! Start output time, yyyymmdd. hhmmss;
-                                         ! must fit the simulation time otherwise no output.
-                                         ! Default is same as PROC%BEGTC
-     DELTC          = 1                ! Time step for output; if smaller than simulation time step, the latter is used (output every step for better 1D 2D spectra analysis)
-     UNITC          = 'SEC'              ! Unit
-     ENDTC          = '19980910.000000'  ! Stop time output, yyyymmdd. hhmmss
-
-                                         ! Default is same as PROC%ENDC
-     DEFINETC       = 86400              ! Time for definition of history files
-                                         ! If unset or set to a negative value
-                                         ! then only one file is generated
-                                         ! otherwise, for example for 86400
-                                         ! daily output files are created.
-     OUTSTYLE       = 'NO'               ! output option - use 'NO' for no output
-                                         ! 'NC' for netcdf output
-                                         ! 'XFN' for XFN output
-                                         ! 'SHP' for DARKO SHP output
-     MULTIPLEOUT      = 0                ! 0: output in a single netcdf
-                                         !    file with MPI_GATHER being used (default)
-                                         ! 1: output in separate netcdf files, each associated with one process
-                                         !    and the partition written in the first file
-                                         ! 2: output using the parallel netcdf library (NEEDS TO BE DONE)
-     USE_SINGLE_OUT  = T                 ! T: Use single precision in the output of model variables (default)
-                                         !    This has impact only if rkind=8 is selected
-     PARAMWRITE      = T                 ! T/F: Write the physical parametrization and
-                                         !      chosen numerical discretization in the
-                                         !      netcdf history file (default T)
-     GRIDWRITE       = T                  ! T/F: Write the grid in the netcdf history file (default T)
-     PRINTMMA       = F                  ! T/F: Print minimum, maximum and average
-                                         ! value of statistics during runtime
-                                         ! (Default F)
-     FILEOUT        = 'history.dat'
-     LWXFN          = T
-                                         ! Below is selection for all variables. Default is F for all variables.
-     HS             = F                  ! significant wave height
-     TM01           = F                  ! mean period
-     TM02           = F                  ! zero-crossing mean period
-     KLM            = F                  ! mean wave number
-     WLM            = F                  ! mean wave length
-     ETOTC          = F                  ! Variable ETOTC
-     ETOTS          = F                  ! Variable ETOTS
-     DM             = T                  ! mean wave direction
-     DSPR           = F                  ! directional spreading
-     TPPD           = F
-     TPP            = F
-     CPP            = F
-     WNPP           = F                  ! peak wave number
-     CGPP           = F                  ! peak group speed
-     KPP            = F                  ! peak wave number
-     LPP            = F                  ! peak
-     PEAKD          = F                  ! peak direction
-     PEAKDSPR       = F                  ! peak directional spreading
-     DPEAK          = F
-     UBOT           = F
-     ORBITAL        = F
-     BOTEXPER       = F
-     TMBOT          = F
-     URSELL         = F                  ! Ursell number
-     UFRIC          = F                  ! air friction velocity
-     Z0             = F                  ! air roughness length
-     ALPHA_CH       = F                  ! Charnoch coefficient for air
-     WINDX          = F                  ! Wind in X direction
-     WINDY          = F                  ! Wind in Y direction
-     CD             = F                  ! Drag coefficient
-     CURRTX         = F                  ! current in X direction
-     CURRTY         = F                  ! current in Y direction
-     WATLEV         = F                  ! water level
-     WATLEVOLD      = F                  ! water level at previous time step
-     DEP            = F                  ! depth
-     TAUW           = F                  ! surface stress from the wave
-     TAUHF          = F                  ! high frequency surface stress
-     TAUTOT         = F                  ! total surface stress
-     STOKESSURFX    = F                  ! Surface Stokes drift in X direction
-     STOKESSURFY    = F                  ! Surface Stokes drift in X direction
-     STOKESBAROX    = F                  ! Barotropic Stokes drift in X direction
-     STOKESBAROY    = F                  ! Barotropic Stokes drift in Y direction
-    /
-
-    &STATION
-     BEGTC          = '19980901.000000'  ! Start simulation time, yyyymmdd. hhmmss; must fit the simulation time otherwise no output
-                                         ! Default is same as PROC%BEGTC
-     DELTC          =  1,                ! Time step for output; if smaller than simulation time step, the latter is used (output every step for better 1D 2D spectra analysis)
-     UNITC          = 'SEC'              ! Unit
-     ENDTC          = '20081101.000000'  ! Stop time simulation, yyyymmdd. hhmmss
-                                         ! Default is same as PROC%ENDC
-     OUTSTYLE       = 'STE'              ! output option - use 'NO' to maximize efficiency during parallel run when using MPI
-     FILEOUT        = 'station.dat'
-     LOUTITER       = F
-     LLOUTS         = F                  ! station output flag
-     ILOUTS         = 1                  ! Number of output stations
-     NLOUTS         = 'P-1',             ! Name of output locations
-     IOUTS          = 1
-     NOUTS          = 'P-1',
-     XOUTS          = 1950.,             ! X-Coordinate of output locations
-     YOUTS          = 304.,            ! Y-Coordinate of output locations
-     CUTOFF         = 8*0.44             ! cutoff freq (Hz) for each station - consistent with buoys
-     LSP1D          = F                  ! 1D spectral station output
-     LSP2D          = F                  ! 2D spectral station output
-     LSIGMAX        = T                  ! Adjust the cut-freq. for the output (e.g. consistent with buoy cut-off freq.)
-    /
-
-    &HOTFILE
-     LHOTF          = T ! Write hotfile
-     BEGTC          = '19980901.000000'   ! Starting time of hotfile writing
-     DELTC          = 3600      ! time between hotfile writes
-     UNITC          = 'SEC'  ! unit used above
-     ENDTC          = '19980901.060000'  ! Ending time of hotfile writing
-     LCYCLEHOT      = T ! Applies only to netcdf
-                        ! If T then hotfile contains 2 last records (1st record is most recent).
-                        ! If F then hotfile contains N record if N outputs
-                        ! have been done
-                        ! For binary only one record.
-     HOTSTYLE_OUT   = 2  ! 1: binary hotfile of data as output
-                         ! 2: netcdf hotfile of data as output (default)
-     MULTIPLEOUT    = 0  ! 0: hotfile in a single file (binary or netcdf)
-                         !    MPI_REDUCE is then used.
-                         ! 1: hotfiles in separate files, each associated
-                         !    with one process
-     FILEHOT_OUT    = 'hotfile_out_WWM.nc' !name of hot outputs
-
-     !Input part: to use WWM hotstart input, need to turn on LHOTR in &INIT!!
-     HOTSTYLE_IN    = 2  ! 1: binary hotfile of data as input
-                         ! 2: netcdf hotfile of data as input (default)
-     IHOTPOS_IN        = 1 ! Position in hotfile (only for netcdf)
-                           ! for reading. If LCYCLEHOT=T, this can be 1 or 2 (2 time records alternate btw
-                           ! the most and 2nd most recent times so you should select the most recent time)
-     MULTIPLEIN     = 0    ! 0: read hotfile from one single file
-                           ! 1: read hotfile from multiple files.
-     FILEHOT_IN     = 'hotfile_in_WWM.nc' ! Hot file name for input if LHOTR=T in &INIT. This should be hotfile_out_WWM.nc above
-    /
-
-    &NESTING
-    /
-
-    ! only used with AMETHOD 4 or 5
-    &PETScOptions
-                                         ! Summary of Sparse Linear Solvers Available from PETSc: http://www.mcs.anl.gov/petsc/documentation/linearsolvertable.html
-     KSPTYPE       = 'bcgs'
-                                         ! This parameter controls which solver is used. This is the same as petsc command line parameter -ksp_type.
-                                         ! KSPTYPE = 'GMRES'
-                                         ! Implements the Generalized Minimal Residual method. (Saad and Schultz, 1986) with restart
-                                         ! KSPTYPE = 'LGMRES'
-                                         ! Augments the standard GMRES approximation space with approximations to the error from previous restart cycles.
-                                         ! KSPTYPE = 'DGMRES'
-                                         ! In this implementation, the adaptive strategy allows to switch to the deflated GMRES when the stagnation occurs.
-                                         ! KSPTYPE = 'PGMRES'
-                                         ! Implements the Pipelined Generalized Minimal Residual method. Only PETSc 3.3
-                                         ! KSPTYPE = 'KSPBCGSL'
-                                         ! Implements a slight variant of the Enhanced BiCGStab(L) algorithm
-
-     RTOL          = 1.E-20              ! the relative convergence tolerance (relative decrease in the residual norm)
-     ABSTOL        = 1.E-20              ! the absolute convergence tolerance (absolute size of the residual norm)
-     DTOL          = 10000.              ! the divergence tolerance
-     MAXITS        = 1000                ! maximum number of iterations to use
-
-     INITIALGUESSNONZERO = T             ! Tells the iterative solver that the initial guess is nonzero; otherwise KSP assumes the initial guess is to be zero
-     GMRESPREALLOCATE    = T             ! Causes GMRES and FGMRES to preallocate all its needed work vectors at initial setup rather than the default, which is to allocate them in chunks when needed.
-
-
-     PCTYPE        = 'sor'
-                                         ! This parameter controls which  preconditioner is used. This is the same as petsc command line parameter -pc_type
-                                         ! PCTYPE = 'SOR'
-                                         ! (S)SOR (successive over relaxation, Gauss-Seidel) preconditioning
-                                         ! PCTYPE = 'ASM'
-                                         ! Use the (restricted) additive Schwarz method, each block is (approximately) solved with its own KSP object.
-                                         ! PCTYPE = 'HYPRE'
-                                         ! Allows you to use the matrix element based preconditioners in the LLNL package hypre
-                                         ! PCTYPE = 'SPAI'
-                                         ! Use the Sparse Approximate Inverse method of Grote and Barnard as a preconditioner
-                                         ! PCTYPE = 'NONE'
-                                         ! This is used when you wish to employ a nonpreconditioned Krylov method.
-
-    /
-
-    """
-
-    hotfile: Optional[Hotfile] = Field(default=None)
-    proc: Optional[Proc] = Field(default=None)
-    coupl: Optional[Coupl] = Field(default=None)
-    grid: Optional[Grid] = Field(default=None)
-    bouc: Optional[Bouc] = Field(default=None)
-    engs: Optional[Engs] = Field(default=None)
-    sin4: Optional[Sin4] = Field(default=None)
-    sds4: Optional[Sds4] = Field(default=None)
-    nums: Optional[Nums] = Field(default=None)
-    history: Optional[History] = Field(default=None)
-    station: Optional[Station] = Field(default=None)
-    petscoptions: Optional[Petscoptions] = Field(default=None)
+    hotfile: Optional[Hotfile] = Field(default_factory=Hotfile)
+    proc: Optional[Proc] = Field(default_factory=Proc)
+    coupl: Optional[Coupl] = Field(default_factory=Coupl)
+    grid: Optional[Grid] = Field(default_factory=Grid)
+    bouc: Optional[Bouc] = Field(default_factory=Bouc)
+    engs: Optional[Engs] = Field(default_factory=Engs)
+    sin4: Optional[Sin4] = Field(default_factory=Sin4)
+    sds4: Optional[Sds4] = Field(default_factory=Sds4)
+    nums: Optional[Nums] = Field(default_factory=Nums)
+    history: Optional[History] = Field(default_factory=History)
+    station: Optional[Station] = Field(default_factory=Station)
+    petscoptions: Optional[Petscoptions] = Field(default_factory=Petscoptions)
