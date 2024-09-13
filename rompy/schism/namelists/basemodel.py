@@ -73,12 +73,15 @@ class NamelistBaseModel(RompyBaseModel):
                         if isinstance(value, list):
                             value = ", ".join([str(item) for item in value])
                         if isinstance(value, bool):
-                            value = ".true." if value else ".false."
+                            value = self.boolean_to_string(value)
                         if isinstance(value, str):
                             value = f"{value}"
                         ret += [f"{variable} = {value}"]
                 ret += ["/"]
         return "\n".join(ret)
+
+    def boolean_to_string(self, value: bool) -> str:
+        return "T" if value else "F"
 
     def write_nml(self, workdir: Path) -> None:
         """Write the namelist to a file"""
