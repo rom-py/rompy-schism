@@ -43,13 +43,15 @@ class NML(NamelistBaseModel):
 
         update = {
             "param": {
+                "core": {
+                    "rnday": period.duration.total_seconds() / 86400,
+                },
                 "opt": {
                     "start_year": period.start.year,
                     "start_month": period.start.month,
                     "start_day": period.start.day,
                     "start_hour": period.start.hour,
-                    "rnday": period.duration.total_seconds() / 86400,
-                }
+                },
             }
         }
 
