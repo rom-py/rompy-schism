@@ -98,8 +98,8 @@ class Ice_in(NamelistBaseModel):
         0.5,
         description="Lead closing parameter [m]. Larger values slow down freezing-up but increase sea ice thickness.",
     )
-    Saterm: Optional[float] = Field(
-        0.5, description="Semter const -smaller value could slow down melting"
+    saterm: Optional[float] = Field(
+        0.5, description="Semter constant. Smaller values could slow down melting."
     )
     albsn: Optional[float] = Field(0.85, description="Albedo for frozen snow.")
     albsnm: Optional[float] = Field(
@@ -300,6 +300,13 @@ class Ice_in(NamelistBaseModel):
     def validate_lead_closing(cls, v):
         if not isinstance(v, float) or v <= 0:
             raise ValueError("lead_closing must be a positive float")
+        return v
+
+    @field_validator("saterm")
+    @classmethod
+    def validate_saterm(cls, v):
+        if not isinstance(v, float) or v <= 0 or v > 1:
+            raise ValueError("saterm must be a float between 0 and 1")
         return v
 
     @field_validator("albsn")

@@ -7,12 +7,28 @@ from rompy.schism.namelists.basemodel import NamelistBaseModel
 
 
 class Sed_core(NamelistBaseModel):
-    Sd50: Optional[list] = Field(
-        ["0.12d0", "0.18d0", "0.39d0", "0.60d0", "1.2d0"], description=""
+    sd50: Optional[list] = Field(
+        ["0.12d0", "0.18d0", "0.39d0", "0.60d0", "1.2d0"],
+        description="Median sediment grain diameter (D50) for each sediment tracer, specified in millimeters. This is a list of values corresponding to the number of sediment tracers (Ntracers).",
     )
-    Erate: Optional[list] = Field(
-        ["1.6d-3", "1.6d-3", "1.6d-3", "1.6d-3", "1.6d-3"], description="ierosion=0"
+    erate: Optional[list] = Field(
+        ["1.6d-3", "1.6d-3", "1.6d-3", "1.6d-3", "1.6d-3"],
+        description="Surface erosion rate for each sediment tracer. The interpretation and units depend on the 'ierosion' parameter. If ierosion=0, the units are kg/m²/s. If ierosion=1, the units are s/m (as per M_E in Winterwerp et al. 2012, JGR, vol 117).",
     )
+
+    @field_validator("sd50")
+    @classmethod
+    def validate_sd50(cls, v):
+        if not all(isinstance(x, (int, float)) and x > 0 for x in v):
+            raise ValueError("All Sd50 values must be positive numbers")
+        return v
+
+    @field_validator("erate")
+    @classmethod
+    def validate_erate(cls, v):
+        if not all(isinstance(x, (int, float)) and x >= 0 for x in v):
+            raise ValueError("All Erate values must be non-negative numbers")
+        return v
 
     @model_validator(mode="after")
     def validate_erate_length(self):
@@ -22,9 +38,13 @@ class Sed_core(NamelistBaseModel):
 
 
 class Sed_opt(NamelistBaseModel):
-    iSedtype: Optional[list] = Field([1, 1, 1, 1, 1], description="5 classes")
-    Srho: Optional[list] = Field(
-        ["2650.0d0", "2650.0d0", "2650.0d0", "2650.0d0", "2650.0d0"], description=""
+    isedtype: Optional[list] = Field(
+        [1, 1, 1, 1, 1],
+        description="Sediment type for each class. 0: MUD-like (suspension only), 1: SAND-like (suspension + bedload), 2: GRAVEL-like (not available)",
+    )
+    srho: Optional[list] = Field(
+        ["2650.0d0", "2650.0d0", "2650.0d0", "2650.0d0", "2650.0d0"],
+        description="Sediment grain density (kg/m3) for each sediment class",
     )
     comp_ws: Optional[int] = Field(
         0,
@@ -34,8 +54,9 @@ class Sed_opt(NamelistBaseModel):
         0,
         description="Flag to enable/disable computation of sediment critical shear stress. 0: Disabled (user-defined), 1: Enabled (computed from SAND_SD50 and SAND_SRHO)",
     )
-    Wsed: Optional[list] = Field(
-        ["1.06d0", "3.92d0", "5.43d0", "10.19d0", "28.65d0"], description=""
+    wsed: Optional[list] = Field(
+        ["1.06d0", "3.92d0", "5.43d0", "10.19d0", "28.65d0"],
+        description="Particle settling velocity (mm/s) for each sediment class",
     )
     tau_ce: Optional[list] = Field(
         ["0.15d0", "0.17d0", "0.23d0", "0.3d0", "0.6d0"],
@@ -90,7 +111,7 @@ class Sed_opt(NamelistBaseModel):
     ised_bc_bot: Optional[int] = Field(1, description="")
     alphd: Optional[float] = Field(1.0, description="")
     refht: Optional[float] = Field(0.75, description="suggested value: 0.75;")
-    Tbp: Optional[float] = Field(100.0, description="suggested value: 100;")
+    tbp: Optional[float] = Field(100.0, description="suggested value: 100;")
     im_pick_up: Optional[int] = Field(4, description="")
     sed_morph: Optional[int] = Field(0, description="")
     sed_morph_time: Optional[str] = Field("1.d0", description="")
@@ -107,18 +128,32 @@ class Sed_opt(NamelistBaseModel):
     bedmass_threshold: Optional[float] = Field(0.025, description="")
     bdldiffu: Optional[float] = Field(0.5, description="")
     bedload_coeff: Optional[str] = Field("1.0d0", description="")
-    Cdb_min: Optional[str] = Field("1.d-6", description="")
-    Cdb_max: Optional[float] = Field(0.01, description="")
+    cdb_min: Optional[str] = Field("1.d-6", description="")
+    cdb_max: Optional[float] = Field(0.01, description="")
     actv_max: Optional[str] = Field("0.05d0", description="")
-    Nbed: Optional[int] = Field(1, description="")
+    nbed: Optional[int] = Field(1, description="")
     sedlay_ini_opt: Optional[int] = Field(0, description="")
     toplay_inithick: Optional[str] = Field("10.0d-2", description="")
     newlayer_thick: Optional[str] = Field("0.001d0", description="")
     imeth_bed_evol: Optional[int] = Field(2, description="")
     poro_option: Optional[int] = Field(1, description="")
     porosity: Optional[float] = Field(0.4, description="")
-    Awooster: Optional[float] = Field(0.42, description="")
-    Bwooster: Optional[float] = Field(-0.458, description="")
+    awooster: Optional[float] = Field(0.42, description="")
+    bwooster: Optional[float] = Field(-0.458, description="")
+
+    @field_validator("isedtype")
+    @classmethod
+    def validate_isedtype(cls, v):
+        if not all(0 <= x <= 1 for x in v):
+            raise ValueError("isedtype values must be 0 or 1")
+        return v
+
+    @field_validator("srho")
+    @classmethod
+    def validate_srho(cls, v):
+        if any(x <= 0 for x in v):
+            raise ValueError("srho values must be positive")
+        return v
 
     @field_validator("comp_ws")
     @classmethod
@@ -132,6 +167,13 @@ class Sed_opt(NamelistBaseModel):
     def validate_comp_tauce(cls, v):
         if v not in [0, 1]:
             raise ValueError("comp_tauce must be 0 or 1")
+        return v
+
+    @field_validator("wsed")
+    @classmethod
+    def validate_wsed(cls, v):
+        if any(x < 0 for x in v):
+            raise ValueError("wsed values must be non-negative")
         return v
 
     @field_validator("tau_ce")
