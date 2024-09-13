@@ -97,6 +97,12 @@ def extract_variables(section):
             values = []
             if "," in value:
                 items = value.split(",")
+                # For for weird case in wwminput where the (seamingly) single input has a comma after it?
+                if len(items) == 2:
+                    if items[1].strip() == "":
+                        items = items[0]
+                    if items[0].strip() == "":
+                        items = items[1]
             else:
                 items = value.split()
             for item in items:
@@ -109,6 +115,14 @@ def extract_variables(section):
                         values.append(int(item))
                 except Exception:
                     values.append(str(item).strip())
+            for ii in range(len(values)):
+                if isinstance(values[ii], str):
+                    values[ii] = values[ii].replace("'", "").replace('"', "")
+            for ii in range(len(values)):
+                if values[ii] == "T":
+                    values[ii] = True
+                if values[ii] == "F":
+                    values[ii] = False
             variable_dict[var.strip()] = dict(
                 default=values if len(values) > 1 else values[0],
                 description=description.strip().replace('"', "'"),
@@ -216,6 +230,7 @@ def nml_to_models(file_in: str, file_out: str):
         )
         file.write(f"from typing import Optional, List\n")
         file.write(f"from pydantic import Field, field_validator, model_validator\n")
+        file.write(f"from datetime import datetime\n")
         basemodellist = basemodel.split(".")
         file.write(
             f"from {'.'.join(basemodellist[0:-1])} import {basemodellist[-1]}\n\n"

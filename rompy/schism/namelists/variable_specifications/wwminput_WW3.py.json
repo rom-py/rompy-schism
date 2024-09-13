@@ -528,9 +528,7 @@
             "validators": [
                 "@field_validator('mesin')\n@classmethod\ndef validate_mesin(cls, v):\n    if v not in range(6):\n        raise ValueError('MESIN must be between 0 and 5')\n    return v"
             ],
-            "cross_validators": [
-                "@model_validator(mode='after')\ndef validate_mesin_lsourceswam(self):\n    if self.mesin == 1 and self.lsourceswam:\n        raise ValueError('When MESIN=1, LSOURCESWAM should be False')\n    return self"
-            ]
+            "cross_validators": []
         },
         "ifric": {
             "description": "Formulation for atmospheric boundary layer: 1 for MESIN = 1, 4 for MESIN = 3",
@@ -1458,5 +1456,12 @@
             ],
             "cross_validators": []
         }
+    },
+    "Wmminput": {
+            "description": "WWM input",
+            "validators": [],
+            "cross_validators": [
+                "@model_validator(mode='after')\ndef validate_mesin_lsourceswam(self):\n    if self.engs.mesin == 1 and self.nums.lsourceswam:\n        raise ValueError('When MESIN=1, LSOURCESWAM should be False')\n    return self"
+            ]
     }
 }
