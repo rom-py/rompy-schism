@@ -1,5 +1,6 @@
 # This file was auto generated from a SCHISM namelist file on 2024-09-13.
 
+from datetime import datetime
 from typing import List, Optional
 
 from pydantic import Field, field_validator, model_validator
@@ -416,11 +417,9 @@ class Opt(NamelistBaseModel):
     itur: Optional[int] = Field(3, description="Default: 0")
     dfv0: Optional[str] = Field("1.e-2", description="needed if itur=0")
     dfh0: Optional[str] = Field("1.e-4", description="needed if itur=0")
-    mid: Optional[str] = Field(
-        "'KL'", description="needed if itur=3,5. Use KE if itur=5"
-    )
+    mid: Optional[str] = Field("KL", description="needed if itur=3,5. Use KE if itur=5")
     stab: Optional[str] = Field(
-        "'KC'",
+        "KC",
         description="needed if itur=3 or 5. Use 'GA' if turb_met='MY'; otherwise use 'KC'.",
     )
     xlsc0: Optional[float] = Field(

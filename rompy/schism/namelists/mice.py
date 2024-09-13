@@ -1,5 +1,6 @@
 # This file was auto generated from a SCHISM namelist file on 2024-09-13.
 
+from datetime import datetime
 from typing import List, Optional
 
 from pydantic import Field, field_validator, model_validator
