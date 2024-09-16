@@ -1,5 +1,5 @@
-import os
 import logging
+import os
 import tarfile
 from datetime import datetime
 from glob import glob
@@ -50,6 +50,9 @@ def compare_files(file1, file2):
         with open(file2, "r") as f2:
             for line1, line2 in zip(f1, f2):
                 if line1[0] != "$" and line2[0] != "$":
+                    if line1.rstrip() != line2.rstrip():
+                        print(f"file1': {line1}")
+                        print(f"file2': {line2}")
                     assert line1.rstrip() == line2.rstrip()
 
 
@@ -71,20 +74,24 @@ def compare_nmls_values(nml1, nml2, raise_missing=False):
             continue
         if isinstance(value, dict):
             # if size of dictionary is 2, extract value from 'default' key
-            if len(value) == 2:
+            if len(value) == 2 and 'default' in value:
                 var = value["default"]
+                print(key, var, nml2[key])
                 if var != nml2[key]["default"]:
                     print(key, var, nml2[key]["default"])
             else:
                 compare_nmls_values(value, nml2[key], raise_missing=raise_missing)
+        else:
+            if value != nml2[key]:
+                print(key, value, nml2[key])
 
 
-def compare_nmls(nml1, nml2):
+def compare_nmls(nml1, nml2, raise_missing=False):
     d1 = nml_to_dict(nml1)
     d2 = nml_to_dict(nml2)
     d1.pop("description")
     d2.pop("description")
-    compare_nmls_values(d1, d2)
+    compare_nmls_values(d1, d2, raise_missing=raise_missing)
 
 
 if __name__ == "__main__":

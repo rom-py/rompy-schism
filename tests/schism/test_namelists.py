@@ -5,7 +5,7 @@ from utils import compare_nmls
 
 pytest.importorskip("rompy.schism")
 
-from rompy.schism.namelists import ICE, ICM, MICE, PARAM, SEDIMENT
+from rompy.schism.namelists import Ice, Icm, Mice, Param, Sediment
 
 SAMPLE_DIR = (
     Path(__file__).parent
@@ -19,8 +19,8 @@ SAMPLE_DIR = (
 
 
 def test_namelists(tmp_path):
-    for nml in [ICM, PARAM, SEDIMENT, MICE, ICE]:
+    for nml in [Icm, Param, Sediment, Mice, Ice]:
         instance = nml()
         instance.write_nml(tmp_path)
         name = instance.__class__.__name__.lower()
-        compare_nmls(tmp_path / f"{name}.nml", SAMPLE_DIR / f"{name}.nml")
+        compare_nmls(tmp_path / f"{name}.nml", SAMPLE_DIR / f"{name}.nml", raise_missing=True)
