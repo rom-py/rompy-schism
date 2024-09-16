@@ -18,9 +18,9 @@ class ClaudeClient:
     def analyze_namelist(self, content: str, filename: str) -> dict:
         prompt = f"""
         Analyze the following namelist file content from {filename} and provide:
-        1. Improved descriptions for each variable
-        2. Pydantic validators for each variable (use the new @field_validator decorator)
-        3. Any cross-variable validators that might be necessary (use the new @root_validator decorator)
+        1. Improved descriptions for each variable, noting that relevant information may not all be inline with that particular variable.
+        2. Pydantic validators for each variable (use the new @field_validator and @classmethod decorators). 
+        3. Any cross-variable validators that might be necessary (use the new @model_validator(model='after') decorator)
 
         Namelist content:
         {content}
@@ -34,11 +34,13 @@ class ClaudeClient:
             }},
             ...
         }}
+
+        No not provide any extra information or context in the response.
         """
 
         message = self.client.messages.create(
             model="claude-3-5-sonnet-20240620",
-            max_tokens=2048,
+            max_tokens=8048,
             messages=[{"role": "user", "content": prompt}],
         )
 
@@ -77,7 +79,9 @@ def extract_variables(section):
     variable_dict = {}
 
     for line in section.split("\n"):
-        if line.strip() == "" or line[0] == "!":
+        if line.strip() == "":
+            continue
+        if line[0] == "!":
             continue
         if "!" in line:
             pair, description = line.split("!")[0], "!".join(line.split("!")[1:])
@@ -87,7 +91,7 @@ def extract_variables(section):
         if "=" in pair:
             var, value = pair.split("=")[0], "=".join(pair.split("=")[1:])
             for ii in range(50):
-                var = var.replace(f"({ii})", f"__{ii}")
+                var = var.replace(f"({ii})", f"_{ii}").lower()
             values = []
             if "," in value:
                 items = value.split(",")
@@ -125,15 +129,16 @@ def generate_pydantic_models(
         file.write(
             f"# This file was auto generated from a schism namelist file on {datetime.datetime.now().strftime('%Y-%m-%d')}.\n\n"
         )
-        file.write(f"from pydantic import Field, validator, root_validator\n")
+        file.write(f"from typing import Optional\n")
+        file.write(f"from pydantic import Field, field_validator, model_validator\n")
         basemodellist = basemodel.split(".")
         file.write(
             f"from {'.'.join(basemodellist[0:-1])} import {basemodellist[-1]}\n\n"
         )
         for key, value in data.items():
+            model_name = key.capitalize()
             if key in ("description", "full_content"):
                 continue
-            model_name = key
             file.write(f"class {model_name}({basemodellist[-1]}):\n")
             for inner_key, inner_value in value.items():
                 if inner_key == "description":
@@ -160,7 +165,7 @@ def generate_pydantic_models(
                 file.write(
                     '    {}: {} = Field({}, description="{}")\n'.format(
                         inner_key,
-                        inner_type.__name__,
+                        f"Optional[{inner_type.__name__}]",
                         repr(default_value),
                         description,
                     )
@@ -169,20 +174,18 @@ def generate_pydantic_models(
             for inner_key, inner_value in analysis.items():
                 validators = inner_value.get("validators", [])
                 for i, validator_desc in enumerate(validators):
-                    file.write(f"    @validator('{inner_key}')\n")
-                    file.write(f"    def validate_{inner_key}_{i}(cls, v):\n")
-                    file.write(f"        # TODO: Implement {validator_desc}\n")
-                    file.write(f"        return v\n\n")
+                    file.write("\n")
+                    for line in validator_desc.split("\n"):
+                        file.write("    " + line + "\n")
+                    file.write("\n")
 
             for inner_key, inner_value in analysis.items():
                 cross_validators = inner_value.get("cross_validators", [])
                 for i, validator_desc in enumerate(cross_validators):
-                    file.write(f"    @root_validator\n")
-                    file.write(
-                        f"    def validate_{inner_key}_cross_{i}(cls, values):\n"
-                    )
-                    file.write(f"        # TODO: Implement {validator_desc}\n")
-                    file.write(f"        return values\n\n")
+                    file.write("\n")
+                    for line in validator_desc.split("\n"):
+                        file.write("    " + line + "\n")
+                    file.write("\n")
 
             file.write("\n")
 
@@ -190,18 +193,23 @@ def generate_pydantic_models(
             file.write(f"class {master_model_name}({basemodellist[-1]}):\n")
             for key in data.keys():
                 if key == "description":
-                    indented_text = "\n".join(
-                        ["    " + line for line in data[key].split("\n")]
-                    )
-                    file.write(f'    """\n    {indented_text}\n    """\n')
+                    continue
+                    # indented_text = "\n".join(
+                    #     ["    " + line for line in data[key].split("\n")]
+                    # )
+                    # file.write(f'    """\n{indented_text}\n    """\n')
                 elif key not in ("full_content"):
-                    if none_option:
+                    if none_option == "none":
                         file.write(
-                            f"    {key.lower()}: {key} | None = Field(default=None)\n"
+                            f"    {key}: Optional[{key.capitalize()}] = Field(default=None)\n"
+                        )
+                    elif none_option == "factory":
+                        file.write(
+                            f"    {key}: Optional[{key.capitalize()}] = Field(default_factory={key.capitalize()})\n"
                         )
                     else:
                         file.write(
-                            f"    {key.lower()}: {key} = Field(default={key}())\n"
+                            f"    {key}: {key.capitalize()} = Field(default={key.capitalize()}())\n"
                         )
     run(["isort", filename])
     run(["black", filename])
@@ -210,10 +218,18 @@ def generate_pydantic_models(
 def nml_to_models(file_in: str, file_out: str):
     nml_dict = nml_to_dict(file_in)
 
-    claude_analysis = claude_client.analyze_namelist(nml_dict["full_content"], file_in)
-
-    master_model_name = os.path.basename(file_in).split(".")[0].upper()
-    none_option = True
+    if os.path.exists(f"{file_out}.json"):
+        with open(f"{file_out}.json", "r") as f:
+            print(f"Loading existing analysis {file_out}.json")
+            claude_analysis = json.loads(f.read())
+    else:
+        claude_analysis = claude_client.analyze_namelist(
+            nml_dict["full_content"], file_in
+        )
+        with open(f"{file_out}.json", "w") as f:
+            f.write(json.dumps(claude_analysis, indent=4))
+    master_model_name = os.path.basename(file_in).split(".")[0].capitalize()
+    none_option = "factory"
     generate_pydantic_models(
         nml_dict,
         file_out,
@@ -237,15 +253,31 @@ def nml_to_dict(file_in: str):
         else:
             input_dict = extract_variables(text)
             if input_dict:
-                nml_dict.update({section.upper(): input_dict})
+                nml_dict.update({section.lower(): input_dict})
     nml_dict["description"] = blurb + input_text
     nml_dict["full_content"] = input_text
     return nml_dict
 
 
 def main():
+    exclude_files = [
+        "wwminput.nml.spectra",
+        "wwminput.nml.WW3",
+        "mice.nml",
+        "ice.nml",
+        "icm.nml",
+        "example.nml",
+        "cosine.nml",
+        # "param.nml",
+        "sediment.nml",
+        "icm_reduced.nml",
+        "wwminput_reduced.nml.WW3",
+    ]
     with open("__init__.py", "w") as f:
-        for file in os.listdir("sample_inputs")[5:7]:
+        for file in os.listdir("sample_inputs"):
+            if file in exclude_files:
+                print(f"Skipping {file}")
+                continue
             components = file.split(".")
             if len(components) < 2:
                 continue
@@ -258,7 +290,9 @@ def main():
                 print(f" Processing {file_in} to {file_out}")
                 nml_to_models(file_in, file_out)
                 classname = file_out.split(".")[0]
-                f.write(f"from .{classname} import {classname.split('_')[0].upper()}\n")
+                f.write(
+                    f"from .{classname} import {classname.split('_')[0].capitalize()}\n"
+                )
         f.write(f"from .sflux import Sflux_Inputs\n")
         f.write(f"from .schism import NML")
     run(["isort", "__init__.py"])
