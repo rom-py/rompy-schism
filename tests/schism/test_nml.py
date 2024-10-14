@@ -1,12 +1,12 @@
 from pathlib import Path
 
-from rompy.schism.namelists import NML, PARAM
-from rompy.schism.namelists.param import CORE, OPT, SCHOUT
+from rompy.schism.namelists import NML, Param
+from rompy.schism.namelists.param import Core, Opt, Schout
 
 
 def test_basic():
     outdir = Path("testbasic")
-    nml = NML(param=dict(core=CORE()))
+    nml = NML(param=dict(core=Core()))
     outdir.mkdir(exist_ok=True)
     nml.write_nml(outdir)
 
@@ -14,8 +14,8 @@ def test_basic():
 def test_csiro_nml():
     outdir = Path("testref")
     nml = NML(
-        param=PARAM(
-            core=CORE(
+        param=Param(
+            core=Core(
                 ipre=0,
                 ibc=1,
                 ibtp=0,
@@ -30,7 +30,7 @@ def test_csiro_nml():
                 nspool=30,
                 ihfskip=720,
             ),
-            opt=OPT(
+            opt=Opt(
                 ipre2=0,
                 start_year=2021,
                 start_month=8,
@@ -190,7 +190,7 @@ def test_csiro_nml():
                 # iadjust_mass_consv0(11)=0 !FABM
                 # iadjust_mass_consv0(12)=0 !DVD (must=0)
             ),
-            schout=SCHOUT(
+            schout=Schout(
                 nhot=0,
                 nhot_write=22320.0,
                 iout_sta=0,
