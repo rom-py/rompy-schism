@@ -54,7 +54,8 @@ class SfluxSource(DataGrid):
 
     @property
     def namelist(self) -> dict:
-        ret = self.model_dump()
+        # ret = self.model_dump()
+        ret = {}
         for key, value in self.model_dump().items():
             if key in ["relative_weight", "max_window_hours", "fail_if_missing"]:
                 ret.update({f"{self.id}_{key}": value})
