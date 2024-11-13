@@ -13,8 +13,6 @@ from pyschism.forcing.bctides import Bctides
 from rompy.core import DataGrid, RompyBaseModel
 from rompy.core.boundary import BoundaryWaveStation, DataBoundary
 from rompy.core.data import DataBlob
-from rompy.core.boundary import BoundaryWaveStation, DataBoundary
-from rompy.core.data import DataBlob
 from rompy.core.time import TimeRange
 from rompy.schism.grid import SCHISMGrid
 from rompy.utils import total_seconds
@@ -56,7 +54,8 @@ class SfluxSource(DataGrid):
 
     @property
     def namelist(self) -> dict:
-        ret = self.model_dump()
+        # ret = self.model_dump()
+        ret = {}
         for key, value in self.model_dump().items():
             if key in ["relative_weight", "max_window_hours", "fail_if_missing"]:
                 ret.update({f"{self.id}_{key}": value})
@@ -203,12 +202,24 @@ class SCHISMDataSflux(RompyBaseModel):
         default="sflux",
         description="Model type discriminator",
     )
-    air_1: Union[DataBlob, SfluxAir, None] = Field(None, description="sflux air source 1")
-    air_2: Union[DataBlob, SfluxAir, None] = Field(None, description="sflux air source 2")
-    rad_1: Union[DataBlob, SfluxRad, None] = Field(None, description="sflux rad source 1")
-    rad_2: Union[DataBlob, SfluxRad, None] = Field(None, description="sflux rad source 2")
-    prc_1: Union[DataBlob, SfluxPrc, None] = Field(None, description="sflux prc source 1")
-    prc_2: Union[DataBlob, SfluxPrc, None] = Field(None, description="sflux prc source 2")
+    air_1: Union[DataBlob, SfluxAir, None] = Field(
+        None, description="sflux air source 1"
+    )
+    air_2: Union[DataBlob, SfluxAir, None] = Field(
+        None, description="sflux air source 2"
+    )
+    rad_1: Union[DataBlob, SfluxRad, None] = Field(
+        None, description="sflux rad source 1"
+    )
+    rad_2: Union[DataBlob, SfluxRad, None] = Field(
+        None, description="sflux rad source 2"
+    )
+    prc_1: Union[DataBlob, SfluxPrc, None] = Field(
+        None, description="sflux prc source 1"
+    )
+    prc_2: Union[DataBlob, SfluxPrc, None] = Field(
+        None, description="sflux prc source 2"
+    )
 
     def get(
         self,
@@ -667,8 +678,12 @@ class SCHISMData(RompyBaseModel):
     )
     atmos: Optional[SCHISMDataSflux] = Field(None, description="atmospheric data")
     ocean: Optional[SCHISMDataOcean] = Field(None, description="ocean data")
-    wave: Optional[Union[DataBlob, SCHISMDataWave]] = Field(None, description="wave data")
-    tides: Optional[Union[DataBlob, SCHISMDataTides]] = Field(None, description="tidal data")
+    wave: Optional[Union[DataBlob, SCHISMDataWave]] = Field(
+        None, description="wave data"
+    )
+    tides: Optional[Union[DataBlob, SCHISMDataTides]] = Field(
+        None, description="tidal data"
+    )
 
     def get(
         self,
