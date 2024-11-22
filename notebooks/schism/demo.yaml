@@ -20,12 +20,14 @@ config:
     data_type: schism
     atmos:
       air_1:
+        data_type: sflux_air
         source: 
-          uri:  ../../tests/schism/test_data/atmos.nc
+          model_type: source_file
+          uri: "../../tests/schism/test_data/atmos.nc"
           model_type: open_dataset
         uwind_name: u10
         vwind_name: v10
-        prml_name: mslp
+        prmsl_name: mslp
         filter:
           sort: {coords: [latitude]}
         buffer: 5

@@ -46,11 +46,21 @@ class SfluxSource(DataGrid):
         default=[0, 1],
         description="Number of source data timesteps to buffer the time range if `filter_time` is True",
     )
+    _variable_names = []
+
+    def __init__(self, **data):
+        super().__init__(**data)
+        self._set_variables()
 
     @property
     def outfile(self) -> str:
         # TODO - filenumber is. Hardcoded to 1 for now.
         return f'{self.id}.{str(1).rjust(4, "0")}.nc'
+
+    def _set_variables(self) -> None:
+        for variable in self._variable_names:
+            if getattr(self, variable) is not None:
+                self.variables.append(getattr(self, variable))
 
     @property
     def namelist(self) -> dict:
@@ -59,6 +69,12 @@ class SfluxSource(DataGrid):
         for key, value in self.model_dump().items():
             if key in ["relative_weight", "max_window_hours", "fail_if_missing"]:
                 ret.update({f"{self.id}_{key}": value})
+        for varname in self._variable_names:
+            var = getattr(self, varname)
+            if var is not None:
+                ret.update({varname: var})
+            else:
+                ret.update({varname: varname.replace("_name", "")})
         ret.update({f"{self.id}_file": self.id})
         return ret
 
@@ -113,57 +129,48 @@ class SfluxAir(SfluxSource):
         description="Model type discriminator",
     )
     uwind_name: str = Field(
-        "u10",
+        None,
         description="name of zonal wind variable in source",
     )
-    vwind_name: str = Field(
-        "v10",
+    vwind_name: Union[str, None] = Field(
+        None,
         description="name of meridional wind variable in source",
     )
-    prmsl_name: str = Field(
-        "mslp",
+    prmsl_name: Union[str, None] = Field(
+        None,
         description="name of mean sea level pressure variable in source",
     )
-    stmp_name: str = Field(
-        "stmp",
+    stmp_name: Union[str, None] = Field(
+        None,
         description="name of surface air temperature variable in source",
     )
-    spfh_name: SfluxSource = Field(
-        "spfh",
+    spfh_name: Union[str, None] = Field(
+        None,
         description="name of specific humidity variable in source",
     )
-
-    def _set_variables(self) -> None:
-        for variable in [
-            "uwind_name",
-            "vwind_name",
-            "prmsl_name",
-            "stmp_name",
-            "spfh_name",
-        ]:
-            if getattr(self, variable) is not None:
-                self.variables.append(getattr(self, variable))
+    _variable_names = [
+        "uwind_name",
+        "vwind_name",
+        "prmsl_name",
+        "stmp_name",
+        "spfh_name",
+    ]
 
     @property
     def ds(self):
         """Return the xarray dataset for this data source."""
         ds = super().ds
-        for variable in [
-            "uwind_name",
-            "vwind_name",
-            "prmsl_name",
-            "stmp_name",
-            "spfh_name",
-        ]:
+        for variable in self._variable_names:
             data_var = getattr(self, variable)
-            if data_var not in ds.data_vars:
-                ds[data_var] = ds[self.uwind_name].copy()
+            if data_var == None:
+                proxy_var = variable.replace("_name", "")
+                ds[proxy_var] = ds[self.uwind_name].copy()
                 if variable == "spfh_name":
                     missing = 0.01
                 else:
                     missing = -999
-                ds[data_var][:, :, :] = missing
-                ds.data_vars[data_var].attrs["long_name"] = data_var
+                ds[proxy_var][:, :, :] = missing
+                ds.data_vars[proxy_var].attrs["long_name"] = proxy_var
         return ds
 
 
@@ -174,19 +181,15 @@ class SfluxRad(SfluxSource):
         default="sflux_rad",
         description="Model type discriminator",
     )
-    dlwrf_name: SfluxSource = Field(
+    dlwrf_name: str = Field(
         None,
         description="name of downward long wave radiation variable in source",
     )
-    dswrf_name: SfluxSource = Field(
+    dswrf_name: str = Field(
         None,
         description="name of downward short wave radiation variable in source",
     )
-
-    def _set_variables(self) -> None:
-        for variable in ["dlwrf_name", "dswrf_name"]:
-            if getattr(self, variable) is not None:
-                self.variables.append(getattr(self, variable))
+    _variable_names = ["dlwrf_name", "dswrf_name"]
 
 
 class SfluxPrc(SfluxSource):
@@ -196,13 +199,11 @@ class SfluxPrc(SfluxSource):
         default="sflux_rad",
         description="Model type discriminator",
     )
-    prate_name: SfluxSource = Field(
+    prate_name: str = Field(
         None,
         description="name of precipitation rate variable in source",
     )
-
-    def _set_variables(self) -> None:
-        self.variables = [self.prate_name]
+    _variable_names = ["prate_name"]
 
 
 class SCHISMDataSflux(RompyBaseModel):
