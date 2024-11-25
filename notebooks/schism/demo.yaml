@@ -13,8 +13,8 @@ config:
     hgrid:
       id: hgrid
       model_type: data_blob
-        #source: ../../tests/schism/test_data/hgrid.gr3
-      source: ../../tests/schism/test_data/hgrid_20kmto60km_rompyschism_testing.gr3
+      source: ../../tests/schism/test_data/hgrid.gr3
+        # source: ../../tests/schism/test_data/hgrid_20kmto60km_rompyschism_testing.gr3
     manning: 1
   data:
     data_type: schism
