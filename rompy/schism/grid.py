@@ -1,13 +1,13 @@
 import logging
 from pathlib import Path
-from typing import Literal, Optional
+from typing import Literal, Optional, Union
 
 import numpy as np
 import pandas as pd
 from pydantic import Field, PrivateAttr, field_validator, model_validator
 from pyschism.mesh import Hgrid
 from pyschism.mesh.prop import Tvdflag
-from pyschism.mesh.vgrid import Vgrid
+from pyschism.mesh.vgrid import LSC2, SZ, Vgrid
 from shapely.geometry import MultiPoint, Polygon
 
 from rompy.core import DataBlob, RompyBaseModel
@@ -36,7 +36,7 @@ class GeneratorBase(RompyBaseModel):
 
     def get(self, destdir: str | Path, name: str = None) -> Path:
         """Alias to maintain api compatibility with DataBlob"""
-        return self.generate(destdir, name=name)
+        return self.generate(destdir)
 
 
 class GR3Generator(GeneratorBase):
@@ -82,13 +82,128 @@ class GR3Generator(GeneratorBase):
         return dest
 
 
+# class VgridGeneratorBase(GeneratorBase):
+
+
+class Vgrid2D(GeneratorBase):
+    model_type: Literal["vgrid2D_generator"] = Field(
+        "LSC2_generator", description="Model descriminator"
+    )
+
+    def generate(self, destdir: str | Path, hgrid=None) -> Path:
+        dest = Path(destdir) / "vgrid.in"
+        with open(dest, "w") as f:
+            f.write("2 !ivcor (1: LSC2; 2: SZ) ; type of mesh you are using\n")
+            f.write(
+                "2 1 1000000  !nvrt (# of S-levels) (=Nz); kz (# of Z-levels); hs (transition depth between S and Z); large in this case because is 2D implementation\n"
+            )
+            f.write("Z levels   !Z-levels in the lower portion\n")
+            f.write(
+                "1 -1000000   !level index, z-coordinates !use very large value for 2D; if 3D would have a list of z-levels here\n"
+            )
+            f.write("S levels      !S-levels\n")
+            f.write(
+                "40.0 1.0 0.0001  ! constants used in S-transformation: hc, theta_b, theta_f\n"
+            )
+            f.write("1 -1.0    !first S-level (sigma-coordinate must be -1)\n")
+            f.write("2 0.0     !last sigma-coordinate must be 0\n")
+            f.write(
+                "!for 3D, would have the levels index and sigma coordinate for each level\n"
+            )
+        self._copied = dest
+        return dest
+
+
+class Vgrid3D_LSC2(GeneratorBase):
+    model_type: Literal["vgrid3D_lsc2"] = Field(
+        "LSC2_generator", description="Model descriminator"
+    )
+    hgrid: DataBlob | Path = Field(..., description="Path to hgrid.gr3 file")
+    hsm: list[float] = Field(..., description="Depth for each master grid")
+    nv: list[int] = Field(..., description="Total number of vertical levels")
+    h_c: float = Field(
+        ..., description="Transition depth between sigma and z-coordinates"
+    )
+    theta_b: float = Field(..., description="Vertical resolution near the surface")
+    theta_f: float = Field(..., description="Vertical resolution near the seabed")
+    crs: str = Field("epsg:4326", description="Coordinate reference system")
+    _vgrid = PrivateAttr(default=None)
+
+    @property
+    def vgrid(self):
+        if self._vgrid is None:
+            self._vgrid = LSC2(
+                hsm=self.hsm,
+                nv=self.nv,
+                h_c=self.h_c,
+                theta_b=self.theta_b,
+                theta_f=self.theta_f,
+            )
+            logger.info("Generating LSC2 vgrid")
+            self._vgrid.calc_m_grid()
+            self._vgrid.calc_lsc2_att(self.hgrid, crs=self.crs)
+        return self._vgrid
+
+    def generate(self, destdir: str | Path) -> Path:
+        dest = Path(destdir) / "vgrid.in"
+        self.vgrid.write(dest)
+        return dest
+
+
+class Vgrid3D_SZ(GeneratorBase):
+    model_type: Literal["vgrid3D_sz"] = Field(
+        "LSC2_generator", description="Model descriminator"
+    )
+    hgrid: DataBlob | Path = Field(..., description="Path to hgrid.gr3 file")
+    h_s: float = Field(..., description="Depth for each master grid")
+    ztot: list[int] = Field(..., description="Total number of vertical levels")
+    h_c: float = Field(
+        ..., description="Transition depth between sigma and z-coordinates"
+    )
+    theta_b: float = Field(..., description="Vertical resolution near the surface")
+    theta_f: float = Field(..., description="Vertical resolution near the seabed")
+    sigma: list[float] = Field(..., description="Sigma levels")
+    _vgrid = PrivateAttr(default=None)
+
+    @property
+    def vgrid(self):
+        if self._vgrid is None:
+            self._vgrid = SZ(
+                h_s=self.h_s,
+                ztot=self.ztot,
+                h_c=self.h_c,
+                theta_b=self.theta_b,
+                theta_f=self.theta_f,
+                sigma=self.sigma,
+            )
+            logger.info("Generating SZ grid")
+        return self._vgrid
+
+    def generate(self, destdir: str | Path) -> Path:
+        dest = Path(destdir) / "vgrid.in"
+        self.vgrid.write(dest)
+        return dest
+
+
 class VgridGenerator(GeneratorBase):
     """
     Generate vgrid.in.
     This is all hardcoded for now, may look at making this more flexible in the future.
     """
 
-    def generate(self, destdir: str | Path, name: str = None) -> Path:
+    # model_type: Literal["vgrid_generator"] = Field(
+    #     "vgrid_generator", description="Model descriminator"
+    # )
+    vgrid: Union[Vgrid2D, Vgrid3D_LSC2, Vgrid3D_SZ] = Field(
+        ...,
+        default_factory=Vgrid2D,
+        description="Type of vgrid to generate. 2d will create the minimum required for a 2d model. LSC2 will create a full vgrid for a 3d model using pyschsim's LSC2 class",
+    )
+
+    def generate(self, destdir: str | Path) -> Path:
+        dest = self.vgrid.generate(destdir=destdir)
+
+    def generate_legacy(self, destdir: str | Path) -> Path:
         dest = Path(destdir) / "vgrid.in"
         with open(dest, "w") as f:
             f.write("2 !ivcor (1: LSC2; 2: SZ) ; type of mesh you are using\n")

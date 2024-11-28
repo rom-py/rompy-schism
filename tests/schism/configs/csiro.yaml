@@ -21,8 +21,8 @@ config:
     atmos:
       air_1:
         source: 
-          uri:  ../../tests/schism/test_data/atmos.nc
-          model_type: open_dataset
+        uri:  "file://../../tests/schism/test_data/atmos.nc"
+        model_type: open_dataset
         uwind_name: u10
         vwind_name: v10
         prml_name: mslp
