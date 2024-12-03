@@ -57,6 +57,8 @@ def test_atmos(tmp_path, grid_atmos_source):
         air_1=SfluxAir(
             id="air_1",
             source=grid_atmos_source,
+            uwind_name="u10",
+            vwind_name="v10",
             filter={
                 "sort": {"coords": ["latitude"]},
                 "crop": {
