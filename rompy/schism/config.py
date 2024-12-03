@@ -4,7 +4,8 @@ from typing import Literal, Optional, Union
 
 from pydantic import Field, model_validator
 
-from rompy.core import BaseConfig, DataBlob, RompyBaseModel, Spectrum, TimeRange
+from rompy.core import (BaseConfig, DataBlob, RompyBaseModel, Spectrum,
+                        TimeRange)
 
 from .data import SCHISMData
 from .grid import SCHISMGrid
@@ -326,7 +327,7 @@ class SchismCSIROConfig(BaseConfig):
         description=" Initial condition; F for default; use T if using WW3 as i.c. etc",
     )
     param_iof_hydro1: int = Field(
-        0, description="output 0: off; 1: on - elev. [m]  {elev} 2D - Default 1"
+        1, description="output 0: off; 1: on - elev. [m]  {elev} 2D - Default 1"
     )
     param_iof_hydro2: int = Field(
         0,
