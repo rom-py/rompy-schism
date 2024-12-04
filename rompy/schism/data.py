@@ -514,6 +514,16 @@ class SCHISMDataBoundary(DataBoundary):
         if schism_ds.time_series.isnull().any():
             msg = "Some values are null. This will cause SCHISM to crash. Please check your data."
             logger.warning(msg)
+
+        # If the variable has scale_factor or add_offset attributes, remove them
+        # and set the data variable encoding to Float64
+        for var in schism_ds.data_vars:
+            if "scale_factor" in schism_ds[var].encoding:
+                del schism_ds[var].encoding["scale_factor"]
+            if "add_offset" in schism_ds[var].encoding:
+                del schism_ds[var].encoding["add_offset"]
+            schism_ds[var].encoding["dtype"] = np.dtypes.Float64DType()
+        return schism_ds
         return schism_ds
 
 
