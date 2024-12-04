@@ -1,5 +1,4 @@
 from .cosine import Cosine
-from .example import Example
 from .ice import Ice
 from .icm import Icm
 from .mice import Mice
