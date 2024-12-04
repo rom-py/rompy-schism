@@ -2,8 +2,7 @@
 
 from typing import Literal, Optional
 
-from pydantic import (BaseModel, Field, field_validator, model_validator,
-                      validator)
+from pydantic import BaseModel, Field, field_validator, model_validator, validator
 
 from rompy.schism.namelists.basemodel import NamelistBaseModel
 
@@ -650,6 +649,7 @@ class Station(NamelistBaseModel):
     cfl2: bool = Field(False, description="Output CFL number 2")
     cfl3: bool = Field(False, description="Output CFL number 3")
 
+
 class Hotfile(NamelistBaseModel):
     """Configuration for WWM hotfile input and output."""
 
@@ -740,4 +740,3 @@ class Wwminput_WW3(NamelistBaseModel):
     hotfile: Optional[Hotfile] = Field(default=None)
     petscoptions: Optional[PetscOptions] = Field(default=None)
     nesting: Optional[Nesting] = Field(default=None)
-

@@ -74,7 +74,7 @@ def compare_nmls_values(nml1, nml2, raise_missing=False):
             continue
         if isinstance(value, dict):
             # if size of dictionary is 2, extract value from 'default' key
-            if len(value) == 2 and 'default' in value:
+            if len(value) == 2 and "default" in value:
                 var = value["default"]
                 print(key, var, nml2[key])
                 if var != nml2[key]["default"]:
