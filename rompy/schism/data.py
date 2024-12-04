@@ -118,6 +118,18 @@ class SfluxSource(DataGrid):
         }
         ds.time.encoding["units"] = unit
         ds.time.encoding["calendar"] = "proleptic_gregorian"
+        # open bad dataset
+
+        # SCHISM doesn't like scale_factor and add_offset attributes and requires Float64 values
+        for var in ds.data_vars:
+            # If the variable has scale_factor or add_offset attributes, remove them
+            if "scale_factor" in ds[var].encoding:
+                del ds[var].encoding["scale_factor"]
+            if "add_offset" in ds[var].encoding:
+                del ds[var].encoding["add_offset"]
+            # set the data variable encoding to Float64
+            ds[var].encoding["dtype"] = np.dtypes.Float64DType()
+
         return ds
 
 
