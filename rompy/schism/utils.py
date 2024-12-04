@@ -1,5 +1,6 @@
 import logging
 import re
+import sys
 from pathlib import Path
 
 import cartopy.crs as ccrs
@@ -81,12 +82,14 @@ def schism_plot(
         contours = np.asarray(contours)
     if varname == "depth" or varname == "z":
         var = z
+    if varname == "wind_speed":
+        var = np.sqrt(schout.wind_speed[:, 0] ** 2 + schout.wind_speed[:, 1] ** 2)
     else:
         var = schout[varname]
 
     if len(varscale) == 0:
-        vmin = var.min()
-        vmax = var.max()
+        vmin = var.values.min()
+        vmax = var.values.max()
     else:
         vmin, vmax = varscale
     if project:
@@ -135,6 +138,8 @@ def schism_plot(
     if vectors:
         if re.search("WWM", varname):
             vtype = "waves"
+        if re.search("wind", varname):
+            vtype = "wind"
         else:
             vtype = "currents"
         LonI, LatI, UI, VI = schism_calculate_vectors(ax, schout, vtype=vtype)
@@ -210,11 +215,13 @@ def schism_calculate_vectors(ax, schout, vtype="waves", dX="auto", mask=True):
     elif vtype == "elev" or re.search("curr", vtype):
         idx = np.sqrt(schout.dahv[:, 0] ** 2 + schout.dahv[:, 1] ** 2) > 0.01
         u = schout.dahv[idx, 0]
-        v = schout.dahv[
-            idx, 1
-        ]  # dahv has u and v components, so use index of 1 for v and index of 0 for u
+        v = schout.dahv[idx, 1]
+    elif vtype == "wind":
+        idx = np.ones_like(schout.wind_speed[:, 0], dtype=bool)
+        u = schout.wind_speed[idx, 0]
+        v = schout.wind_speed[idx, 1]
     else:
-        print("*** Warning input vecter data not understood")
+        raise ValueError("*** Warning input vecter data not understood")
     x, y = pUTM55(
         schout.SCHISM_hgrid_node_x.values[idx], schout.SCHISM_hgrid_node_y.values[idx]
     )
@@ -246,26 +253,29 @@ def schism_calculate_vectors(ax, schout, vtype="waves", dX="auto", mask=True):
 
 if __name__ == "__main__":
     # load schism files
-    schfile = "../../notebooks/schism/schism_procedural/test_schism/outputs/schout_1.nc"
+    # schfile = "../../notebooks/schism/schism_procedural/test_schism/outputs/schout_1.nc"
+    # take schfile off the command line
+    schfile = sys.argv[1]
     schout, meshtri = schism_load(schfile)
     lons = schout.SCHISM_hgrid_node_y.values
     lats = schout.SCHISM_hgrid_node_x.values
     # plot gridded fields - elevation
-    for ix, time in enumerate(schout.time[5:8].values):
-        fig, ax = schism_plot(
-            schout,
-            meshtri,
-            "elev",
-            bbox=[145, -25, 155, -16],
-            project=True,
-            plotmesh=True,
-            time=time,
-            mask=False,
-            vectors=True,
-            varscale=(-9, 9),
-            contours=[0],
-        )
-        ax.tick_params(axis="both", which="major", labelsize=24)
-        plt.savefig(f"schism_plot_{ix}.png", dpi=300)
-        plt.show()
-        # plt.close()
+    for variable in ["elev", "wind_speed", "WWM_18"]:
+        # for variable in ["wind_speed"]:
+        for ix, time in enumerate(schout.time[5:8].values):
+            fig, ax = schism_plot(
+                schout,
+                meshtri,
+                variable,
+                bbox=[145, -25, 155, -16],
+                project=True,
+                plotmesh=True,
+                time=time,
+                mask=False,
+                vectors=True,
+                # varscale=(-9, 9),
+                contours=[0],
+            )
+            plt.savefig(f"schism_plot_{variable}_{ix}.png", dpi=300)
+    plt.show()
+    # plt.close()
