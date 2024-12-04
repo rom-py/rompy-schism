@@ -4,8 +4,7 @@ from typing import Literal, Optional, Union
 
 from pydantic import Field, model_validator
 
-from rompy.core import (BaseConfig, DataBlob, RompyBaseModel, Spectrum,
-                        TimeRange)
+from rompy.core import BaseConfig, DataBlob, RompyBaseModel, Spectrum, TimeRange
 
 from .data import SCHISMData
 from .grid import SCHISMGrid

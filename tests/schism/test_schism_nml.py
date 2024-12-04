@@ -4,6 +4,7 @@ from pathlib import Path
 from shutil import rmtree
 
 import pytest
+
 # pytest.importorskip("rompy.schism")
 from utils import compare_files
 

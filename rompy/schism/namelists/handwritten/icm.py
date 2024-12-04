@@ -17,15 +17,13 @@ class MARCO(RompyBaseModel):
     Ke0: float = Field(
         0.26, description="Background light extinction coefficient (1/m)"
     )
-    KeC: float = Field(
-        0.017, description="Light attenuation due to chlorophyll")
+    KeC: float = Field(0.017, description="Light attenuation due to chlorophyll")
     KeS: float = Field(0.07, description="Light attenuation due to TSS")
     KeSalt: float = Field(
         -0.02, description="Light attenuation due to CDOM (related to salinity)"
     )
     tss2c: float = Field(6.0, description="TSS to carbon ratio")
-    iLight: int = Field(
-        0, description="Options of computing light limitation factor")
+    iLight: int = Field(0, description="Options of computing light limitation factor")
     alpha: list[float] = Field(
         [8.0, 8.0, 8.0],
         description="Initial slope of P-I curve (g[C]*m2/g[Chl]/E), (iLight=0)",
@@ -136,8 +134,7 @@ class CORE(RompyBaseModel):
     CBP module parameters are included: (SRPOC,SRPON,SRPOP,PIP)
     """
 
-    GPM: list[float] = Field(
-        [2.5, 2.8, 3.5], description="PB growth rates (day-1)")
+    GPM: list[float] = Field([2.5, 2.8, 3.5], description="PB growth rates (day-1)")
     TGP: list[float] = Field(
         [15.0, 22.0, 27.0], description="optimal temp. for PB growth (oC)"
     )
@@ -207,24 +204,20 @@ class CORE(RompyBaseModel):
         description="fractions of PB metabolism carbon into (RPOC,LPOC,DOC,SRPOC); dim(PB=1:3,4)",
     )
     FNM: list[float] = Field(
-        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0,
-            1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
         description="fractions of PB metabolism N. into (RPON,LPON,DON,NH4,SRPON); dim(PB=1:3,5)",
     )
     FPM: list[float] = Field(
-        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0,
-            1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
         description="fractions of PB metabolism P. into (RPOP,LPOP,DOP,PO4,SRPOP); dim(PB=1:3,5)",
     )
     Nit: float = Field(0.07, description="maximum nitrification rate (day-1)")
-    TNit: float = Field(
-        27.0, description="optimal temp. for nitrification (oC)")
+    TNit: float = Field(27.0, description="optimal temp. for nitrification (oC)")
     KTNit: list[float] = Field(
         [0.0045, 0.0045],
         description="temp. dependence (T<=TNit & T>TNit) for nitrification (oC-2)",
     )
-    KhDOn: float = Field(
-        1.0, description="DO half saturation for nitrification (mg/L)")
+    KhDOn: float = Field(1.0, description="DO half saturation for nitrification (mg/L)")
     KhDOox: float = Field(
         0.5,
         description="DO half saturation for dentrification & DOC's oxic respiration (mg/L)",
@@ -272,10 +265,8 @@ class CORE(RompyBaseModel):
         description="temp. dependence for (SRPOC,SRPON,SRPOP) decay (oC-1)",
     )
     KPIP: float = Field(0.0, description="dissolution rate of PIP (day-1)")
-    KCD: float = Field(
-        1.0, description="oxidation rate of COD at TRCOD (day-1)")
-    TRCOD: float = Field(
-        20.0, description="reference temp. for COD oxidation (oC)")
+    KCD: float = Field(1.0, description="oxidation rate of COD at TRCOD (day-1)")
+    TRCOD: float = Field(20.0, description="reference temp. for COD oxidation (oC)")
     KTRCOD: float = Field(
         0.041, description="temp. dependence for COD oxidation (oC-1)"
     )
@@ -307,10 +298,8 @@ class SFM(RompyBaseModel):
     bCH40: float = Field(40.0, description="CH4")
     bPOS0: float = Field(500.0, description="POS")
     bSA0: float = Field(500.0, description="SA")
-    bPOC0: list[float] = Field(
-        [1000.0, 3000.0, 5000.0], description="POC (G=1:3)")
-    bPON0: list[float] = Field(
-        [150.0, 500.0, 1500.0], description="PON (G=1:3)")
+    bPOC0: list[float] = Field([1000.0, 3000.0, 5000.0], description="POC (G=1:3)")
+    bPON0: list[float] = Field([150.0, 500.0, 1500.0], description="PON (G=1:3)")
     bPOP0: list[float] = Field([30.0, 300.0, 500.0], description="POP (G=1:3)")
     bdz: float = Field(0.1, description="Sediment thickness (m)")
     bVb: float = Field(
@@ -329,13 +318,11 @@ class SFM(RompyBaseModel):
     bVp: float = Field(
         1.2e-4, description="Particle mixing velocity coefficient (m.day-1)"
     )
-    bVd: float = Field(
-        1.0e-3, description="Diffusion velocity coefficient (m.day-1)")
+    bVd: float = Field(1.0e-3, description="Diffusion velocity coefficient (m.day-1)")
     bKTVp: float = Field(
         1.117, description="Temp. dependence of particle mixing velocity"
     )
-    bKTVd: float = Field(
-        1.08, description="Temp. dependence of diffusion velocity")
+    bKTVd: float = Field(1.08, description="Temp. dependence of diffusion velocity")
     bKST: float = Field(
         0.03, description="1st order decay rate of benthic stress (day-1)"
     )
@@ -346,8 +333,7 @@ class SFM(RompyBaseModel):
     bKhDO_Vp: float = Field(
         4.0, description="DO half-saturation of particle mixing (mg/L)"
     )
-    bDOc_ST: float = Field(
-        1.0, description="DO criteria for benthic stress (mg/L)")
+    bDOc_ST: float = Field(1.0, description="DO criteria for benthic stress (mg/L)")
     banoxic: float = Field(
         10.0,
         description="Consecutive days of hypoxia causing maximum benthic stress (day)",
@@ -390,12 +376,9 @@ class Silica(RompyBaseModel):
     FSM: list[float] = Field(
         [0.50, 0.50], description="Fractions of diatom metabolism Si into (SU,SA)"
     )
-    KS: float = Field(
-        0.03, description="Dissolution rate of SU at TRS (day-1)")
-    TRS: float = Field(
-        20.0, description="Reference temp. for SU dissolution (oC)")
-    KTRS: float = Field(
-        0.092, description="Temp. dependence for SU dissolution (oC-1)")
+    KS: float = Field(0.03, description="Dissolution rate of SU at TRS (day-1)")
+    TRS: float = Field(20.0, description="Reference temp. for SU dissolution (oC)")
+    KTRS: float = Field(0.092, description="Temp. dependence for SU dissolution (oC-1)")
     KhS: list[float] = Field(
         [0.05, 0.0, 0.0],
         description="Silica half saturation (mg/L); (0.0: no Si limitation)",
@@ -464,14 +447,10 @@ class ZB(RompyBaseModel):
         [0.0035, 0.008, 0.025, 0.030],
         description="temp. dependence for ZB growth (T<=zTGP & T>zTGP); dim(ZB=1:2,1:2) (oC-2)",
     )
-    zAG: float = Field(
-        0.75, description="ZB assimilation efficiency ratio (0-1)")
-    zRG: float = Field(
-        0.1, description="ZB respiration ratio when it grazes (0-1)")
-    zMRT: list[float] = Field(
-        [0.02, 0.02], description="ZB mortality rates (day-1)")
-    zMTB: list[float] = Field(
-        [0.254, 0.186], description="ZB metabolism rates (day-1)")
+    zAG: float = Field(0.75, description="ZB assimilation efficiency ratio (0-1)")
+    zRG: float = Field(0.1, description="ZB respiration ratio when it grazes (0-1)")
+    zMRT: list[float] = Field([0.02, 0.02], description="ZB mortality rates (day-1)")
+    zMTB: list[float] = Field([0.254, 0.186], description="ZB metabolism rates (day-1)")
     zTMT: list[float] = Field(
         [20.0, 20.0], description="reference temp. for ZB metabolism (oC)"
     )
@@ -538,8 +517,7 @@ class PH_ICM(RompyBaseModel):
     ppatch0: int = Field(
         -999, description="Region flag for pH (1: ON all elem.; -999: spatial)"
     )
-    pKCACO3: float = Field(
-        60.0, description="Dissolution between CaCO3 and Ca++")
+    pKCACO3: float = Field(60.0, description="Dissolution between CaCO3 and Ca++")
     pKCA: float = Field(
         60.0, description="Sediment surface transfer coefficient from CaCO3 to Ca++"
     )
@@ -555,12 +533,9 @@ class SAV(RompyBaseModel):
     spatch0: int = Field(
         -999, description="Region flag for SAV. (1: ON all elem.; -999: spatial)"
     )
-    stleaf0: int = Field(-999,
-                         description="Initial concentration of total SAV leaf")
-    ststem0: int = Field(-999,
-                         description="Initial concentration of total SAV stem")
-    stroot0: int = Field(-999,
-                         description="Initial concentration of total SAV root")
+    stleaf0: int = Field(-999, description="Initial concentration of total SAV leaf")
+    ststem0: int = Field(-999, description="Initial concentration of total SAV stem")
+    stroot0: int = Field(-999, description="Initial concentration of total SAV root")
     sGPM: float = Field(0.1, description="Maximum growth rate (day-1)")
     sTGP: int = Field(32, description="Optimal growth temperature (oC)")
     sKTGP: str = Field(
@@ -596,21 +571,17 @@ class SAV(RompyBaseModel):
         "0.05   0.1    0.35  0.5",
         description="Fractions of metabolism P into (RPOP,LPOP,DOP,PO4)",
     )
-    sKhNw: float = Field(
-        0.01, description="Nitrogen half saturation in water column")
-    sKhNs: float = Field(
-        0.1, description="Nitrogen half saturation in sediments")
+    sKhNw: float = Field(0.01, description="Nitrogen half saturation in water column")
+    sKhNs: float = Field(0.1, description="Nitrogen half saturation in sediments")
     sKhNH4: float = Field(0.1, description="Ammonium half saturation")
     sKhPw: float = Field(
         0.001, description="Phosphorus half saturation in water column"
     )
-    sKhPs: float = Field(
-        0.01, description="Phosphorus half saturation in sediments")
+    sKhPs: float = Field(0.01, description="Phosphorus half saturation in sediments")
     salpha: float = Field(
         0.006, description="Initial slope of P-I curve (g[C]*m2/g[Chl]/E)"
     )
-    sKe: float = Field(
-        0.045, description="Light attenuation due to SAV absorption")
+    sKe: float = Field(0.045, description="Light attenuation due to SAV absorption")
     shtm: str = Field(
         "0.054  2.0", description="Minimum (base) and maximum canopy height"
     )
@@ -691,18 +662,15 @@ class VEG(RompyBaseModel):
         [0.05, 0.05, 0.05, 0.15, 0.15, 0.15, 0.3, 0.3, 0.3, 0.5, 0.5, 0.5],
         description="Fractions(3,4) of metabolism N into (RPOC,LPOC,DOC,CO2)",
     )
-    ivNc: int = Field(
-        1, description="Recycled veg N goes to (0: sediment; 1: water)")
-    ivPc: int = Field(
-        1, description="Recycled veg P goes to (0: sediment; 1: water)")
+    ivNc: int = Field(1, description="Recycled veg N goes to (0: sediment; 1: water)")
+    ivPc: int = Field(1, description="Recycled veg P goes to (0: sediment; 1: water)")
     vKhNs: list[float] = Field(
         [0.1, 0.1, 0.1], description="Nitrogen half saturation in sediments"
     )
     vKhPs: list[float] = Field(
         [0.01, 0.01, 0.01], description="Phosphorus half saturation in sediments"
     )
-    vScr: float = Field(
-        35.0, description="Reference sality for computing veg growth")
+    vScr: float = Field(35.0, description="Reference sality for computing veg growth")
     vSopt: list[float] = Field(
         [35.0, 15.0, 0.0], description="Optimal salinity for veg growth"
     )
@@ -710,10 +678,8 @@ class VEG(RompyBaseModel):
         [1.0, 1.0, 1.0],
         description="Reference value for inundation stress (nondimensional)",
     )
-    ivNs: int = Field(
-        1, description="N limitation on veg growth(0: OFF; 1: ON)")
-    ivPs: int = Field(
-        1, description="P limitation on veg growth(0: OFF; 1: ON)")
+    ivNs: int = Field(1, description="N limitation on veg growth(0: OFF; 1: ON)")
+    ivPs: int = Field(1, description="P limitation on veg growth(0: OFF; 1: ON)")
     ivMRT: int = Field(0, description="Veg mortality term (0: OFF;  1: ON)")
     vTMR: list[float] = Field(
         [17.0, 17.0, 17.0, 17.0, 17.0, 17.0],
@@ -750,16 +716,14 @@ class VEG(RompyBaseModel):
     vc2dw: list[float] = Field(
         [0.38, 0.38, 0.38], description="Carbon to dry weight ratio of VEG"
     )
-    v2den: list[int] = Field(
-        [10, 10, 10], description="Coeff. computing veg density")
+    v2den: list[int] = Field([10, 10, 10], description="Coeff. computing veg density")
     vp2c: list[float] = Field(
         [0.01, 0.01, 0.01], description="Phosphorus to carbon ratio"
     )
     vn2c: list[float] = Field(
         [0.09, 0.09, 0.09], description="Nitrogen to carbon ratio"
     )
-    vo2c: list[float] = Field(
-        [2.67, 2.67, 2.67], description="Oxygen to carbon ratio")
+    vo2c: list[float] = Field([2.67, 2.67, 2.67], description="Oxygen to carbon ratio")
 
 
 class BAG(RompyBaseModel):
@@ -776,18 +740,14 @@ class BAG(RompyBaseModel):
     gKTGP: str = Field(
         "0.004  0.006", description="Temp. dependence for BA growth (oC-2)"
     )
-    gMTB: float = Field(
-        0.05, description="Respiration rate at temp. of gTR (day-1)")
-    gPRR: float = Field(
-        0.1, description="Predation rate at temp. of gTR (day-1)")
+    gMTB: float = Field(0.05, description="Respiration rate at temp. of gTR (day-1)")
+    gPRR: float = Field(0.1, description="Predation rate at temp. of gTR (day-1)")
     gTR: float = Field(
         20.0, description="Reference temperature for BA respiration (oC)"
     )
-    gKTR: float = Field(
-        0.069, description="Temp. dependence for BA respiration (oC-1)")
+    gKTR: float = Field(0.069, description="Temp. dependence for BA respiration (oC-1)")
     galpha: float = Field(0.1, description="Init. slope of P-I curve (m2/E)")
-    gKSED: float = Field(
-        0.0, description="Light attenuation due to sediment (None)")
+    gKSED: float = Field(0.0, description="Light attenuation due to sediment (None)")
     gKBA: float = Field(
         0.01, description="Light attenuation coef. due to BA self-shading (g[C]-1.m2)"
     )
@@ -819,8 +779,7 @@ class ERO(RompyBaseModel):
     Benthic erosion parameter
     """
 
-    ierosion: int = Field(
-        0, description="1: H2S flux; 2: POC flux; 3: H2S&POC flux")
+    ierosion: int = Field(0, description="1: H2S flux; 2: POC flux; 3: H2S&POC flux")
     erosion: int = Field(864, description="erosion rate (kg.m-2.day)")
     etau: float = Field(1e-6, description="critical bottom shear stress (Pa)")
     eporo: float = Field(

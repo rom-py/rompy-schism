@@ -28,8 +28,7 @@ class CORE(RompyBaseModel):
         default=36,
     )
     mdc2: int = Field(description="same as mdc in .nml", default=36)
-    ntracer_gen: int = Field(
-        description="user defined module (USE_GEN)", default=2)
+    ntracer_gen: int = Field(description="user defined module (USE_GEN)", default=2)
     ntracer_age: int = Field(
         description="age calculation (USE_AGE). Must be =2*N where N is # of age tracers",
         default=4,
@@ -67,12 +66,10 @@ class OPT(RompyBaseModel):
     ieos_pres: int = Field(
         0, description="Used only if ieos_type=0. 0: without pressure effects"
     )
-    eos_a: float = Field(-0.1,
-                         description="Needed if ieos_type=1; should be <=0")
+    eos_a: float = Field(-0.1, description="Needed if ieos_type=1; should be <=0")
     eos_b: float = Field(1001.0, description="Needed if ieos_type=1")
     nramp: int = Field(1, description="Ramp-up option (1: on; 0: off)")
-    dramp: float = Field(
-        1.0, description="Needed if nramp=1; ramp-up period in days")
+    dramp: float = Field(1.0, description="Needed if nramp=1; ramp-up period in days")
     nrampbc: int = Field(0, description="Ramp-up flag for baroclinic force")
     drampbc: float = Field(1.0, description="Not used if nrampbc=0")
     iupwind_mom: int = Field(
@@ -103,8 +100,7 @@ class OPT(RompyBaseModel):
         1,
         description="needed if ishapiro/=0 - # of iterations with Shapiro filter. Suggested: 1",
     )
-    thetai: float = Field(
-        0.8, description="Implicitness factor (0.5<thetai<=1).")
+    thetai: float = Field(0.8, description="Implicitness factor (0.5<thetai<=1).")
     icou_elfe_wwm: int = Field(
         1,
         description="If WWM is used, set coupling/decoupling flag. Not used if USE_WWM is distabled in Makefile. 0: decoupled so 2 models will run independently; 1: full coupled (elevation, vel, and wind are all passed to WWM); 2: elevation and currents in wwm, no wave force in SCHISM; 3: no elevation and no currents in wwm, wave force in SCHISM; 4: elevation but no currents in wwm, wave force in SCHISM; 5: elevation but no currents in wwm, no wave force in SCHISM; 6: no elevation but currents in wwm, wave force in SCHISM; 7: no elevation but currents in wwm, no wave force in SCHISM; Note that all these parameters must be present in this file (even though not used).",
@@ -161,8 +157,7 @@ class OPT(RompyBaseModel):
     hw_depth: float = Field(1.0e6, description="threshold depth in [m]")
     hw_ratio: float = Field(0.5, description="ratio")
     ihydraulics: int = Field(0, description="hydraulic model option")
-    if_source: int = Field(
-        0, description="point sources/sinks option (0: no; 1: on)")
+    if_source: int = Field(0, description="point sources/sinks option (0: no; 1: on)")
     nramp_ss: int = Field(
         1, description="needed if if_source=1; ramp-up flag for source/sinks"
     )
@@ -183,8 +178,7 @@ class OPT(RompyBaseModel):
     ic_elev: int = Field(
         0, description="elevation initial condition flag for cold start only"
     )
-    nramp_elev: int = Field(
-        1, description="elevation boundary condition ramp-up flag")
+    nramp_elev: int = Field(1, description="elevation boundary condition ramp-up flag")
     inv_atm_bnd: int = Field(
         1, description="optional inverse barometric effects on the elev. b.c."
     )
@@ -269,8 +263,7 @@ class OPT(RompyBaseModel):
         3,
         description="Transport method. If itr_met=1, upwind method is used. If itr_met>=2, TVD or WENO method is used on an element/prism if the total depth (at all nodes of the elem.)>=h_tvd and the flag in tvd.prop = 1 for the elem. (tvd.prop is required in this case); otherwise upwind is used for efficiency. itr_met=3 (horizontal TVD) or 4 (horizontal WENO): implicit TVD in the vertical dimension. Also if itr_met==3 and h_tvd>=1.e5, some parts of the code are bypassed for efficiency. Controls for WENO are not yet in place.",
     )
-    h_tvd: float = Field(
-        5.0, description="Used only if itr_met>=2; cut-off depth (m)")
+    h_tvd: float = Field(5.0, description="Used only if itr_met>=2; cut-off depth (m)")
     eps1_tvd_imp: float = Field(
         1.0e-4,
         description="Suggested value is 1.e-4, but for large suspended load, need to use a smaller value (e.g. 1.e-9)",
@@ -288,8 +281,7 @@ class OPT(RompyBaseModel):
         2,
         description="Order of accuracy: 0- upwind; 1- linear polynomial, 2nd order; 2- quadratic polynomial, 3rd order",
     )
-    courant_weno: float = Field(
-        0.5, description="Courant number for weno transport")
+    courant_weno: float = Field(0.5, description="Courant number for weno transport")
     nquad: int = Field(
         2, description="Number of quad points on each side, nquad= 1 or 2"
     )
@@ -316,8 +308,7 @@ class OPT(RompyBaseModel):
         0,
         description="Ielad, if ielad=1, use ELAD method to suppress dispersion (inactive at the moment)",
     )
-    small_elad: float = Field(
-        1.0e-4, description="Small (inactive at the moment)")
+    small_elad: float = Field(1.0e-4, description="Small (inactive at the moment)")
     nws: int = Field(
         2,
         description="Atmos. option. nws=3 is reserved for coupling with atmospheric model. If nws=0, no atmos. forcing is applied. If nws=1, atmos. variables are read in from wind.th. If nws=2, atmos. variables are read in from sflux_ files. If nws=4, ascii format is used for wind and atmos. pressure at each node (see source code). If nws>0, 'iwindoff' can be used to scale wind speed (with windfactor.gr3).",
@@ -355,8 +346,7 @@ class OPT(RompyBaseModel):
         0,
         description="Sponge layer for elevation and vel. If inu_elev=0, no relaxation is applied to elev. If inu_elev=1, relax. constants are specified in elev_nudge.gr3 and applied to eta=0 (thus a depth=0 means no relaxation).",
     )
-    inu_uv: int = Field(
-        0, description="Similarly for inu_uv (with input uv_nudge.gr3)")
+    inu_uv: int = Field(0, description="Similarly for inu_uv (with input uv_nudge.gr3)")
     inu_tr: list = Field(
         default=[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         description="Nudging options for tracers",
@@ -399,16 +389,14 @@ class OPT(RompyBaseModel):
         default=120.0, description="Marsh model parameters (only if USE_MARSH is on)"
     )
     isav: int = Field(0, description="on/off flag")
-    sav_cd: float = Field(
-        1.13, description="only needed if isav=1. Drag coefficient")
+    sav_cd: float = Field(1.13, description="only needed if isav=1. Drag coefficient")
     nstep_ice: int = Field(
         1, description="call ice module every nstep_ice steps of SCHISM"
     )
     level_age: int = Field(-999, description="default: -999 (all levels)")
     rearth_pole: float = Field(6378206.4, description="Earth's radii at pole")
     rearth_eq: float = Field(6378206.4, description="Earth's radii at equator")
-    shw: float = Field(
-        4184.0, description="Specific heat of water (C_p) in J/kg/K")
+    shw: float = Field(4184.0, description="Specific heat of water (C_p) in J/kg/K")
     rho0: float = Field(
         1000.0, description="Reference water density for Boussinesq approximation"
     )

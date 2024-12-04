@@ -6,8 +6,7 @@ from rompy.core.types import RompyBaseModel
 class ICE_IN(RompyBaseModel):
     ice_tests: int = Field(default=0, description="box test flag")
     ice_advection: int = Field(default=1, description="advection on/off")
-    ice_therm_on: int = Field(
-        default=1, description="ice thermodynamics on/off flag")
+    ice_therm_on: int = Field(default=1, description="ice thermodynamics on/off flag")
     ievp: int = Field(default=2, description="1: EVP; 2: mEVP")
     ice_cutoff: float = Field(
         default=1.0e-3,
@@ -49,8 +48,7 @@ class ICE_IN(RompyBaseModel):
     pstar: float = Field(default=15000.0, description="[N/m^2]")
     ellipse: float = Field(default=2.0, description="ellipticity")
     c_pressure: float = Field(default=20.0, description="C [-]")
-    ncyc_fct: int = Field(
-        default=1, description="# of subcycling in transport")
+    ncyc_fct: int = Field(default=1, description="# of subcycling in transport")
     niter_fct: int = Field(
         default=3, description="# of iterartions in higher-order solve"
     )
@@ -60,10 +58,8 @@ class ICE_IN(RompyBaseModel):
     depth_ice_fct: float = Field(
         default=5.0, description="cut off depth (m) for non-FCT"
     )
-    h_ml0: float = Field(
-        default=0.1, description="ocean mixed layer depth [m]")
-    salt_ice: float = Field(
-        default=5.0, description="salinity for ice [PSU] (>=0)")
+    h_ml0: float = Field(default=0.1, description="ocean mixed layer depth [m]")
+    salt_ice: float = Field(default=5.0, description="salinity for ice [PSU] (>=0)")
     salt_water: float = Field(
         default=34.0, description="salinity for water [PSU] (>=0)"
     )
