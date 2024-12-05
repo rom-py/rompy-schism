@@ -84,6 +84,8 @@ def schism_plot(
         var = z
     if varname == "wind_speed":
         var = np.sqrt(schout.wind_speed[:, 0] ** 2 + schout.wind_speed[:, 1] ** 2)
+    if varname == "dahv":
+        var = np.sqrt(schout.dahv[:, 0] ** 2 + schout.dahv[:, 1] ** 2)
     else:
         var = schout[varname]
 
@@ -260,9 +262,9 @@ if __name__ == "__main__":
     lons = schout.SCHISM_hgrid_node_y.values
     lats = schout.SCHISM_hgrid_node_x.values
     # plot gridded fields - elevation
-    for variable in ["elev", "wind_speed", "WWM_18"]:
-        # for variable in ["wind_speed"]:
-        for ix, time in enumerate(schout.time[5:8].values):
+    # for variable in ["elev", "wind_speed", "WWM_1"]:
+    for variable in ["dahv"]:
+        for ix, time in enumerate(schout.time.values):
             fig, ax = schism_plot(
                 schout,
                 meshtri,
@@ -277,5 +279,5 @@ if __name__ == "__main__":
                 contours=[0],
             )
             plt.savefig(f"schism_plot_{variable}_{ix}.png", dpi=300)
-    plt.show()
+    # plt.show()
     # plt.close()
