@@ -524,7 +524,6 @@ class SCHISMDataBoundary(DataBoundary):
                 del schism_ds[var].encoding["add_offset"]
             schism_ds[var].encoding["dtype"] = np.dtypes.Float64DType()
         return schism_ds
-        return schism_ds
 
 
 def fill_tails(arr):
