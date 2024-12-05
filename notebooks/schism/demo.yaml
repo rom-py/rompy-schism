@@ -8,13 +8,19 @@ config:
   model_type: schismcsiro
   mesbf: 1
   fricc: 0.067
+  param_iof_hydro1: 1 # elevation
+  param_iof_hydro14: 1 # wind speed
+  param_iof_hydro16: 1 # surface velocities
+  wwm18: 1 # peak wave direction
+  wwm1: 1 # significant wave height
+  wwm9: 1 # peak period
   grid:
     grid_type: schism
     hgrid:
       id: hgrid
       model_type: data_blob
-      source: ../../tests/schism/test_data/hgrid.gr3
-        # source: ../../tests/schism/test_data/hgrid_20kmto60km_rompyschism_testing.gr3
+        # source: ../../tests/schism/test_data/hgrid.gr3
+      source: ../../tests/schism/test_data/hgrid_20kmto60km_rompyschism_testing.gr3
     manning: 1
   data:
     data_type: schism
@@ -22,9 +28,8 @@ config:
       air_1:
         data_type: sflux_air
         source: 
-          model_type: source_file
+          model_type: file
           uri: "../../tests/schism/test_data/atmos.nc"
-          model_type: open_dataset
         uwind_name: u10
         vwind_name: v10
         prmsl_name: mslp
@@ -41,7 +46,7 @@ config:
           z: depth
         source: 
           uri:  ../../tests/schism/test_data/hycom.nc
-          model_type: open_dataset
+          model_type: file
         variable: surf_el
     tides:
       constituents:
