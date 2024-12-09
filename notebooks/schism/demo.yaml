@@ -3,12 +3,13 @@ period:
   start: 20230101T00
   end: 20230101T12
   interval: 3600
-run_id: test_schism
+run_id: test_schismcsiro
 config:
   model_type: schismcsiro
   mesbf: 1
   fricc: 0.067
   param_iof_hydro1: 1 # elevation
+  param_iof_hydro2: 1 # mslp
   param_iof_hydro14: 1 # wind speed
   param_iof_hydro16: 1 # surface velocities
   wwm18: 1 # peak wave direction
@@ -19,7 +20,7 @@ config:
     hgrid:
       id: hgrid
       model_type: data_blob
-        # source: ../../tests/schism/test_data/hgrid.gr3
+       #source: ../../tests/schism/test_data/hgrid.gr3
       source: ../../tests/schism/test_data/hgrid_20kmto60km_rompyschism_testing.gr3
     manning: 1
   data:
@@ -29,10 +30,10 @@ config:
         data_type: sflux_air
         source: 
           model_type: file
-          uri: "../../tests/schism/test_data/atmos.nc"
+          uri: "../../tests/schism/test_data/era5.nc"
         uwind_name: u10
         vwind_name: v10
-        prmsl_name: mslp
+        prmsl_name: msl
         filter:
           sort: {coords: [latitude]}
         buffer: 5
