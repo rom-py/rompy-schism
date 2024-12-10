@@ -82,9 +82,9 @@ def schism_plot(
         contours = np.asarray(contours)
     if varname == "depth" or varname == "z":
         var = z
-    if varname == "wind_speed":
+    elif varname == "wind_speed":
         var = np.sqrt(schout.wind_speed[:, 0] ** 2 + schout.wind_speed[:, 1] ** 2)
-    if varname == "dahv":
+    elif varname == "dahv":
         var = np.sqrt(schout.dahv[:, 0] ** 2 + schout.dahv[:, 1] ** 2)
     else:
         var = schout[varname]
@@ -215,7 +215,7 @@ def schism_calculate_vectors(ax, schout, vtype="waves", dX="auto", mask=True):
         hs = np.ones(dp.shape)
         [u, v] = pol2cart2(hs, np.mod(dp + 180, 360))
     elif vtype == "elev" or re.search("curr", vtype):
-        idx = np.sqrt(schout.dahv[:, 0] ** 2 + schout.dahv[:, 1] ** 2) > 0.01
+        idx = np.sqrt(schout.dahv[:, 0] ** 2 + schout.dahv[:, 1] ** 2) > 0.0
         u = schout.dahv[idx, 0]
         v = schout.dahv[idx, 1]
     elif vtype == "wind":
@@ -262,8 +262,8 @@ if __name__ == "__main__":
     lons = schout.SCHISM_hgrid_node_y.values
     lats = schout.SCHISM_hgrid_node_x.values
     # plot gridded fields - elevation
-    # for variable in ["elev", "wind_speed", "WWM_1"]:
-    for variable in ["dahv"]:
+    for variable in ["elev", "wind_speed", "WWM_1", "dahv", "air_pressure"]:
+        # for variable in ["air_pressure"]:
         for ix, time in enumerate(schout.time.values):
             fig, ax = schism_plot(
                 schout,
@@ -278,6 +278,9 @@ if __name__ == "__main__":
                 # varscale=(-9, 9),
                 contours=[0],
             )
-            plt.savefig(f"schism_plot_{variable}_{ix}.png", dpi=300)
+            plt.tight_layout()
+            plt.savefig(
+                f"schism_plot_{variable}_{ix}.png", dpi=300, bbox_inches="tight"
+            )
     # plt.show()
     # plt.close()
