@@ -118,6 +118,18 @@ class SfluxSource(DataGrid):
         }
         ds.time.encoding["units"] = unit
         ds.time.encoding["calendar"] = "proleptic_gregorian"
+        # open bad dataset
+
+        # SCHISM doesn't like scale_factor and add_offset attributes and requires Float64 values
+        for var in ds.data_vars:
+            # If the variable has scale_factor or add_offset attributes, remove them
+            if "scale_factor" in ds[var].encoding:
+                del ds[var].encoding["scale_factor"]
+            if "add_offset" in ds[var].encoding:
+                del ds[var].encoding["add_offset"]
+            # set the data variable encoding to Float64
+            ds[var].encoding["dtype"] = np.dtypes.Float64DType()
+
         return ds
 
 
@@ -288,6 +300,15 @@ class SCHISMDataSflux(RompyBaseModel):
                     f"Relative weights for {variable} do not add to 1.0: {weight}"
                 )
             return v
+        # SCHISM doesn't like scale_factor and add_offset attributes and requires Float64 values
+        for var in ds.data_vars:
+            # If the variable has scale_factor or add_offset attributes, remove them
+            if "scale_factor" in ds[var].encoding:
+                del ds[var].encoding["scale_factor"]
+            if "add_offset" in ds[var].encoding:
+                del ds[var].encoding["add_offset"]
+            # set the data variable encoding to Float64
+            ds[var].encoding["dtype"] = np.dtypes.Float64DType()
 
 
 class SCHISMDataWave(BoundaryWaveStation):
@@ -340,6 +361,20 @@ class SCHISMDataWave(BoundaryWaveStation):
         outfile = Path(destdir) / f"{self.id}.nc"
         ds.spec.to_ww3(outfile)
         return outfile
+
+    @property
+    def ds(self):
+        """Return the filtered xarray dataset instance."""
+        ds = super().ds
+        for var in ds.data_vars:
+            # If the variable has scale_factor or add_offset attributes, remove them
+            if "scale_factor" in ds[var].encoding:
+                del ds[var].encoding["scale_factor"]
+            if "add_offset" in ds[var].encoding:
+                del ds[var].encoding["add_offset"]
+            # set the data variable encoding to Float64
+            ds[var].encoding["dtype"] = np.dtypes.Float64DType()
+        return ds
 
     def __str__(self):
         return f"SCHISMDataWave"
@@ -479,6 +514,15 @@ class SCHISMDataBoundary(DataBoundary):
         if schism_ds.time_series.isnull().any():
             msg = "Some values are null. This will cause SCHISM to crash. Please check your data."
             logger.warning(msg)
+
+        # If the variable has scale_factor or add_offset attributes, remove them
+        # and set the data variable encoding to Float64
+        for var in schism_ds.data_vars:
+            if "scale_factor" in schism_ds[var].encoding:
+                del schism_ds[var].encoding["scale_factor"]
+            if "add_offset" in schism_ds[var].encoding:
+                del schism_ds[var].encoding["add_offset"]
+            schism_ds[var].encoding["dtype"] = np.dtypes.Float64DType()
         return schism_ds
 
 
