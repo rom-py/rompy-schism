@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import List, Optional
 
 from pydantic import Field, field_validator, model_validator
+
 from rompy.schism.namelists.basemodel import NamelistBaseModel
 
 
@@ -19,7 +20,7 @@ class Core(NamelistBaseModel):
     ibtp: Optional[int] = Field(
         1, description="Barotropic option flag. Only used when ibc is not 0."
     )
-    rnday: Optional[int] = Field(30, description="Total run time in days.")
+    rnday: Optional[float] = Field(30, description="Total run time in days.")
     dt: Optional[float] = Field(100.0, description="Time step in seconds.")
     msc2: Optional[int] = Field(
         24,
