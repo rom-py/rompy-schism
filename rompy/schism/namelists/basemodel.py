@@ -68,17 +68,25 @@ class NamelistBaseModel(RompyBaseModel):
                 ret += [f"&{section}"]
                 for variable, value in values.items():
                     if value is not None:
-                        for ii in sorted(range(13), reverse=True):
+                        for ii in sorted(range(40), reverse=True):
                             variable = variable.replace(f"__{ii}", f"({ii})")
                         if isinstance(value, list):
-                            value = ", ".join([str(item) for item in value])
-                        if isinstance(value, bool):
-                            value = self.boolean_to_string(value)
-                        if isinstance(value, str):
-                            value = f"{value}"
+                            value = ", ".join(
+                                [str(item) for item in self.process_value(value)]
+                            )
+                        else:
+                            value = self.process_value(value)
                         ret += [f"{variable} = {value}"]
                 ret += ["/"]
         return "\n".join(ret)
+
+    def process_value(self, value: Any) -> Any:
+        """Process the value before rendering"""
+        if isinstance(value, bool):
+            value = self.boolean_to_string(value)
+        elif isinstance(value, str):
+            value = f"'{value}'"
+        return value
 
     def boolean_to_string(self, value: bool) -> str:
         return "T" if value else "F"
