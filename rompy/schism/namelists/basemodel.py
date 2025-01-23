@@ -68,7 +68,7 @@ class NamelistBaseModel(RompyBaseModel):
                 ret += [f"&{section}"]
                 for variable, value in values.items():
                     if value is not None:
-                        for ii in range(13):
+                        for ii in sorted(range(13), reverse=True):
                             variable = variable.replace(f"__{ii}", f"({ii})")
                         if isinstance(value, list):
                             value = ", ".join([str(item) for item in value])
