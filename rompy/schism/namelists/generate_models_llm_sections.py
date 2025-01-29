@@ -20,7 +20,7 @@ class ClaudeClient:
         prompt = f"""
         Analyze the following namelist section content from {section_name} and provide:
         1. Improved descriptions for each variable, noting that relevant information may not all be inline with that particular variable.
-        2. Pydantic validators for each variable (use the new @field_validator and @classmethod decorators).  
+        2. Pydantic validators for each variable (use the new @field_validator and @classmethod decorators).  You should use the info.data argument in Pydantic v2, which provides access to other fields of the model if a field validator needs access to other variables
         3. Any cross-variable validators that might be necessary (use the @model_validator decorator). If model='after', validator should take and receive self and value should be accessed via attributes not keys
         4. All validations should use pydantic v2 syntax. Examples below:
         5. Variable names should be all lower case
@@ -192,8 +192,7 @@ def generate_pydantic_model(
                         file.write("    " + line + "\n")
                     file.write("\n")
 
-        for variable_name, variable_data in analysis.items():
-            cross_validators = variable_data.get("cross_validators", [])
+            cross_validators = analysis.get("cross_validators", [])
             for i, validator_desc in enumerate(cross_validators):
                 file.write("\n")
                 for line in validator_desc.split("\n"):
@@ -223,6 +222,8 @@ def nml_to_models(file_in: str, file_out: str):
         claude_analysis = {}
         for section_name, section_content in nml_dict.items():
             if section_name not in {"description", "full_content"}:
+                print(f"Analyzing {section_name}")
+                print(section_content)
                 analysis = claude_client.analyze_namelist_section(
                     section_content, section_name
                 )
@@ -289,18 +290,19 @@ def nml_to_dict(file_in: str):
 
 def main():
     exclude_files = [
-        # "mice.nml",
-        # "ice.nml",
-        # "icm.nml",
-        # "example.nml",
-        # "cosine.nml",
-        # # "param.nml",
-        # "sediment.nml",
+        "mice.nml",
+        "ice.nml",
+        "icm.nml",
+        "example.nml",
+        "cosine.nml",
+        "param.nml",
+        "sediment.nml",
         # "wwminput.nml",
         "wwminput.nml.spectra",
         "wwminput.nml.WW3",
         "icm_reduced.nml",
         "wwminput_reduced.nml.WW3",
+        "wwminput_v511_nessa.nml",
     ]
     with open("__init__.py", "w") as f:
         for file in os.listdir("sample_inputs"):
