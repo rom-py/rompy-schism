@@ -76,6 +76,14 @@ class NML(NamelistBaseModel):
                             "begtc": period.start.strftime(date_format),
                             "endtc": period.end.strftime(date_format),
                         },
+                        "history": {
+                            "begtc": period.start.strftime(date_format),
+                            "endtc": period.end.strftime(date_format),
+                        },
+                        "bouc": {
+                            "begtc": period.start.strftime(date_format),
+                            "endtc": period.end.strftime(date_format),
+                        },
                         "station": {
                             "begtc": period.start.strftime(date_format),
                             "endtc": period.end.strftime(date_format),
