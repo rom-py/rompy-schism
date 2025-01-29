@@ -442,7 +442,7 @@
  NOUTS   = 'BatemansBay','Brisbane','ByronBay','Cairns','CoffsHbr','CrowdyHead','Eden','HayPt','Mackay','PortKembla','Tsv','Mandurah'
  XOUTS  =   150.31972,153.63166,153.745,145.715167,153.27722,152.85333,150.15833,149.31025,149.5467,151.01667,147.059333,115.572227 
  YOUTS   =   -35.75528,-27.48716,-28.67167,-16.7305,-30.34361,-31.82694,-37.175,-21.2715,-21.037333,-34.46694,-19.159167,-32.452787
- CUTOFF         = 15*0.44            ! cutoff freq (Hz) for each station - consistent with buoys
+ CUTOFF         = 0.0                ! cutoff freq (Hz) for each station - consistent with buoys
  LSP1D          = T                  ! 1D spectral station output
  LSP2D          = T                  ! 2D spectral station output
  LSIGMAX        = T                  ! Adjust the cut-freq. for the output (e.g. consistent with buoy cut-off freq.)
