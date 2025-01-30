@@ -97,6 +97,24 @@ class NML(NamelistBaseModel):
             )
         self.update(update)
 
+    def update_data_sources(self, datasources: dict):
+        """Update the data sources in the namelist based on rompy data preparation."""
+        update = {}
+        if datasources["wave"] is not None:
+            if hasattr(
+                self, "wwminput"
+            ):  # TODO change this check to the actual flag value
+                update.update(
+                    {
+                        "wwminput": {
+                            "bouc": {
+                                "filewave": datasources["wave"].name,
+                            },
+                        }
+                    }
+                )
+        self.update(update)
+
     def write_nml(self, workdir: Path):
         for nml in [
             "param",
