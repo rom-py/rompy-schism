@@ -387,7 +387,29 @@ class Opt(NamelistBaseModel):
     small_elad: Optional[float] = Field(
         0.0001, description="small (inactive at the moment)"
     )
-    nws: Optional[int] = Field(0, description="")
+    nws: Optional[int] = Field(
+        0,
+        description="""
+        Atmos. option. Use nws=2 and USE_ATMOS for coupling with atmospheric model.
+        If nws=0, no atmos. forcing is applied. If nws=1, atmos.
+        variables are read in from wind.th. If nws=2, atmos. variables are
+        read in from sflux_ files.
+        If nws=4, ascii format is used for wind and atmos. pressure at each node (see source code).
+        If nws=-1 (requires USE_PAHM), use Holland parametric wind model (barotropic only with wind and atmos. pressure).
+        In this case, the Holland model is called every step so wtiminc is not used. An extra 
+        input file is needed: hurricane-track.dat, in addition to a few parameters below.
+
+        Stress calculation:
+        If nws=2, ihconsv=1 and iwind_form=0, the stress is calculated from heat exchange
+        routine; in this case USE_ATMOS cannot be on.
+        Otherwise if iwind_form=-1, the stress is calculated from Pond & Pichard formulation;
+        if iwind_form=1, Hwang (2018) formulation (Cd tapers off at high wind).
+        If WWM is enabled and icou_elfe_wwm>0 and iwind_form=-2 or -3, stress is overwritten by WWM:
+        If iwind_form=-2, stress=rho_air*ufric^2; scaled by rho_water
+        If iwind_form=-3, the stress is calculated according to the param. of Donelan et al. (1993) based on the wave age.
+        In all cases, if USE_ICE the stress in ice-covered portion is calculated by ICE routine.
+        """,
+    )
     wtiminc: Optional[float] = Field(
         150.0, description="time step for atmos. forcing. Default: same as dt"
     )

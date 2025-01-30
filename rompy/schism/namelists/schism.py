@@ -104,12 +104,28 @@ class NML(NamelistBaseModel):
             if hasattr(
                 self, "wwminput"
             ):  # TODO change this check to the actual flag value
+                if self.wwminput.bouc is not None:
+                    logger.warn(
+                        "Overwriting existing wave data source specified in namelist with rompy generated data"
+                    )
                 update.update(
                     {
                         "wwminput": {
                             "bouc": {
                                 "filewave": datasources["wave"].name,
                             },
+                        }
+                    }
+                )
+        if datasources["atmos"] is not None:
+            if self.param.opt.nws is not 2:
+                logger.warn(
+                    f"Overwriting param nws value of {self.param.opt.nws} to 2 to use rompy generated sflux data"
+                )
+                update.update(
+                    {
+                        "param": {
+                            "opt": {"nws": 2},
                         }
                     }
                 )
