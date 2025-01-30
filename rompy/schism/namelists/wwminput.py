@@ -2,6 +2,7 @@
 
 import re
 from datetime import datetime
+from pathlib import Path
 from typing import List, Optional
 
 from pydantic import Field, field_validator, model_validator
@@ -391,7 +392,7 @@ class Bouc(NamelistBaseModel):
         6,
         description="Format of the boundary file. 1: WWM, 3: WW3 (2D spectra in netcdf format only - LBCWA=T), 6: WW3 2D spectra in netcdf format with LBCSP=T.",
     )
-    filewave: Optional[str] = Field(
+    filewave: Optional[str | Path] = Field(
         "ww3.acs.SCHISM.nc",
         description="Boundary file defining boundary input from WW3.",
     )
@@ -523,7 +524,7 @@ class Bouc(NamelistBaseModel):
     @field_validator("filewave")
     @classmethod
     def validate_filewave(cls, v):
-        if not v.endswith(".nc"):
+        if not str(v).endswith(".nc"):
             raise ValueError("FILEWAVE must have a .nc extension")
         return v
 
@@ -2318,3 +2319,8 @@ class Wwminput(NamelistBaseModel):
     hotfile: Optional[Hotfile] = Field(default_factory=Hotfile)
     petscoptions: Optional[Petscoptions] = Field(default_factory=Petscoptions)
     nesting: Optional[Nesting] = Field(default_factory=Nesting)
+
+    def render(self) -> str:
+        # Needs an additional backslash due to to uknown issue with schism
+        # All sameple namelists have this feature
+        return super().render() + "\n" + "/"
