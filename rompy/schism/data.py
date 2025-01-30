@@ -259,6 +259,7 @@ class SCHISMDataSflux(RompyBaseModel):
             Path: The path to the written sflux data.
 
         """
+        ret = {}
         destdir = Path(destdir) / "sflux"
         destdir.mkdir(parents=True, exist_ok=True)
         namelistargs = {}
@@ -269,8 +270,9 @@ class SCHISMDataSflux(RompyBaseModel):
             data.id = variable
             logger.info(f"Fetching {variable}")
             namelistargs.update(data.namelist)
-            data.get(destdir, grid, time)
-        Sflux_Inputs(**namelistargs).write_nml(destdir)
+            ret[variable] = data.get(destdir, grid, time)
+        ret["nml"] = Sflux_Inputs(**namelistargs).write_nml(destdir)
+        return ret
 
     @model_validator(mode="after")
     def check_weights(v):

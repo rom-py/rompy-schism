@@ -62,7 +62,7 @@ class NamelistBaseModel(RompyBaseModel):
         return __lower__(values)
 
     def update(self, update: Dict[str, Any]):
-        print(f"Before update: {self}")
+        """Update the namelist variable with new values. Reninitializes the instance, ensuring all validations are run"""
         updated_self = recursive_update(self, update)
         updated_instance = self.__init__(**updated_self.dict())
         return updated_instance
