@@ -56,7 +56,7 @@
 /
 
 &INIT
- LHOTR          = F                  ! Use hotstart file (see &HOTFILE section for input file)
+ LHOTR          = F                  ! Use hotstart file (see HOTFILE section for input file)
  LINID          = T                  ! Initial condition; F for default; use T if using WW3 as i.c. etc
  INITSTYLE      = 2                  ! 1 - Parametric Jonswap, 2 - Read from Global NETCDF files, work only if IBOUNDFORMAT=3
 /
@@ -115,7 +115,7 @@
 &ENGS !SOURCE TERMS
  MESNL          = 1                  ! Nonlinear Interaction NL4 , 1 ~ on, 0 ~ off (Discrete Interaction approx.)
  MESIN          = 1                  ! Wind input: Ardhuin et al. (1) (use LSOURCESWAM = F); 
-                                     ! for ECMWF physics (2); Makin & Stam (3); Babanin et al. (4); Cycle 3 (5); 
+                                     ! for ECMWF physics (2); Makin Stam (3); Babanin et al. (4); Cycle 3 (5); 
                                      !no wind (0). Try MESIN=1, LSOURCESWAM=F or MESIN=2 and LSOURCESWAM=T
  IFRIC          = 1                  ! Formulation for atmospheric boundary layer, (IFRIC = 1 for MESIN = 1, IFRIC = 4 for MESIN=3);
  MESBF          = 1                  ! Bottom friction: 1 - JONSWAP (Default); 2 - Madsen et al. (1989); 3 - SHOWEX
@@ -521,7 +521,7 @@
                                      ! 1: hotfiles in separate files, each associated
                                      ! with one process
 
- !Input part: to use WWM input, need to turn on LHOTR in &INIT!
+ !Input part: to use WWM input, need to turn on LHOTR in INIT!
  FILEHOT_IN     = 'hotfile_in_WWM.nc'    ! (Full) hot file name for input (which can be copied from FILEHOT_OUT above)
  HOTSTYLE_IN    = 2                  ! 1: binary hotfile of data as input
                                      ! 2: netcdf hotfile of data as input (default)
