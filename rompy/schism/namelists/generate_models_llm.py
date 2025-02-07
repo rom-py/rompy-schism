@@ -19,8 +19,9 @@ class ClaudeClient:
         prompt = f"""
         Analyze the following namelist file content from {filename} and provide:
         1. Improved descriptions for each variable, noting that relevant information may not all be inline with that particular variable.
-        2. Pydantic validators for each variable (use the new @field_validator and @classmethod decorators). 
-        3. Any cross-variable validators that might be necessary (use the new @model_validator(model='after') decorator)
+        2. Pydantic validators for each variable (use the new @field_validator and @classmethod decorators). Any functionls should have newlines specified with '\n'. 
+        3. Any cross-variable validators that might be necessary (use the new @model_validator(model='after') decorator). Any functionls should have newlines specified with '\n'. 
+        4. Variable names in the input files may be upper or lower case, but the Pydantic models should use lower case variable names.
 
         Namelist content:
         {content}
@@ -35,7 +36,7 @@ class ClaudeClient:
             ...
         }}
 
-        No not provide any extra information or context in the response.
+        Do not provide any extra information or context in the response.
         """
 
         message = self.client.messages.create(
@@ -262,13 +263,14 @@ def nml_to_dict(file_in: str):
 def main():
     exclude_files = [
         "wwminput.nml.spectra",
-        "wwminput.nml.WW3",
+        # "wwminput.nml.WW3",
+        "wwminput.nml",
         "mice.nml",
         "ice.nml",
         "icm.nml",
         "example.nml",
         "cosine.nml",
-        # "param.nml",
+        "param.nml",
         "sediment.nml",
         "icm_reduced.nml",
         "wwminput_reduced.nml.WW3",

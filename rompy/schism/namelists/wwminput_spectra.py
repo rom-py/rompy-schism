@@ -1,14 +1,14 @@
-# This file was auto generated from a SCHISM namelist file on 2024-09-13.
+# This file was auto generated from a schism namelist file on 2025-01-24.
 
-from datetime import datetime
-from typing import List, Optional
+from typing import Optional
 
 from pydantic import Field, field_validator, model_validator
+
 from rompy.schism.namelists.basemodel import NamelistBaseModel
 
 
 class Hotfile(NamelistBaseModel):
-    lhotf: Optional[bool] = Field(True, description="Write hotfile")
+    lhotf: Optional[str] = Field("T", description="Write hotfile")
     begtc: Optional[str] = Field(
         "19980901.000000", description="Starting time of hotfile writing"
     )
@@ -17,7 +17,7 @@ class Hotfile(NamelistBaseModel):
     endtc: Optional[str] = Field(
         "19980901.060000", description="Ending time of hotfile writing"
     )
-    lcyclehot: Optional[bool] = Field(True, description="Applies only to netcdf")
+    lcyclehot: Optional[str] = Field("T", description="Applies only to netcdf")
     hotstyle_out: Optional[int] = Field(
         2, description="1: binary hotfile of data as output"
     )
@@ -28,18 +28,6 @@ class Hotfile(NamelistBaseModel):
         "hotfile_out_WWM.nc", description="name of hot outputs"
     )
 
-    @model_validator(mode="after")
-    def validate_time_range(self) -> "Model":
-        if self.BEGTC >= self.ENDTC:
-            raise ValueError("BEGTC must be earlier than ENDTC")
-        return self
-
-    @model_validator(mode="after")
-    def validate_filehot_out_consistency(self) -> "Model":
-        if self.HOTSTYLE_OUT == 2 and not self.FILEHOT_OUT.endswith(".nc"):
-            raise ValueError("FILEHOT_OUT must end with .nc when HOTSTYLE_OUT is 2")
-        return self
-
 
 class Proc(NamelistBaseModel):
     procname: Optional[str] = Field("limon", description="Project Name")
@@ -47,20 +35,20 @@ class Proc(NamelistBaseModel):
         2,
         description="Mode of run (ex: 1 = 1D, 2 = 2D) always 2D when coupled to SCHISM",
     )
-    lstea: Optional[bool] = Field(False, description="steady mode; under development")
-    lqstea: Optional[bool] = Field(
-        False,
+    lstea: Optional[str] = Field("F", description="steady mode; under development")
+    lqstea: Optional[str] = Field(
+        "F",
         description="Quasi-Steady Mode; In this case WWM-II is doing subiterations defined as DELTC/NQSITER unless QSCONVI is not reached",
     )
-    lsphe: Optional[bool] = Field(False, description="Spherical coordinates (lon/lat)")
-    lnautin: Optional[bool] = Field(
-        True,
+    lsphe: Optional[str] = Field("F", description="Spherical coordinates (lon/lat)")
+    lnautin: Optional[str] = Field(
+        "T",
         description="Nautical convention for all inputs given in degrees (suggestion: T)",
     )
-    lmono_in: Optional[bool] = Field(False, description="")
-    lmono_out: Optional[bool] = Field(False, description="")
-    lnautout: Optional[bool] = Field(
-        True, description="Nautical output of all quantities in degrees"
+    lmono_in: Optional[str] = Field("F", description="")
+    lmono_out: Optional[str] = Field("F", description="")
+    lnautout: Optional[str] = Field(
+        "T", description="Nautical output of all quantities in degrees"
     )
     begtc: Optional[str] = Field(
         "19980901.000000",
@@ -78,26 +66,18 @@ class Proc(NamelistBaseModel):
         0.01, description="Minimum water depth. This must be the same as h0 in SCHISM"
     )
 
-    @model_validator(mode="after")
-    def validate_time_range(self):
-        start = datetime.strptime(self.BEGTC, "%Y%m%d.%H%M%S")
-        end = datetime.strptime(self.ENDTC, "%Y%m%d.%H%M%S")
-        if end <= start:
-            raise ValueError("ENDTC must be later than BEGTC")
-        return self
-
 
 class Coupl(NamelistBaseModel):
-    lcpl: Optional[bool] = Field(
-        True,
+    lcpl: Optional[str] = Field(
+        "T",
         description="Couple with current model ... main switch - keep it on for SCHISM-WWM",
     )
-    lroms: Optional[bool] = Field(False, description="ROMS (set as F)")
-    ltimor: Optional[bool] = Field(False, description="TIMOR (set as F)")
-    lshyfem: Optional[bool] = Field(False, description="SHYFEM (set as F)")
+    lroms: Optional[str] = Field("F", description="ROMS (set as F)")
+    ltimor: Optional[str] = Field("F", description="TIMOR (set as F)")
+    lshyfem: Optional[str] = Field("F", description="SHYFEM (set as F)")
     radflag: Optional[str] = Field("LON", description="")
-    letot: Optional[bool] = Field(
-        False,
+    letot: Optional[str] = Field(
+        "F",
         description="Option to compute the wave induced radiation stress. If .T. the radiation stress is based on the integrated wave spectrum",
     )
     nlvt: Optional[int] = Field(
@@ -109,9 +89,9 @@ class Coupl(NamelistBaseModel):
 
 
 class Grid(NamelistBaseModel):
-    lcird: Optional[bool] = Field(True, description="Full circle in directional space")
-    lstag: Optional[bool] = Field(
-        False,
+    lcird: Optional[str] = Field("T", description="Full circle in directional space")
+    lstag: Optional[str] = Field(
+        "F",
         description="Stagger directional bins with a half Dtheta; may use T only for regular grid to avoid char. line aligning with grid line",
     )
     mindir: Optional[float] = Field(
@@ -139,71 +119,97 @@ class Grid(NamelistBaseModel):
         "hgrid_WWM.gr3",
         description="Name of the grid file. hgridi_WWM.gr3 if IGRIDTYPE = 3 (SCHISM)",
     )
-    lslop: Optional[bool] = Field(False, description="Bottom Slope limiter (default=F)")
+    lslop: Optional[str] = Field("F", description="Bottom Slope limiter (default=F)")
     slmax: Optional[float] = Field(0.2, description="Max Slope;")
-    lvar1d: Optional[bool] = Field(
-        False, description="For 1d-mode if variable dx is used; not used with SCHISM"
+    lvar1d: Optional[str] = Field(
+        "F", description="For 1d-mode if variable dx is used; not used with SCHISM"
     )
 
-    @model_validator(mode="after")
-    def validate_mindir_maxdir(self) -> "Model":
-        if not self.LCIRD and self.MINDIR >= self.MAXDIR:
-            raise ValueError("MINDIR must be less than MAXDIR when LCIRD is False")
-        return self
 
-    @model_validator(mode="after")
-    def validate_frequency_range(self) -> "Model":
-        if self.FRLOW >= self.FRHIGH:
-            raise ValueError("FRLOW must be less than FRHIGH")
-        return self
+class Init(NamelistBaseModel):
+    lhotr: Optional[bool] = Field(
+        False,
+        description="Full path and filename for the input hot file, which can be copied from FILEHOT_OUT. Used for restarting simulations.",
+    )
+    hotstyle_in: Optional[int] = Field(
+        2,
+        description="Specifies the format of the input hot file. 1 for binary format, 2 for NetCDF format (default).",
+    )
+    ihotpos_in: Optional[int] = Field(
+        1,
+        description="Position in the hot file for reading data (only applicable for NetCDF files). If LCYCLEHOT=T, this can be 1 or 2 (out of the 2 time records). '1' is the most recent time.",
+    )
+    multiplein: Optional[int] = Field(
+        0,
+        description="Specifies whether to read the hot file from a single file (0) or multiple files (1). Multiple files might require the same number of CPUs.",
+    )
 
-    @model_validator(mode="after")
-    def validate_filegrid_igridtype(self) -> "Model":
-        if self.IGRIDTYPE == 3 and self.FILEGRID != "hgrid_WWM.gr3":
-            raise ValueError("FILEGRID must be hgrid_WWM.gr3 when IGRIDTYPE is 3")
-        return self
+    @field_validator("filehot_in")
+    @classmethod
+    def validate_filehot_in(cls, v: str) -> str:
+        if not v.endswith(".nc"):
+            raise ValueError("FILEHOT_IN must be a NetCDF file with .nc extension")
+        return v
 
-    @model_validator(mode="after")
-    def validate_lvar1d_igridtype(self) -> "Model":
-        if self.LVAR1D and self.IGRIDTYPE == 3:
-            raise ValueError("LVAR1D is not used with SCHISM (IGRIDTYPE=3)")
-        return self
+    @field_validator("hotstyle_in")
+    @classmethod
+    def validate_hotstyle_in(cls, v: int) -> int:
+        if v not in [1, 2]:
+            raise ValueError("HOTSTYLE_IN must be either 1 (binary) or 2 (NetCDF)")
+        return v
+
+    @field_validator("ihotpos_in")
+    @classmethod
+    def validate_ihotpos_in(cls, v: int) -> int:
+        if v not in [1, 2]:
+            raise ValueError("IHOTPOS_IN must be either 1 or 2")
+        return v
+
+    @field_validator("multiplein")
+    @classmethod
+    def validate_multiplein(cls, v: int) -> int:
+        if v not in [0, 1]:
+            raise ValueError(
+                "MULTIPLEIN must be either 0 (single file) or 1 (multiple files)"
+            )
+        return v
 
 
 class Bouc(NamelistBaseModel):
-    lbcse: Optional[bool] = Field(
-        False, description="The wave boundary data is time dependent"
+    lbcse: Optional[str] = Field(
+        "F", description="The wave boundary data is time dependent"
     )
-    lbinter: Optional[bool] = Field(
-        False,
+    lbinter: Optional[str] = Field(
+        "F",
         description="Do interpolation in time if LBCSE=T (not available for quasi-steady mode within the subtime steps)",
     )
-    lbcwa: Optional[bool] = Field(True, description="Parametric Wave Spectra")
-    linhom: Optional[bool] = Field(False, description="Non-uniform wave b.c. in space")
-    lbcsp: Optional[bool] = Field(
-        False,
+    lbcwa: Optional[str] = Field("T", description="Parametric Wave Spectra")
+    linhom: Optional[str] = Field("F", description="Non-uniform wave b.c. in space")
+    lbcsp: Optional[str] = Field(
+        "F",
         description="Specify (non-parametric) wave spectra, specified in 'FILEWAVE' below",
     )
-    lindsprdeg: Optional[bool] = Field(
-        False,
+    lindsprdeg: Optional[str] = Field(
+        "F",
         description="If 1-d wave spectra are read this flag defines whether the input for the directional spreading is in degrees (true) or exponent (false)",
     )
-    lparmdir: Optional[bool] = Field(
-        False,
+    lparmdir: Optional[str] = Field(
+        "F",
         description="If LPARMDIR is true than directional spreading is read from WBDS and must be in exponential format at this time, only valid for 1d Spectra",
     )
     filewave: Optional[str] = Field(
         "wwmbnd.gr3", description="Boundary file including discrete wave spectra"
     )
-    lbsp1d: Optional[bool] = Field(
-        False,
+    lbsp1d: Optional[str] = Field(
+        "F",
         description="1D (freq. space only) format for FILEWAVE if LBCSP=T and LINHOM=F",
     )
-    lbsp2d: Optional[bool] = Field(
-        False, description="not functional (freq. + directional space)"
+    lbsp2d: Optional[str] = Field(
+        "F", description="not functional (freq. + directional space)"
     )
     begtc: Optional[str] = Field(
-        "19980901.000000", description="Begin time of the wave boundary file (FILEWAVE)"
+        "19980901.000000",
+        description="Begin time of the wave boundary file (FILEWAVE)",
     )
     deltc: Optional[int] = Field(1, description="Time step in FILEWAVE")
     unitc: Optional[str] = Field("HR", description="Unit can be HR, MIN, SEC")
@@ -260,28 +266,6 @@ class Bouc(NamelistBaseModel):
         "t02",
         description="NETCDF var. name for the zero down crossing freq. (normally it is just 't02')",
     )
-
-    @model_validator(mode="after")
-    def validate_lbinter_lbcse(self):
-        if self.LBINTER and not self.LBCSE:
-            raise ValueError("LBINTER can only be True if LBCSE is True")
-        return self
-
-    @model_validator(mode="after")
-    def validate_lbsp1d_conditions(self):
-        if self.LBSP1D and not (self.LBCSP and not self.LINHOM):
-            raise ValueError(
-                "LBSP1D can only be True if LBCSP is True and LINHOM is False"
-            )
-        return self
-
-    @model_validator(mode="after")
-    def validate_time_range(self):
-        begin = datetime.strptime(self.BEGTC, "%Y%m%d.%H%M%S")
-        end = datetime.strptime(self.ENDTC, "%Y%m%d.%H%M%S")
-        if end <= begin:
-            raise ValueError("ENDTC must be later than BEGTC")
-        return self
 
 
 class Engs(NamelistBaseModel):
@@ -349,8 +333,8 @@ class Engs(NamelistBaseModel):
     meveg: Optional[int] = Field(
         0, description="Vegetation on/off. If on, isav must = 1 in param.nml"
     )
-    lmaxetot: Optional[bool] = Field(
-        True,
+    lmaxetot: Optional[str] = Field(
+        "T",
         description="Limit shallow water wave height by wave breaking limiter (default=T)",
     )
     mesds: Optional[int] = Field(
@@ -373,161 +357,120 @@ class Engs(NamelistBaseModel):
         description="critical Ursell number; if Ursell # < TRIURS; triads are not computed",
     )
 
-    @model_validator(mode="after")
-    def validate_mesin_lsourceswam(self) -> "Model":
-        if self.MESIN == 1 and self.LSOURCESWAM:
-            raise ValueError("When MESIN=1, LSOURCESWAM should be False")
-        if self.MESIN == 2 and not self.LSOURCESWAM:
-            raise ValueError("When MESIN=2, LSOURCESWAM should be True")
-        return self
-
-    @model_validator(mode="after")
-    def validate_ifric_mesin(self) -> "Model":
-        if self.MESIN == 1 and self.IFRIC != 1:
-            raise ValueError("When MESIN=1, IFRIC should be 1")
-        if self.MESIN == 3 and self.IFRIC != 4:
-            raise ValueError("When MESIN=3, IFRIC should be 4")
-        return self
-
-    @model_validator(mode="after")
-    def validate_fricc_mesbf(self) -> "Model":
-        if self.MESBF == 1 and not 0.038 <= self.FRICC <= 0.067:
-            raise ValueError("When MESBF=1, FRICC should be between 0.038 and 0.067")
-        return self
-
-    @model_validator(mode="after")
-    def validate_b_alp_br_coef_method(self) -> "Model":
-        if self.BR_COEF_METHOD == 2 and self.B_ALP < 30:
-            raise ValueError("When BR_COEF_METHOD=2, B_ALP should be around 40")
-        return self
-
-    @model_validator(mode="after")
-    def validate_mesds_mesin(self) -> "Model":
-        if self.MESDS != self.MESIN:
-            raise ValueError("MESDS should have the same value as MESIN")
-        return self
-
 
 class Sin4(NamelistBaseModel):
-    zwnd: Optional[str] = Field("", description="")
-    alpha0: Optional[str] = Field("", description="")
-    z0max: Optional[str] = Field("", description="")
-    betamax: Optional[str] = Field("", description="")
-    sinthp: Optional[str] = Field("", description="")
-    zalp: Optional[str] = Field("", description="")
-    tauwshelter: Optional[str] = Field("", description="")
-    swellfpar: Optional[str] = Field("", description="")
-    swellf: Optional[str] = Field("", description="")
-    swellf2: Optional[str] = Field("-", description="")
-    swellf3: Optional[str] = Field("", description="")
-    swellf4: Optional[str] = Field("", description="")
-    swellf5: Optional[str] = Field("", description="")
-    swellf6: Optional[str] = Field("", description="")
-    swellf7: Optional[str] = Field("", description="")
-    z0rat: Optional[str] = Field("", description="")
-    sinbr: Optional[float] = Field(0.0, description="")
-
-    @model_validator(mode="after")
-    def validate_swellf_limits(self):
-        if self.SWELLF6 >= self.SWELLF7:
-            raise ValueError("SWELLF6 must be less than SWELLF7")
-        return self
+    zwnd: Optional[list] = Field([10.0, ""], description="")
+    alpha0: Optional[list] = Field(["9.499999694526196E-003", ""], description="")
+    z0max: Optional[list] = Field(["0.000000000000000E+000", ""], description="")
+    betamax: Optional[list] = Field([1.54, ""], description="")
+    sinthp: Optional[list] = Field([2.0, ""], description="")
+    zalp: Optional[list] = Field(["6.000000052154064E-003", ""], description="")
+    tauwshelter: Optional[list] = Field([0.300000011920929, ""], description="")
+    swellfpar: Optional[list] = Field([1.0, ""], description="")
+    swellf: Optional[list] = Field([0.660000026226044, ""], description="")
+    swellf2: Optional[list] = Field(["-1.799999922513962E-002", ""], description="")
+    swellf3: Optional[list] = Field(["2.199999988079071E-002", ""], description="")
+    swellf4: Optional[list] = Field([150000.0, ""], description="")
+    swellf5: Optional[list] = Field([1.20000004768372, ""], description="")
+    swellf6: Optional[list] = Field(["0.000000000000000E+000", ""], description="")
+    swellf7: Optional[list] = Field([360000.0, ""], description="")
+    z0rat: Optional[list] = Field(["3.999999910593033E-002", ""], description="")
+    sinbr: Optional[str] = Field("0.000000000000000E+000", description="")
 
 
 class Sds4(NamelistBaseModel):
-    sdsc1: Optional[str] = Field("", description="")
-    fxpm3: Optional[str] = Field("", description="")
-    fxfm3: Optional[str] = Field("", description="")
-    fxfmage: Optional[str] = Field("", description="")
-    sdsc2: Optional[str] = Field("-", description="")
-    sdscum: Optional[str] = Field("-", description="")
-    sdsstrain: Optional[str] = Field("", description="")
-    sdsc4: Optional[str] = Field("", description="")
-    sdsc5: Optional[str] = Field("", description="")
-    sdsc6: Optional[str] = Field("", description="")
-    sdsbr: Optional[str] = Field("", description="")
-    sdsbr2: Optional[str] = Field("", description="")
-    sdsp: Optional[str] = Field("", description="")
-    sdsiso: Optional[str] = Field("", description="")
-    sdsbck: Optional[str] = Field("", description="")
-    sdsabk: Optional[str] = Field("", description="")
-    sdspbk: Optional[str] = Field("", description="")
-    sdsbint: Optional[str] = Field("", description="")
-    sdshck: Optional[str] = Field("", description="")
-    sdsdth: Optional[str] = Field("", description="")
-    sdscos: Optional[str] = Field("", description="")
-    sdsbrf1: Optional[str] = Field("", description="")
-    sdsbrfdf: Optional[str] = Field("", description="")
-    sdsbm0: Optional[str] = Field("", description="")
-    sdsbm1: Optional[str] = Field("", description="")
-    sdsbm2: Optional[str] = Field("", description="")
-    sdsbm3: Optional[str] = Field("", description="")
-    sdsbm4: Optional[str] = Field("", description="")
-    sdshfgen: Optional[str] = Field("", description="")
-    sdslfgen: Optional[str] = Field("", description="")
-    whitecapwidth: Optional[str] = Field("", description="")
-    fxincut: Optional[str] = Field("", description="")
-    fxdscut: Optional[float] = Field(0.0, description="")
+    sdsc1: Optional[list] = Field(["0.000000000000000E+000", ""], description="")
+    fxpm3: Optional[list] = Field([4.0, ""], description="")
+    fxfm3: Optional[list] = Field([2.5, ""], description="")
+    fxfmage: Optional[list] = Field(["0.000000000000000E+000", ""], description="")
+    sdsc2: Optional[list] = Field(["-2.200000017182902E-005", ""], description="")
+    sdscum: Optional[list] = Field([-0.403439998626709, ""], description="")
+    sdsstrain: Optional[list] = Field(["0.000000000000000E+000", ""], description="")
+    sdsc4: Optional[list] = Field([1.0, ""], description="")
+    sdsc5: Optional[list] = Field(["0.000000000000000E+000", ""], description="")
+    sdsc6: Optional[list] = Field([0.300000011920929, ""], description="")
+    sdsbr: Optional[list] = Field(["8.999999845400453E-004", ""], description="")
+    sdsbr2: Optional[list] = Field([0.800000011920929, ""], description="")
+    sdsp: Optional[list] = Field([2.0, ""], description="")
+    sdsiso: Optional[list] = Field([2.0, ""], description="")
+    sdsbck: Optional[list] = Field(["0.000000000000000E+000", ""], description="")
+    sdsabk: Optional[list] = Field([1.5, ""], description="")
+    sdspbk: Optional[list] = Field([4.0, ""], description="")
+    sdsbint: Optional[list] = Field([0.300000011920929, ""], description="")
+    sdshck: Optional[list] = Field([1.5, ""], description="")
+    sdsdth: Optional[list] = Field([80.0, ""], description="")
+    sdscos: Optional[list] = Field([2.0, ""], description="")
+    sdsbrf1: Optional[list] = Field([0.5, ""], description="")
+    sdsbrfdf: Optional[list] = Field(["0.000000000000000E+000", ""], description="")
+    sdsbm0: Optional[list] = Field([1.0, ""], description="")
+    sdsbm1: Optional[list] = Field(["0.000000000000000E+000", ""], description="")
+    sdsbm2: Optional[list] = Field(["0.000000000000000E+000", ""], description="")
+    sdsbm3: Optional[list] = Field(["0.000000000000000E+000", ""], description="")
+    sdsbm4: Optional[list] = Field(["0.000000000000000E+000", ""], description="")
+    sdshfgen: Optional[list] = Field(["0.000000000000000E+000", ""], description="")
+    sdslfgen: Optional[list] = Field(["0.000000000000000E+000", ""], description="")
+    whitecapwidth: Optional[list] = Field([0.300000011920929, ""], description="")
+    fxincut: Optional[list] = Field(["0.000000000000000E+000", ""], description="")
+    fxdscut: Optional[str] = Field("0.000000000000000E+000", description="")
 
 
 class Nums(NamelistBaseModel):
     icomp: Optional[int] = Field(3, description="")
     amethod: Optional[int] = Field(7, description="")
-    aspar_local_level: Optional[str] = Field("", description="")
+    aspar_local_level: Optional[list] = Field([0, ""], description="")
     smethod: Optional[int] = Field(1, description="")
     dmethod: Optional[int] = Field(2, description="")
     rtheta: Optional[float] = Field(
         0.5,
         description="Weighing factor for DMETHOD = 1, not really useful since Crank Nicholson integration can only be monotone for CFL .le. 2",
     )
-    litersplit: Optional[bool] = Field(
-        False,
+    litersplit: Optional[str] = Field(
+        "F",
         description="T: double Strang split; F: simple split (more efficient). Default: F",
     )
-    lfilterth: Optional[bool] = Field(False, description="")
+    lfilterth: Optional[str] = Field("F", description="")
     maxcflth: Optional[float] = Field(
         1.0, description="Max Cfl in Theta space; used only if LFILTERTH=T"
     )
     fmethod: Optional[int] = Field(1, description="")
-    lfiltersig: Optional[bool] = Field(
-        False, description="Limit the advection velocity in freq. space (usually F)"
+    lfiltersig: Optional[str] = Field(
+        "F", description="Limit the advection velocity in freq. space (usually F)"
     )
     maxcflsig: Optional[float] = Field(
         1.0, description="Max Cfl in freq. space; used only if LFILTERSIG=T"
     )
-    llimt: Optional[bool] = Field(
-        True,
+    llimt: Optional[str] = Field(
+        "T",
         description="Switch on/off Action limiter, Action limiter must mostly be turned on.",
     )
-    lsigbound: Optional[bool] = Field(
-        False, description="Theta space on wet land/island boundary"
+    lsigbound: Optional[str] = Field(
+        "F", description="Theta space on wet land/island boundary"
     )
-    lthbound: Optional[bool] = Field(
-        False, description="Sigma space on wet land/island boundary"
+    lthbound: Optional[str] = Field(
+        "F", description="Sigma space on wet land/island boundary"
     )
-    lsoubound: Optional[bool] = Field(
-        False,
-        description="Source Terms on wet land/island boundary. Use T if SMETHOD=6",
+    lsoubound: Optional[str] = Field(
+        "F", description="Source Terms on wet land/island boundary. Use T if SMETHOD=6"
     )
     melim: Optional[int] = Field(1, description="Formulation for the action limiter")
     limfak: Optional[float] = Field(
         0.1,
         description="Proportionality coefficient for the action limiter MAX_DAC_DT = Limfak * Limiter; see notes above for value",
     )
-    ldifr: Optional[bool] = Field(
-        False,
+    ldifr: Optional[str] = Field(
+        "F",
         description="Use phase decoupled diffraction approximation according to Holthuijsen et al. (2003) (usually T; if crash, use F)",
     )
     idiffr: Optional[int] = Field(
         1,
         description="Extended WAE accounting for higher order effects WAE becomes nonlinear; 1: Holthuijsen et al. ; 2: Liau et al. ; 3: Toledo et al. (in preparation)",
     )
-    lconv: Optional[bool] = Field(
-        False,
+    lconv: Optional[str] = Field(
+        "F",
         description="Estimate convergence criterian and write disk (quasi-steady - qstea.out)",
     )
-    lcfl: Optional[bool] = Field(
-        False, description="Write out CFL numbers; use F to save time"
+    lcfl: Optional[str] = Field(
+        "F", description="Write out CFL numbers; use F to save time"
     )
     nqsiter: Optional[int] = Field(
         10,
@@ -553,8 +496,8 @@ class Nums(NamelistBaseModel):
         0.98,
         description="Number of grid points [%/100] that have to fulfill avg. rel. wave steepness criteria EPSH5",
     )
-    lexpimp: Optional[bool] = Field(
-        False,
+    lexpimp: Optional[str] = Field(
+        "F",
         description="Use implicit schemes for freq. lower than given below by FREQEXP; used only if ICOMP=0",
     )
     freqexp: Optional[float] = Field(
@@ -581,81 +524,34 @@ class Nums(NamelistBaseModel):
         0.01,
         description="Convergence criteria for the rel. avg. waveperiod ! EPSH5 < REAL(ABS(TM02-TM02OLD(IP))/TM02OLD(IP))",
     )
-    lvector: Optional[bool] = Field(
-        False,
+    lvector: Optional[str] = Field(
+        "F",
         description="Use optmized propagation routines for large high performance computers e.g. at least more than 128 CPU. Try LVECTOR=F first.",
     )
     ivector: Optional[int] = Field(
         2, description="USed if LVECTOR=T; Different flavours of communications"
     )
-    ladvtest: Optional[bool] = Field(
-        False,
+    ladvtest: Optional[str] = Field(
+        "F",
         description="for testing the advection schemes, testcase will be added soon",
     )
-    lchkconv: Optional[bool] = Field(
-        True,
+    lchkconv: Optional[str] = Field(
+        "T",
         description="needs to set to .true. for quasi-steady mode. in order to compute the QSCONVi criteria and check them",
     )
-    nb_block: Optional[str] = Field("", description="")
-    wae_solverthr: Optional[str] = Field("", description="")
-    maxiter: Optional[str] = Field("", description="")
-    lsourceswam: Optional[bool] = Field(
-        False, description="Use ECMWF WAM formualtion for deep water physics."
+    nb_block: Optional[list] = Field([3, ""], description="")
+    wae_solverthr: Optional[list] = Field(["1.E-6", ""], description="")
+    maxiter: Optional[list] = Field([1000, ""], description="")
+    lsourceswam: Optional[list] = Field(
+        ["F", ""], description="Use ECMWF WAM formualtion for deep water physics."
     )
-    lnaninfchk: Optional[bool] = Field(False, description="")
-    lzeta_setup: Optional[bool] = Field(False, description="")
-    zeta_meth: Optional[str] = Field("", description="")
-    pmin: Optional[str] = Field("", description="")
-    block_gauss_seidel: Optional[bool] = Field(True, description="")
-    lnonl: Optional[bool] = Field(False, description="")
-    l_solver_norm: Optional[bool] = Field(False, description="")
-
-    @model_validator(mode="after")
-    def validate_amethod_icomp(self):
-        if self.ICOMP == 0 and self.AMETHOD in [1, 2, 3]:
-            return True
-        elif self.ICOMP > 0 and self.AMETHOD in [1, 2, 3, 4, 5, 6, 7]:
-            return True
-        raise ValueError("Invalid AMETHOD and ICOMP combination")
-        return self
-
-    @model_validator(mode="after")
-    def validate_maxcflth_lfilterth(self):
-        if self.LFILTERTH and self.MAXCFLTH <= 0:
-            raise ValueError("MAXCFLTH must be positive when LFILTERTH is True")
-        return self
-
-    @model_validator(mode="after")
-    def validate_maxcflsig_lfiltersig(self):
-        if self.LFILTERSIG and self.MAXCFLSIG <= 0:
-            raise ValueError("MAXCFLSIG must be positive when LFILTERSIG is True")
-        return self
-
-    @model_validator(mode="after")
-    def validate_lsoubound_smethod(self):
-        if self.SMETHOD == 6 and not self.LSOUBOUND:
-            raise ValueError("LSOUBOUND should be True when SMETHOD is 6")
-        return self
-
-    @model_validator(mode="after")
-    def validate_lexpimp_icomp(self):
-        if self.LEXPIMP and self.ICOMP != 0:
-            raise ValueError("LEXPIMP should only be True when ICOMP is 0")
-        return self
-
-    @model_validator(mode="after")
-    def validate_freqexp_lexpimp_icomp(self):
-        if self.LEXPIMP and self.ICOMP == 0 and self.FREQEXP <= 0:
-            raise ValueError(
-                "FREQEXP must be positive when LEXPIMP is True and ICOMP is 0"
-            )
-        return self
-
-    @model_validator(mode="after")
-    def validate_ivector_lvector(self):
-        if self.LVECTOR and self.IVECTOR not in range(1, 7):
-            raise ValueError("When LVECTOR is True, IVECTOR must be between 1 and 6")
-        return self
+    lnaninfchk: Optional[list] = Field(["F", ""], description="")
+    lzeta_setup: Optional[list] = Field(["F", ""], description="")
+    zeta_meth: Optional[list] = Field([0, ""], description="")
+    pmin: Optional[list] = Field([5.0, ""], description="")
+    block_gauss_seidel: Optional[list] = Field(["T", ""], description="")
+    lnonl: Optional[list] = Field(["F", ""], description="")
+    l_solver_norm: Optional[list] = Field(["F", ""], description="")
 
 
 class History(NamelistBaseModel):
@@ -677,72 +573,72 @@ class History(NamelistBaseModel):
         "NO", description="output option - use 'NO' for no output"
     )
     multipleout: Optional[int] = Field(0, description="0: output in a single netcdf")
-    use_single_out: Optional[bool] = Field(
-        True,
+    use_single_out: Optional[str] = Field(
+        "T",
         description="T: Use single precision in the output of model variables (default)",
     )
-    paramwrite: Optional[bool] = Field(
-        True, description="T/F: Write the physical parametrization and"
+    paramwrite: Optional[str] = Field(
+        "T", description="T/F: Write the physical parametrization and"
     )
-    gridwrite: Optional[bool] = Field(
-        True, description="T/F: Write the grid in the netcdf history file (default T)"
+    gridwrite: Optional[str] = Field(
+        "T", description="T/F: Write the grid in the netcdf history file (default T)"
     )
-    printmma: Optional[bool] = Field(
-        False, description="T/F: Print minimum, maximum and average"
+    printmma: Optional[str] = Field(
+        "F", description="T/F: Print minimum, maximum and average"
     )
     fileout: Optional[str] = Field("history.dat", description="")
-    lwxfn: Optional[bool] = Field(True, description="")
-    hs: Optional[bool] = Field(False, description="significant wave height")
-    tm01: Optional[bool] = Field(False, description="mean period")
-    tm02: Optional[bool] = Field(False, description="zero-crossing mean period")
-    klm: Optional[bool] = Field(False, description="mean wave number")
-    wlm: Optional[bool] = Field(False, description="mean wave length")
-    etotc: Optional[bool] = Field(False, description="Variable ETOTC")
-    etots: Optional[bool] = Field(False, description="Variable ETOTS")
-    dm: Optional[bool] = Field(True, description="mean wave direction")
-    dspr: Optional[bool] = Field(False, description="directional spreading")
-    tppd: Optional[bool] = Field(False, description="")
-    tpp: Optional[bool] = Field(False, description="")
-    cpp: Optional[bool] = Field(False, description="")
-    wnpp: Optional[bool] = Field(False, description="peak wave number")
-    cgpp: Optional[bool] = Field(False, description="peak group speed")
-    kpp: Optional[bool] = Field(False, description="peak wave number")
-    lpp: Optional[bool] = Field(False, description="peak")
-    peakd: Optional[bool] = Field(False, description="peak direction")
-    peakdspr: Optional[bool] = Field(False, description="peak directional spreading")
-    dpeak: Optional[bool] = Field(False, description="")
-    ubot: Optional[bool] = Field(False, description="")
-    orbital: Optional[bool] = Field(False, description="")
-    botexper: Optional[bool] = Field(False, description="")
-    tmbot: Optional[bool] = Field(False, description="")
-    ursell: Optional[bool] = Field(False, description="Ursell number")
-    ufric: Optional[bool] = Field(False, description="air friction velocity")
-    z0: Optional[bool] = Field(False, description="air roughness length")
-    alpha_ch: Optional[bool] = Field(False, description="Charnoch coefficient for air")
-    windx: Optional[bool] = Field(False, description="Wind in X direction")
-    windy: Optional[bool] = Field(False, description="Wind in Y direction")
-    cd: Optional[bool] = Field(False, description="Drag coefficient")
-    currtx: Optional[bool] = Field(False, description="current in X direction")
-    currty: Optional[bool] = Field(False, description="current in Y direction")
-    watlev: Optional[bool] = Field(False, description="water level")
-    watlevold: Optional[bool] = Field(
-        False, description="water level at previous time step"
+    lwxfn: Optional[str] = Field("T", description="")
+    hs: Optional[str] = Field("F", description="significant wave height")
+    tm01: Optional[str] = Field("F", description="mean period")
+    tm02: Optional[str] = Field("F", description="zero-crossing mean period")
+    klm: Optional[str] = Field("F", description="mean wave number")
+    wlm: Optional[str] = Field("F", description="mean wave length")
+    etotc: Optional[str] = Field("F", description="Variable ETOTC")
+    etots: Optional[str] = Field("F", description="Variable ETOTS")
+    dm: Optional[str] = Field("T", description="mean wave direction")
+    dspr: Optional[str] = Field("F", description="directional spreading")
+    tppd: Optional[str] = Field("F", description="")
+    tpp: Optional[str] = Field("F", description="")
+    cpp: Optional[str] = Field("F", description="")
+    wnpp: Optional[str] = Field("F", description="peak wave number")
+    cgpp: Optional[str] = Field("F", description="peak group speed")
+    kpp: Optional[str] = Field("F", description="peak wave number")
+    lpp: Optional[str] = Field("F", description="peak")
+    peakd: Optional[str] = Field("F", description="peak direction")
+    peakdspr: Optional[str] = Field("F", description="peak directional spreading")
+    dpeak: Optional[str] = Field("F", description="")
+    ubot: Optional[str] = Field("F", description="")
+    orbital: Optional[str] = Field("F", description="")
+    botexper: Optional[str] = Field("F", description="")
+    tmbot: Optional[str] = Field("F", description="")
+    ursell: Optional[str] = Field("F", description="Ursell number")
+    ufric: Optional[str] = Field("F", description="air friction velocity")
+    z0: Optional[str] = Field("F", description="air roughness length")
+    alpha_ch: Optional[str] = Field("F", description="Charnoch coefficient for air")
+    windx: Optional[str] = Field("F", description="Wind in X direction")
+    windy: Optional[str] = Field("F", description="Wind in Y direction")
+    cd: Optional[str] = Field("F", description="Drag coefficient")
+    currtx: Optional[str] = Field("F", description="current in X direction")
+    currty: Optional[str] = Field("F", description="current in Y direction")
+    watlev: Optional[str] = Field("F", description="water level")
+    watlevold: Optional[str] = Field(
+        "F", description="water level at previous time step"
     )
-    dep: Optional[bool] = Field(False, description="depth")
-    tauw: Optional[bool] = Field(False, description="surface stress from the wave")
-    tauhf: Optional[bool] = Field(False, description="high frequency surface stress")
-    tautot: Optional[bool] = Field(False, description="total surface stress")
-    stokessurfx: Optional[bool] = Field(
-        False, description="Surface Stokes drift in X direction"
+    dep: Optional[str] = Field("F", description="depth")
+    tauw: Optional[str] = Field("F", description="surface stress from the wave")
+    tauhf: Optional[str] = Field("F", description="high frequency surface stress")
+    tautot: Optional[str] = Field("F", description="total surface stress")
+    stokessurfx: Optional[str] = Field(
+        "F", description="Surface Stokes drift in X direction"
     )
-    stokessurfy: Optional[bool] = Field(
-        False, description="Surface Stokes drift in X direction"
+    stokessurfy: Optional[str] = Field(
+        "F", description="Surface Stokes drift in X direction"
     )
-    stokesbarox: Optional[bool] = Field(
-        False, description="Barotropic Stokes drift in X direction"
+    stokesbarox: Optional[str] = Field(
+        "F", description="Barotropic Stokes drift in X direction"
     )
-    stokesbaroy: Optional[bool] = Field(
-        False, description="Barotropic Stokes drift in Y direction"
+    stokesbaroy: Optional[str] = Field(
+        "F", description="Barotropic Stokes drift in Y direction"
     )
 
 
@@ -751,8 +647,8 @@ class Station(NamelistBaseModel):
         "19980901.000000",
         description="Start simulation time, yyyymmdd. hhmmss; must fit the simulation time otherwise no output",
     )
-    deltc: Optional[str] = Field(
-        "",
+    deltc: Optional[list] = Field(
+        [1, ""],
         description="Time step for output; if smaller than simulation time step, the latter is used (output every step for better 1D 2D spectra analysis)",
     )
     unitc: Optional[str] = Field("SEC", description="Unit")
@@ -764,60 +660,50 @@ class Station(NamelistBaseModel):
         description="output option - use 'NO' to maximize efficiency during parallel run when using MPI",
     )
     fileout: Optional[str] = Field("station.dat", description="")
-    loutiter: Optional[bool] = Field(False, description="")
-    llouts: Optional[bool] = Field(False, description="station output flag")
+    loutiter: Optional[str] = Field("F", description="")
+    llouts: Optional[str] = Field("F", description="station output flag")
     ilouts: Optional[int] = Field(1, description="Number of output stations")
-    nlouts: Optional[str] = Field("", description="Name of output locations")
+    nlouts: Optional[list] = Field(["P-1", ""], description="Name of output locations")
     iouts: Optional[int] = Field(1, description="")
-    nouts: Optional[str] = Field("", description="")
-    xouts: Optional[int] = Field(1, description="X-Coordinate of output locations")
-    youts: Optional[int] = Field(3, description="Y-Coordinate of output locations")
+    nouts: Optional[list] = Field(["P-1", ""], description="")
+    xouts: Optional[list] = Field(
+        [1950.0, ""], description="X-Coordinate of output locations"
+    )
+    youts: Optional[list] = Field(
+        [304.0, ""], description="Y-Coordinate of output locations"
+    )
     cutoff: Optional[str] = Field(
         "8*0.44",
         description="cutoff freq (Hz) for each station - consistent with buoys",
     )
-    lsp1d: Optional[bool] = Field(False, description="1D spectral station output")
-    lsp2d: Optional[bool] = Field(False, description="2D spectral station output")
-    lsigmax: Optional[bool] = Field(
-        True,
+    lsp1d: Optional[str] = Field("F", description="1D spectral station output")
+    lsp2d: Optional[str] = Field("F", description="2D spectral station output")
+    lsigmax: Optional[str] = Field(
+        "T",
         description="Adjust the cut-freq. for the output (e.g. consistent with buoy cut-off freq.)",
     )
-
-    @model_validator(mode="after")
-    def validate_time_range(self):
-        start = datetime.strptime(self.BEGTC, "%Y%m%d.%H%M%S")
-        end = datetime.strptime(self.ENDTC, "%Y%m%d.%H%M%S")
-        if start >= end:
-            raise ValueError("BEGTC must be earlier than ENDTC")
-        return self
-
-    @model_validator(mode="after")
-    def validate_station_counts(self):
-        if self.ILOUTS != len(self.NLOUTS.split(",")):
-            raise ValueError("ILOUTS must match the number of stations in NLOUTS")
-        return self
 
 
 class Petscoptions(NamelistBaseModel):
     ksptype: Optional[str] = Field("bcgs", description="")
-    rtol: Optional[float] = Field(
-        1e-20,
+    rtol: Optional[str] = Field(
+        "1.E-20",
         description="the relative convergence tolerance (relative decrease in the residual norm)",
     )
-    abstol: Optional[float] = Field(
-        1e-20,
+    abstol: Optional[str] = Field(
+        "1.E-20",
         description="the absolute convergence tolerance (absolute size of the residual norm)",
     )
     dtol: Optional[float] = Field(10000.0, description="the divergence tolerance")
     maxits: Optional[int] = Field(
         1000, description="maximum number of iterations to use"
     )
-    initialguessnonzero: Optional[bool] = Field(
-        True,
+    initialguessnonzero: Optional[str] = Field(
+        "T",
         description="Tells the iterative solver that the initial guess is nonzero; otherwise KSP assumes the initial guess is to be zero",
     )
-    gmrespreallocate: Optional[bool] = Field(
-        True,
+    gmrespreallocate: Optional[str] = Field(
+        "T",
         description="Causes GMRES and FGMRES to preallocate all its needed work vectors at initial setup rather than the default, which is to allocate them in chunks when needed.",
     )
     pctype: Optional[str] = Field("sor", description="")
@@ -828,6 +714,7 @@ class Wwminput(NamelistBaseModel):
     proc: Optional[Proc] = Field(default_factory=Proc)
     coupl: Optional[Coupl] = Field(default_factory=Coupl)
     grid: Optional[Grid] = Field(default_factory=Grid)
+    init: Optional[Init] = Field(default_factory=Init)
     bouc: Optional[Bouc] = Field(default_factory=Bouc)
     engs: Optional[Engs] = Field(default_factory=Engs)
     sin4: Optional[Sin4] = Field(default_factory=Sin4)

@@ -1,4 +1,4 @@
-# This file was auto generated from a SCHISM namelist file on 2024-09-13.
+# This file was auto generated from a SCHISM namelist file on 2025-01-24.
 
 from datetime import datetime
 from typing import List, Optional

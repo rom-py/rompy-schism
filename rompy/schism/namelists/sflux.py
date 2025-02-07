@@ -79,3 +79,4 @@ class Sflux_Inputs(NamelistBaseModel):
         output = destdir / f"{self.__class__.__name__.lower()}.txt"
         with open(output, "w") as f:
             f.write(self.render())
+        return output
