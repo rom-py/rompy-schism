@@ -1,9 +1,10 @@
-# This file was auto generated from a SCHISM namelist file on 2024-09-13.
+# This file was auto generated from a SCHISM namelist file on 2025-01-24.
 
 from datetime import datetime
 from typing import List, Optional
 
 from pydantic import Field, field_validator, model_validator
+
 from rompy.schism.namelists.basemodel import NamelistBaseModel
 
 
@@ -19,14 +20,14 @@ class Core(NamelistBaseModel):
     ibtp: Optional[int] = Field(
         1, description="Barotropic option flag. Only used when ibc is not 0."
     )
-    rnday: Optional[int] = Field(30, description="Total run time in days.")
+    rnday: Optional[float] = Field(30, description="Total run time in days.")
     dt: Optional[float] = Field(100.0, description="Time step in seconds.")
     msc2: Optional[int] = Field(
         24,
         description="Number of spectral frequencies for WWM grid. Must be the same as msc in .nml for consistency between SCHISM and WWM.",
     )
     mdc2: Optional[int] = Field(
-        30,
+        24,
         description="Number of directional bins for WWM grid. Must be the same as mdc in .nml for consistency between SCHISM and WWM.",
     )
     ntracer_gen: Optional[int] = Field(
@@ -175,7 +176,7 @@ class Opt(NamelistBaseModel):
     start_day: Optional[int] = Field(1, description="int")
     start_hour: Optional[int] = Field(0, description="double")
     utc_start: Optional[int] = Field(8, description="double")
-    ics: Optional[int] = Field(1, description="Coordinate option")
+    ics: Optional[int] = Field(2, description="Coordinate option")
     ihot: Optional[int] = Field(0, description="")
     ieos_type: Optional[int] = Field(0, description="")
     ieos_pres: Optional[int] = Field(
@@ -305,8 +306,8 @@ class Opt(NamelistBaseModel):
     prmsl_ref: Optional[float] = Field(
         101325.0, description="reference atmos. pressure on bnd [Pa]"
     )
-    flag_ic__1: Optional[int] = Field(1, description="T")
-    flag_ic__2: Optional[int] = Field(1, description="S")
+    flag_ic__1: Optional[int] = Field(0, description="T")
+    flag_ic__2: Optional[int] = Field(0, description="S")
     flag_ic__3: Optional[int] = Field(1, description="GEN (user defined module)")
     flag_ic__5: Optional[int] = Field(1, description="SED3D")
     flag_ic__6: Optional[int] = Field(1, description="EcoSim")
@@ -386,7 +387,29 @@ class Opt(NamelistBaseModel):
     small_elad: Optional[float] = Field(
         0.0001, description="small (inactive at the moment)"
     )
-    nws: Optional[int] = Field(0, description="")
+    nws: Optional[int] = Field(
+        0,
+        description="""
+        Atmos. option. Use nws=2 and USE_ATMOS for coupling with atmospheric model.
+        If nws=0, no atmos. forcing is applied. If nws=1, atmos.
+        variables are read in from wind.th. If nws=2, atmos. variables are
+        read in from sflux_ files.
+        If nws=4, ascii format is used for wind and atmos. pressure at each node (see source code).
+        If nws=-1 (requires USE_PAHM), use Holland parametric wind model (barotropic only with wind and atmos. pressure).
+        In this case, the Holland model is called every step so wtiminc is not used. An extra 
+        input file is needed: hurricane-track.dat, in addition to a few parameters below.
+
+        Stress calculation:
+        If nws=2, ihconsv=1 and iwind_form=0, the stress is calculated from heat exchange
+        routine; in this case USE_ATMOS cannot be on.
+        Otherwise if iwind_form=-1, the stress is calculated from Pond & Pichard formulation;
+        if iwind_form=1, Hwang (2018) formulation (Cd tapers off at high wind).
+        If WWM is enabled and icou_elfe_wwm>0 and iwind_form=-2 or -3, stress is overwritten by WWM:
+        If iwind_form=-2, stress=rho_air*ufric^2; scaled by rho_water
+        If iwind_form=-3, the stress is calculated according to the param. of Donelan et al. (1993) based on the wave age.
+        In all cases, if USE_ICE the stress in ice-covered portion is calculated by ICE routine.
+        """,
+    )
     wtiminc: Optional[float] = Field(
         150.0, description="time step for atmos. forcing. Default: same as dt"
     )
@@ -895,6 +918,457 @@ class Schout(NamelistBaseModel):
         0,
         description="Barotropic pressure gradient force vector (m.s-2) @side centers  {pressure_gradient} 2D vector",
     )
+    iof_wwm__1: Optional[int] = Field(
+        0, description="sig. height (m) {sigWaveHeight}   2D"
+    )
+    iof_wwm__2: Optional[int] = Field(
+        0, description="Mean average period (sec) - TM01 {meanWavePeriod}  2D"
+    )
+    iof_wwm__3: Optional[int] = Field(
+        0,
+        description="Zero down crossing period for comparison with buoy (s) - TM02 {zeroDowncrossPeriod}  2D",
+    )
+    iof_wwm__4: Optional[int] = Field(
+        0, description="Average period of wave runup/overtopping - TM10 {TM10}  2D"
+    )
+    iof_wwm__5: Optional[int] = Field(
+        0, description="Mean wave number (1/m) {meanWaveNumber}  2D"
+    )
+    iof_wwm__6: Optional[int] = Field(
+        0, description="Mean wave length (m) {meanWaveLength}  2D"
+    )
+    iof_wwm__7: Optional[int] = Field(
+        0,
+        description="Mean average energy transport direction (degr) - MWD in NDBC? {meanWaveDirection}  2D",
+    )
+    iof_wwm__8: Optional[int] = Field(
+        0, description="Mean directional spreading (degr) {meanDirSpreading}  2D"
+    )
+    iof_wwm__9: Optional[int] = Field(
+        0, description="Discrete peak period (sec) - Tp {peakPeriod}  2D"
+    )
+    iof_wwm__10: Optional[int] = Field(
+        0,
+        description="Continuous peak period based on higher order moments (sec) {continuousPeakPeriod}  2D",
+    )
+    iof_wwm__11: Optional[int] = Field(
+        0, description="Peak phase vel. (m/s) {peakPhaseVel}  2D"
+    )
+    iof_wwm__12: Optional[int] = Field(
+        0, description="Peak n-factor {peakNFactor}   2D"
+    )
+    iof_wwm__13: Optional[int] = Field(
+        0, description="Peak group vel. (m/s) {peakGroupVel}   2D"
+    )
+    iof_wwm__14: Optional[int] = Field(
+        0, description="Peak wave number {peakWaveNumber}  2D"
+    )
+    iof_wwm__15: Optional[int] = Field(
+        0, description="Peak wave length {peakWaveLength}  2D"
+    )
+    iof_wwm__16: Optional[int] = Field(
+        0, description="Peak (dominant) direction (degr) {dominantDirection}  2D"
+    )
+    iof_wwm__17: Optional[int] = Field(
+        0, description="Peak directional spreading {peakSpreading}  2D"
+    )
+    iof_wwm__18: Optional[int] = Field(
+        0, description="Discrete peak direction (radian?) {discretePeakDirectio}  2D"
+    )
+    iof_wwm__19: Optional[int] = Field(
+        0, description="Orbital vel. (m/s) {orbitalVelocity}  2D"
+    )
+    iof_wwm__20: Optional[int] = Field(
+        0, description="RMS Orbital vel. (m/s) {rmsOrbitalVelocity}  2D"
+    )
+    iof_wwm__21: Optional[int] = Field(
+        0, description="Bottom excursion period (sec?) {bottomExcursionPerio}  2D"
+    )
+    iof_wwm__22: Optional[int] = Field(
+        0, description="Bottom wave period (sec) {bottomWavePeriod}  2D"
+    )
+    iof_wwm__23: Optional[int] = Field(
+        0, description="Uresell number based on peak period {UresellNumber}  2D"
+    )
+    iof_wwm__24: Optional[int] = Field(
+        0, description="Friction velocity (m/s?) {frictionalVelocity}  2D"
+    )
+    iof_wwm__25: Optional[int] = Field(
+        0, description="Charnock coefficient {CharnockCoeff}  2D"
+    )
+    iof_wwm__26: Optional[int] = Field(
+        0, description="Rougness length {rougnessLength}  2D"
+    )
+    iof_wwm__27: Optional[int] = Field(
+        0, description="Roller energy dissipation rate (W/m²) @nodes {Drol} 2D"
+    )
+    iof_wwm__28: Optional[int] = Field(
+        0,
+        description="Total wave energy dissipation rate by depth-induced breaking (W/m²) @nodes {wave_sbrtot}  2D",
+    )
+    iof_wwm__29: Optional[int] = Field(
+        0,
+        description="Total wave energy dissipation rate by bottom friction (W/m²) @nodes {wave_sbftot} 2D",
+    )
+    iof_wwm__30: Optional[int] = Field(
+        0,
+        description="Total wave energy dissipation rate by whitecapping (W/m²) @nodes {wave_sdstot} 2D",
+    )
+    iof_wwm__31: Optional[int] = Field(
+        0,
+        description="Total wave energy dissipation rate by vegetation (W/m²) @nodes {wave_svegtot} 2D",
+    )
+    iof_wwm__32: Optional[int] = Field(
+        0,
+        description="Total wave energy input rate from atmospheric forcing (W/m²) @nodes {wave_sintot} 2D",
+    )
+    iof_wwm__33: Optional[int] = Field(
+        0, description="WWM_energy vector {waveEnergyDirX,Y}  2D vector"
+    )
+    iof_wwm__34: Optional[int] = Field(
+        0,
+        description="Vertical Stokes velocity (m.s-1) @sides and whole levels {stokes_wvel}  3D",
+    )
+    iof_wwm__35: Optional[int] = Field(
+        0,
+        description="Wave force vector (m.s-2) computed by wwm @side centers and whole levels {waveForceX,Y}   3D vector",
+    )
+    iof_wwm__36: Optional[int] = Field(
+        0,
+        description="Horizontal Stokes velocity (m.s-1) @nodes and whole levels {stokes_hvel} 3D vector",
+    )
+    iof_wwm__37: Optional[int] = Field(
+        0,
+        description="Roller contribution to horizontal Stokes velocity (m.s-1) @nodes and whole levels {roller_stokes_hvel} 3D vector",
+    )
+    # iof_gen__1: Optional[int] = Field(0, description="1st tracer {GEN_1}  3D")
+    # iof_gen__2: Optional[int] = Field(0, description="2nd tracer {GEN_2}  3D")
+    # iof_age__1: Optional[int] = Field(0, description="{AGE_1}  3D")
+    # iof_age__2: Optional[int] = Field(0, description="{AGE_2}  3D")
+    # iof_sed__1: Optional[int] = Field(
+    #     0, description="total bed thickness @elem (m) {sedBedThickness}  2D"
+    # )
+    # iof_sed__2: Optional[int] = Field(
+    #     0, description="total bed age over all layers @elem (sec) {sedBedAge}  2D"
+    # )
+    # iof_sed__3: Optional[int] = Field(
+    #     0,
+    #     description="Sediment transport roughness length @elem (m) (sedTransportRough) {z0st}  2D",
+    # )
+    # iof_sed__4: Optional[int] = Field(
+    #     0,
+    #     description="current-ripples roughness length @elem (m) (sedRoughCurrentRippl) {z0cr}  2D",
+    # )
+    # iof_sed__5: Optional[int] = Field(
+    #     0,
+    #     description="sand-waves roughness length (m) @elem (z0sw_elem) {sedRoughSandWave}  2D",
+    # )
+    # iof_sed__6: Optional[int] = Field(
+    #     0,
+    #     description="wave-ripples roughness length @elem (m) (z0wr_elem) {sedRoughWaveRipple}  2D",
+    # )
+    # iof_sed__7: Optional[int] = Field(
+    #     0,
+    #     description="bottom depth _change_ from init. condition (m) {sedDepthChange}  2D",
+    # )
+    # iof_sed__8: Optional[int] = Field(
+    #     0, description="Bed median grain size in the active layer (mm) {sedD50}  2D"
+    # )
+    # iof_sed__9: Optional[int] = Field(
+    #     0, description="Bottom shear stress (Pa) {sedBedStress}  2D"
+    # )
+    # iof_sed__10: Optional[int] = Field(
+    #     0, description="Bottom roughness lenghth (mm) {sedBedRoughness}  2D"
+    # )
+    # iof_sed__11: Optional[int] = Field(
+    #     0, description="sediment porosity in the top layer (-) {sedPorocity}  2D"
+    # )
+    # iof_sed__12: Optional[int] = Field(
+    #     0,
+    #     description="erosion flux for suspended transport (kg/m/m/s) {sedErosionalFlux}  2D",
+    # )
+    # iof_sed__13: Optional[int] = Field(
+    #     0,
+    #     description="deposition flux for suspended transport (kg/m/m/s) {sedDepositionalFlux}  2D",
+    # )
+    # iof_sed__14: Optional[int] = Field(
+    #     0,
+    #     description="Bedload transport rate vector due to wave acceleration (kg/m/s) {sedBedloadTransportX,Y}  2D vector",
+    # )
+    # iof_sed__15: Optional[int] = Field(
+    #     0,
+    #     description="Bedload transport rate _vector_ (kg.m-1.s-1) for 1st tracer (one output per class) {sedBedload[X,Y]_1}  2D vector",
+    # )
+    # iof_sed__16: Optional[int] = Field(
+    #     0,
+    #     description="Bedload transport of 2nd class {sedBedFraction_[X,Y]_2}  2D vector",
+    # )
+    # iof_sed__17: Optional[int] = Field(
+    #     0,
+    #     description="Bed fraction 1st tracer (one output per class) [-] {sedBedFraction_1}   2D",
+    # )
+    # iof_sed__18: Optional[int] = Field(
+    #     0, description="Bed fraction of 2nd class {sedBedFraction_2}   2D"
+    # )
+    # iof_sed__19: Optional[int] = Field(
+    #     0,
+    #     description="conc. of 1st class (one output need by each class) [g/L] {sedConcentration_1}   3D",
+    # )
+    # iof_sed__20: Optional[int] = Field(
+    #     0, description="conc. of 2nd class {sedConcentration_2}   3D"
+    # )
+    # iof_sed__21: Optional[int] = Field(
+    #     0, description="total suspended concentration (g/L) {totalSuspendedLoad}  3D"
+    # )
+    # # iof_eco__1: Optional[list] = Field([0, "{ECO_1}", "3D"], description="") # TODO: Ask Vanessa
+    # iof_eco__1: Optional[int] = Field(0, description="")
+    # iof_icm_core__1: Optional[int] = Field(1, description="PB1")
+    # iof_icm_core__2: Optional[int] = Field(1, description="PB2")
+    # iof_icm_core__3: Optional[int] = Field(1, description="PB3")
+    # iof_icm_core__4: Optional[int] = Field(1, description="RPOC")
+    # iof_icm_core__5: Optional[int] = Field(1, description="LPOC")
+    # iof_icm_core__6: Optional[int] = Field(1, description="DOC")
+    # iof_icm_core__7: Optional[int] = Field(1, description="RPON")
+    # iof_icm_core__8: Optional[int] = Field(1, description="LPON")
+    # iof_icm_core__9: Optional[int] = Field(1, description="DON")
+    # iof_icm_core__10: Optional[int] = Field(1, description="NH4")
+    # iof_icm_core__11: Optional[int] = Field(1, description="NO3")
+    # iof_icm_core__12: Optional[int] = Field(1, description="RPOP")
+    # iof_icm_core__13: Optional[int] = Field(1, description="LPOP")
+    # iof_icm_core__14: Optional[int] = Field(1, description="DOP")
+    # iof_icm_core__15: Optional[int] = Field(1, description="PO4")
+    # iof_icm_core__16: Optional[int] = Field(1, description="COD")
+    # iof_icm_core__17: Optional[int] = Field(1, description="DOX")
+    # iof_icm_silica__1: Optional[int] = Field(1, description="SU")
+    # iof_icm_silica__2: Optional[int] = Field(1, description="SA")
+    # iof_icm_zb__1: Optional[int] = Field(1, description="ZB1")
+    # iof_icm_zb__2: Optional[int] = Field(1, description="ZB2")
+    # iof_icm_ph__1: Optional[int] = Field(1, description="TIC")
+    # iof_icm_ph__2: Optional[int] = Field(1, description="ALK")
+    # iof_icm_ph__3: Optional[int] = Field(1, description="CA")
+    # iof_icm_ph__4: Optional[int] = Field(1, description="CACO3")
+    # iof_icm_cbp__1: Optional[int] = Field(1, description="SRPOC")
+    # iof_icm_cbp__2: Optional[int] = Field(1, description="SRPON")
+    # iof_icm_cbp__3: Optional[int] = Field(1, description="SRPOP")
+    # iof_icm_cbp__4: Optional[int] = Field(1, description="PIP")
+    # iof_icm_sav__1: Optional[int] = Field(
+    #     1, description="stleaf: total leaf biomass @elem [gC/m^2]"
+    # )
+    # iof_icm_sav__2: Optional[int] = Field(
+    #     1, description="ststem: total stem biomass @elem [gC/m^2]"
+    # )
+    # iof_icm_sav__3: Optional[int] = Field(
+    #     1, description="stroot: total root biomass @elem [gC/m^2]"
+    # )
+    # iof_icm_sav__4: Optional[int] = Field(
+    #     1, description="sht:    canopy height @elem [m]"
+    # )
+    # iof_icm_veg__1: Optional[int] = Field(
+    #     1, description="vtleaf1: leaf biomass group 1 [gC/m^2]"
+    # )
+    # iof_icm_veg__2: Optional[int] = Field(
+    #     1, description="vtleaf2: leaf biomass group 2 [gC/m^2]"
+    # )
+    # iof_icm_veg__3: Optional[int] = Field(
+    #     1, description="vtleaf3: leaf biomass group 3 [gC/m^2]"
+    # )
+    # iof_icm_veg__4: Optional[int] = Field(
+    #     1, description="vtstem1: stem biomass group 1 [gC/m^2]"
+    # )
+    # iof_icm_veg__5: Optional[int] = Field(
+    #     1, description="vtstem2: stem biomass group 2 [gC/m^2]"
+    # )
+    # iof_icm_veg__6: Optional[int] = Field(
+    #     1, description="vtstem3: stem biomass group 3 [gC/m^2]"
+    # )
+    # iof_icm_veg__7: Optional[int] = Field(
+    #     1, description="vtroot1: root biomass group 1 [gC/m^2]"
+    # )
+    # iof_icm_veg__8: Optional[int] = Field(
+    #     1, description="vtroot2: root biomass group 2 [gC/m^2]"
+    # )
+    # iof_icm_veg__9: Optional[int] = Field(
+    #     1, description="vtroot3: root biomass group 3 [gC/m^2]"
+    # )
+    # iof_icm_veg__10: Optional[int] = Field(
+    #     1, description="vht1:    canopy height group 1 [m]"
+    # )
+    # iof_icm_veg__11: Optional[int] = Field(
+    #     1, description="vht2:    canopy height group 2 [m]"
+    # )
+    # iof_icm_veg__12: Optional[int] = Field(
+    #     1, description="vht3:    canopy height group 3 [m]"
+    # )
+    # iof_icm_sed__1: Optional[int] = Field(1, description="bPOC1 (g.m-3)")
+    # iof_icm_sed__2: Optional[int] = Field(1, description="bPOC2 (g.m-3)")
+    # iof_icm_sed__3: Optional[int] = Field(1, description="bPOC3 (g.m-3)")
+    # iof_icm_sed__4: Optional[int] = Field(1, description="bPON1 (g.m-3)")
+    # iof_icm_sed__5: Optional[int] = Field(1, description="bPON2 (g.m-3)")
+    # iof_icm_sed__6: Optional[int] = Field(1, description="bPON3 (g.m-3)")
+    # iof_icm_sed__7: Optional[int] = Field(1, description="bPOP1 (g.m-3)")
+    # iof_icm_sed__8: Optional[int] = Field(1, description="bPOP2 (g.m-3)")
+    # iof_icm_sed__9: Optional[int] = Field(1, description="bPOP3 (g.m-3)")
+    # iof_icm_sed__10: Optional[int] = Field(1, description="bNH4  (g.m-3)")
+    # iof_icm_sed__11: Optional[int] = Field(1, description="bNO3  (g.m-3)")
+    # iof_icm_sed__12: Optional[int] = Field(1, description="bPO4  (g.m-3)")
+    # iof_icm_sed__13: Optional[int] = Field(1, description="bH2S  (g.m-3)")
+    # iof_icm_sed__14: Optional[int] = Field(1, description="bCH4  (g.m-3)")
+    # iof_icm_sed__15: Optional[int] = Field(1, description="bPOS  (g.m-3)")
+    # iof_icm_sed__16: Optional[int] = Field(1, description="bSA   (g.m-3)")
+    # iof_icm_sed__17: Optional[int] = Field(
+    #     1, description="bstc: surface transfer coeff. (m/day)"
+    # )
+    # iof_icm_sed__18: Optional[int] = Field(
+    #     1, description="bSTR: benthic stress      (day)"
+    # )
+    # iof_icm_sed__19: Optional[int] = Field(
+    #     1, description="bThp: consective days of hypoxia (day)"
+    # )
+    # iof_icm_sed__20: Optional[int] = Field(
+    #     1, description="bTox: consective days of oxic condition after hypoxia (day)"
+    # )
+    # iof_icm_sed__21: Optional[int] = Field(1, description="SOD   (g.m-2.day-1)")
+    # iof_icm_sed__22: Optional[int] = Field(1, description="JNH4  (g.m-2.day-1)")
+    # iof_icm_sed__23: Optional[int] = Field(1, description="JNO3  (g.m-2.day-1)")
+    # iof_icm_sed__24: Optional[int] = Field(1, description="JPO4  (g.m-2.day-1)")
+    # iof_icm_sed__25: Optional[int] = Field(1, description="JSA   (g.m-2.day-1)")
+    # iof_icm_sed__26: Optional[int] = Field(1, description="JCOD  (g.m-2.day-1)")
+    # iof_icm_ba__1: Optional[int] = Field(1, description="BA    (g[C].m-2)")
+    # iof_icm_dbg__1: Optional[int] = Field(1, description="2D ICM debug variables")
+    # iof_icm_dbg__2: Optional[int] = Field(1, description="3D ICM debug variables")
+    # iof_cos__1: Optional[int] = Field(0, description="NO3 (uM)")
+    # iof_cos__2: Optional[int] = Field(0, description="SiO4(uM)")
+    # iof_cos__3: Optional[int] = Field(0, description="NH4 (uM)")
+    # iof_cos__4: Optional[int] = Field(0, description="S1  (uM)")
+    # iof_cos__5: Optional[int] = Field(0, description="S2  (uM)")
+    # iof_cos__6: Optional[int] = Field(0, description="Z1  (uM)")
+    # iof_cos__7: Optional[int] = Field(0, description="Z2  (uM)")
+    # iof_cos__8: Optional[int] = Field(0, description="DN  (uM)")
+    # iof_cos__9: Optional[int] = Field(0, description="DSi (uM)")
+    # iof_cos__10: Optional[int] = Field(0, description="PO4 (uM)")
+    # iof_cos__11: Optional[int] = Field(0, description="DOX (uM)")
+    # iof_cos__12: Optional[int] = Field(0, description="CO2 (uM)")
+    # iof_cos__13: Optional[int] = Field(0, description="ALK (uM)")
+    # iof_fib__1: Optional[int] = Field(0, description="{FIB_1}  3D")
+    # iof_sed2d__1: Optional[int] = Field(
+    #     0,
+    #     description="bottom depth _change_ from init. condition (m) {SED2D_depth_change}",
+    # )
+    # iof_sed2d__2: Optional[int] = Field(
+    #     0, description="drag coefficient used in transport formulae SED2D_Cd{}"
+    # )
+    # iof_sed2d__3: Optional[int] = Field(
+    #     0, description="Courant number (b.qtot.dt / h.dx) {SED2D_cflsed}"
+    # )
+    # iof_sed2d__4: Optional[int] = Field(0, description="Top layer d50 (m) {SED2D_d50}")
+    # iof_sed2d__5: Optional[int] = Field(
+    #     0, description="total transport rate vector (kg/m/s) {SED2D_total_transport}"
+    # )
+    # iof_sed2d__6: Optional[int] = Field(
+    #     0, description="suspended tranport rate vector (kg/m/s) {SED2D_susp_load}"
+    # )
+    # iof_sed2d__7: Optional[int] = Field(
+    #     0, description="bedload transport rate vector (kg/m/s) {SED2D_bed_load}"
+    # )
+    # iof_sed2d__8: Optional[int] = Field(
+    #     0,
+    #     description="time averaged total transport rate vector (kg/m/s) {SED2D_average_transport}",
+    # )
+    # iof_sed2d__9: Optional[int] = Field(
+    #     0, description="bottom slope vector (m/m); negative uphill {SED2D_bottom_slope}"
+    # )
+    # iof_sed2d__10: Optional[int] = Field(
+    #     0, description="Total roughness length @elem (m) (z0eq) {z0eq}"
+    # )
+    # iof_sed2d__11: Optional[int] = Field(
+    #     0, description="current-ripples roughness length @elem (m) (z0cr) {z0cr}"
+    # )
+    # iof_sed2d__12: Optional[int] = Field(
+    #     0, description="sand-waves roughness length @elem (m) (z0sw) {z0sw}"
+    # )
+    # iof_sed2d__13: Optional[int] = Field(
+    #     0, description="wave-ripples roughness length @elem (m) (z0wr) {z0wr}"
+    # )
+    # iof_ice__1: Optional[int] = Field(
+    #     0, description="divergence @ elem ('Delta') [1/sec] {iceStrainRate}  2D"
+    # )
+    # iof_ice__2: Optional[int] = Field(
+    #     0, description="ice advective velcoity vector [m/s] {iceVelocityX,Y}  2D vector"
+    # )
+    # iof_ice__3: Optional[int] = Field(
+    #     0,
+    #     description="net heat flux to ocean (>0 warm up SST) [W/m/m] {iceNetHeatFlux}  2D",
+    # )
+    # iof_ice__4: Optional[int] = Field(
+    #     0,
+    #     description="net fresh water flux to ocean (>0 freshens up SSS) [kg/s/m/m] {iceFreshwaterFlux}  2D",
+    # )
+    # iof_ice__5: Optional[int] = Field(
+    #     0,
+    #     description="ice temperature [C] at air-ice interface {iceTopTemperature}  2D",
+    # )
+    # iof_ice__6: Optional[int] = Field(
+    #     0, description="ice volume [m] {iceTracer_1}   2D"
+    # )
+    # iof_ice__7: Optional[int] = Field(
+    #     0, description="ice concentration [-] {iceTracer_2}  2D"
+    # )
+    # iof_ice__8: Optional[int] = Field(
+    #     0, description="snow volume [m] {iceTracer_3}  2D"
+    # )
+    # iof_ana__1: Optional[int] = Field(
+    #     0,
+    #     description="min time step at each element over all subcycles in horizontal transport solver [s]   {minTransportTimeStep}  2D",
+    # )
+    # iof_ana__2: Optional[int] = Field(
+    #     0,
+    #     description="x-component of \nabla air_pres /\rho_0 [m/s/s] {airPressureGradientX}  2D",
+    # )
+    # iof_ana__3: Optional[int] = Field(
+    #     0,
+    #     description="y-component of \nabla air_pres /\rho_0 [m/s/s] {airPressureGradientY}  2D",
+    # )
+    # iof_ana__4: Optional[int] = Field(
+    #     0,
+    #     description="\alpha*g*\nabla \Psi [m/s/s] (gradient of tidal potential) {tidePotentialGradX}  2D",
+    # )
+    # iof_ana__5: Optional[int] = Field(
+    #     0, description="\alpha*g*\nabla \Psi [m/s/s] {tidePotentialGradY}  2D"
+    # )
+    # iof_ana__6: Optional[int] = Field(
+    #     0,
+    #     description="\nabla \cdot (\mu \nabla u) [m/s/s] (horizontal momentum mixing) {horzontalViscosityX}  3D side",
+    # )
+    # iof_ana__7: Optional[int] = Field(
+    #     0,
+    #     description="\nabla \cdot (\mu \nabla v) [m/s/s] {horzontalViscosityY}   3D side",
+    # )
+    # iof_ana__8: Optional[int] = Field(
+    #     0,
+    #     description="-g/rho0* \int_z^\eta dr_dx dz  [m/s/s] (b-clinic gradient) {baroclinicForceX}  3D side",
+    # )
+    # iof_ana__9: Optional[int] = Field(
+    #     0,
+    #     description="-g/rho0* \int_z^\eta dr_dy dz  [m/s/s] {baroclinicForceY}  3D side",
+    # )
+    # iof_ana__10: Optional[int] = Field(
+    #     0,
+    #     description="d (\nu du/dz)/dz [m/s/s] - no vegetation effects (vertical momentum mixing) {verticalViscosityX}  3D side",
+    # )
+    # iof_ana__11: Optional[int] = Field(
+    #     0,
+    #     description="d (\nu dv/dz)/dz [m/s/s] - no vegetation effects {verticalViscosityY}  3D side",
+    # )
+    # iof_ana__12: Optional[int] = Field(
+    #     0,
+    #     description="(u \cdot \nabla) u [m/s/s] (momentum advection) {mommentumAdvectionX}  3D side",
+    # )
+    # iof_ana__13: Optional[int] = Field(
+    #     0, description="(u \cdot \nabla) u [m/s/s] {mommentumAdvectionY}  3D side"
+    # )
+    # iof_ana__14: Optional[int] = Field(
+    #     0, description="gradient Richardson number [-] {gradientRichardson}   3D"
+    # )
 
     @field_validator("nc_out")
     @classmethod

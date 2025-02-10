@@ -5,7 +5,7 @@
 ! Hotstart option for WWM: see header of spectra
 
 &PROC
- PROCNAME       = 'Isabel'           ! Project Name
+ PROCNAME       = 'ACS'           ! Project Name
  DIMMODE        = 2                  ! Mode of run (ex: 1 = 1D, 2 = 2D) always 2D when coupled to SCHISM
  LSTEA          = F                  ! steady mode; under development
  LQSTEA         = F                  ! Quasi-Steady Mode; In this case WWM-II is doing subiterations defined as DELTC/NQSITER unless QSCONVI is not reached
@@ -16,16 +16,16 @@
                                      ! If F, maths. convention - 0: to east; 90: going to north
  LMONO_IN       = F                  ! For prescribing monochromatic wave height Hmono as a boundary conditions; incident wave is defined as monochromatic wave height, which is Hmono = sqrt(2) * Hs
  LMONO_OUT      = F                  ! Output wave heights in terms of Lmono
- BEGTC          = '20030908.000000'  ! Time for start the simulation, ex:yyyymmdd. hhmmss
+ BEGTC          = '20200101.000000'  ! Time for start the simulation, ex:yyyymmdd. hhmmss
  DELTC          = 600                ! Time step (MUST match dt*nstep_wwm in SCHISM!)
  UNITC          = 'SEC'              ! Unity of time step
- ENDTC          = '20031008.000000'  ! Time for stop the simulation, ex:yyyymmdd. hhmmss
+ ENDTC          = '20200201.000000'  ! Time for stop the simulation, ex:yyyymmdd. hhmmss
  DMIN           = 0.01              ! Minimum water depth. This must be the same as h0 in SCHISM
 /
 
 &COUPL
  LCPL           = T                  ! Couple with current model ... main switch - keep it on for SCHISM-WWM
- RADFLAG        = 'LON'              ! LON: Longuet-Higgin; VOR: vortex formulation
+ RADFLAG        = 'LON'              ! LON: Longuet-Higgin; VOR: vortex formulation  !usually LON
  LETOT          = F                  ! Option to compute the wave induced radiation stress. If .T. the radiation stress is based on the integrated wave spectrum
                                      ! e.g. Etot = Int,0,inf;Int,0,2*pi[N(sigma,theta)]dsigma,dtheta. If .F. the radiation stress is estimated as given in Roland et al. (2008) based
                                      ! on the directional spectra itself. It is always desirable to use .F., since otherwise the spectral informations are truncated and therefore
@@ -39,10 +39,10 @@
  LSTAG          = F                  ! Stagger directional bins with a half Dtheta; may use T only for regular grid to avoid char. line aligning with grid line
  MINDIR         = 0.                 ! Minimum direction for simulation (unit: degrees; nautical convention; 0: from N; 90: from E); not used if LCIRD = .T.
  MAXDIR         = 360.               ! Maximum direction for simulation (unit: degrees); may be < MINDIR; not used if LCIRD = .T.
- MDC            = 36                 ! Number of directional bins
+ MDC            = 24                 ! Number of directional bins
  FRLOW          = 0.04               ! Low frequency limit of the discrete wave period (Hz; 1/period)
  FRHIGH         = 1.                 ! High frequency limit of the discrete wave period.
- MSC            = 36                 ! Number of frequency bins
+ MSC            = 24                 ! Number of frequency bins
  FILEGRID       = 'hgrid_WWM.gr3'    ! Name of the grid file. hgridi_WWM.gr3 if IGRIDTYPE = 3 (SCHISM)
  IGRIDTYPE      = 3                  ! Gridtype used.
                                      ! 1 ~ XFN system.dat
@@ -56,7 +56,7 @@
 /
 
 &INIT
- LHOTR          = F                  ! Use hotstart file (see &HOTFILE section for input file)
+ LHOTR          = F                  ! Use hotstart file (see HOTFILE section for input file)
  LINID          = T                  ! Initial condition; F for default; use T if using WW3 as i.c. etc
  INITSTYLE      = 2                  ! 1 - Parametric Jonswap, 2 - Read from Global NETCDF files, work only if IBOUNDFORMAT=3
 /
@@ -64,22 +64,22 @@
 &BOUC
  LBCSE          = T                  ! The wave boundary data is time dependent
  LBINTER        = T                  ! Do interpolation in time if LBCSE=T (not available for quasi-steady mode within the subtime steps)
- LBCWA          = T                  ! Parametric Wave Spectra
- LBCSP          = F                  ! Specify (non-parametric) wave spectra, specified in 'FILEWAVE' below
+ LBCWA          = F                  ! Parametric Wave Spectra
+ LBCSP          = T                  ! Specify (non-parametric) wave spectra, specified in 'FILEWAVE' below
  LINHOM         = T                  ! Non-uniform wave b.c. in space
  LBSP1D         = F                  ! 1D (freq. space only) format for FILEWAVE if LBCSP=T and LINHOM=F                    
- LBSP2D         = F                  ! 2D format for FILEWAVE if LBCSP=T and LINHOM=F 
- BEGTC          = '20030908.000000'  ! Begin time of the wave boundary file (FILEWAVE) 
+ LBSP2D         = T                  ! 2D format for FILEWAVE if LBCSP=T and LINHOM=F 
+ BEGTC          = '20200101.000000'  ! Begin time of the wave boundary file (FILEWAVE) 
  DELTC          = 1                  ! Time step in FILEWAVE 
  UNITC          = 'HR'               ! Unit can be HR, MIN, SEC 
- ENDTC          = '20031008.000000'  ! End time
+ ENDTC          = '20200201.000000'  ! End time
  FILEBOUND      = 'wwmbnd.gr3'       ! Boundary file defining boundary conditions and Neumann nodes.
                                      ! In this file there is following definition Flag 0: not on boundary; 3: Neumann (0 gradient only for advection part);
                                      ! 2: active bnd (Dirichlet) 
- IBOUNDFORMAT   = 3                  ! 1 ~ WWM, 3 ~ WW3 (2D spectra in netcdf format only - LBCWA=T).
+ IBOUNDFORMAT   = 6                  ! 1 ~ WWM, 3 ~ WW3 (2D spectra in netcdf format only - LBCWA=T).
                                      ! 6 ~ WW3 2D spectra in netcdf format with LBCSP=T (prescribed spectra).
- FILEWAVE       = 'bndfiles.dat'     ! Boundary file defining boundary input from WW3
- LINDSPRDEG     = F                  ! If 1-d wave spectra are read this flag defines whether the input for the directional spreading is in degrees (true) or exponent (false)
+ FILEWAVE       = 'ww3.acs.SCHISM.nc'     ! Boundary file defining boundary input from WW3
+ LINDSPRDEG     = T                  ! If 1-d wave spectra are read this flag defines whether the input for the directional spreading is in degrees (true) or exponent (false)
  LPARMDIR       = F                  ! If LPARMDIR is true then directional spreading is read from WBDS and must be in exponential format at this time, only valid for 1d Spectra
                                      ! For WW3 boundary input also set LINHOM=T, LBCSE=T and this works only for spherical coordinates
 
@@ -115,11 +115,11 @@
 &ENGS !SOURCE TERMS
  MESNL          = 1                  ! Nonlinear Interaction NL4 , 1 ~ on, 0 ~ off (Discrete Interaction approx.)
  MESIN          = 1                  ! Wind input: Ardhuin et al. (1) (use LSOURCESWAM = F); 
-                                     ! for ECMWF physics (2); Makin & Stam (3); Babanin et al. (4); Cycle 3 (5); 
+                                     ! for ECMWF physics (2); Makin  Stam (3); Babanin et al. (4); Cycle 3 (5); 
                                      !no wind (0). Try MESIN=1, LSOURCESWAM=F or MESIN=2 and LSOURCESWAM=T
  IFRIC          = 1                  ! Formulation for atmospheric boundary layer, (IFRIC = 1 for MESIN = 1, IFRIC = 4 for MESIN=3);
- MESBF          = 1                  ! Bottom friction: 1 - JONSWAP (Default); 2 - Madsen et al. (1989); 3 - SHOWEX
- FRICC          = 0.067              ! if MESBF=1: JONSWAP bottom friction coefficient [0.038,0.067]. If MESBF=2: physical bottom roughness (ignored if given in rough.gr3). If MESBF=3: D50 (if negative read from SHOWEX_D50.gr3) 
+ MESBF          = 2                  ! Bottom friction: 1 - JONSWAP (Default); 2 - Madsen et al. (1989); 3 - SHOWEX
+ FRICC          = 0.006              ! if MESBF=1: JONSWAP bottom friction coefficient [0.038,0.067]. If MESBF=2: physical bottom roughness (ignored if given in rough.gr3). If MESBF=3: D50 (if negative read from SHOWEX_D50.gr3) 
  MESBR          = 1                  ! Shallow water wave breaking; 0: off; 1: on
  IBREAK         = 1                  ! Wave breaking formulation: 1 - Battjes and Janssen (1978)
                                      !                            2 - Thornton and Guza (1983) - Constant weighting function
@@ -134,7 +134,7 @@
                                      !                                e.g. Sallenger and Holman 1985
                                      !                          5   - gamma = a_BRCR * k_ph + b_BRCR / min_BRCR < gamma < max_BRCR
                                      !                                e.g. Ruessink et al (2003) with a_BRCR=0.76 and b_BRCR=0.29
- BRCR           = 0.78               ! either gamma, default is 0.73 for IBREAK=1,5 or gamma_TG, default is 0.42 for IBREAK=2,3 or biphase_ref, default is -4pi/9 = -1.3963 for IBREAK=4
+ BRCR           = 0.73               ! either gamma, default is 0.73 for IBREAK=1,5 or gamma_TG, default is 0.42 for IBREAK=2,3 or biphase_ref, default is -4pi/9 = -1.3963 for IBREAK=4
  a_BRCR         = 0.76               ! cf ICRIT = 4, 5
  b_BRCR         = 0.29               ! cf ICRIT = 4, 5
  min_BRCR       = 0.25               ! cf ICRIT = 4, 5
@@ -203,7 +203,7 @@
                                      ! Have fun ... Aron and Thomas.
                                      ! AMETHOD = 6 - BCGS Solver 
                                      ! AMETHOD = 7 - GAUSS and JACOBI SOLVER
- SMETHOD        = 1
+ SMETHOD        = 6
                                      ! This switch controls the way the source terms are integrated. 0: no source terms;
                                      ! 1: splitting using RK-3 and SI for fast and slow modes 2: semi-implicit;
                                      ! 3: R-K3 (if ICOMP=0 or 1) - slow; 4: Dynamic Splitting (experimental)
@@ -328,14 +328,14 @@
 
 ! output of statistical variables over the whole domain at specified times.
 &HISTORY
- BEGTC          = '20030908.000000'  ! Start output time, yyyymmdd. hhmmss;
+ BEGTC          = '20200101.000000'  ! Start output time, yyyymmdd. hhmmss;
                                      ! must fit the simulation time otherwise no output.
                                      ! Default is same as PROC%BEGTC
- DELTC          = 1  ! Time step for output; if smaller than simulation time step, the latter is used (output every step for better 1D 2D spectra analysis)
+ DELTC          = 3600  ! Time step for output; if smaller than simulation time step, the latter is used (output every step for better 1D 2D spectra analysis)
  UNITC          = 'SEC'              ! Unit
- ENDTC          = '20031008.000000'  ! Stop time output, yyyymmdd. hhmmss
+ ENDTC          = '20200201.000000'  ! Stop time output, yyyymmdd. hhmmss
                                      ! Default is same as PROC%ENDC
- DEFINETC       = 86400              ! Time scoop (sec) for history files
+ DEFINETC       = -1              ! Time scoop (sec) for history files
                                      ! If unset or set to a negative value
                                      ! then only one file is generated
                                      ! otherwise, for example for 86400
@@ -358,26 +358,26 @@
                                      ! value of statistics during runtime
                                      ! (Default F)
                                      ! (Requires a MPI_REDUCE)
- FILEOUT        = 'wwm_hist.dat'
+ FILEOUT        = 'wwm_hist.nc'
                                      ! Below is selection for all variables. Default is F for all variables.
- HS             = F                  ! significant wave height
- TM01           = F                  ! mean period
- TM02           = F                  ! zero-crossing mean period
+ HS             = T                  ! significant wave height
+ TM01           = T                  ! mean period
+ TM02           = T                  ! zero-crossing mean period
  KLM            = F                  ! mean wave number
  WLM            = F                  ! mean wave length
  ETOTC          = F                  ! Variable ETOTC
  ETOTS          = F                  ! Variable ETOTS
- DM             = F                  ! mean wave direction
- DSPR           = F                  ! directional spreading
+ DM             = T                  ! mean wave direction
+ DSPR           = T                  ! directional spreading
  TPPD           = F                  ! direaction of the peak ... check source code
- TPP            = F                  ! peak period  
+ TPP            = T                  ! peak period  
  CPP            = F                  ! peak phase vel. 
  WNPP           = F                  ! peak wave number
  CGPP           = F                  ! peak group speed
  KPP            = F                  ! peak wave number
  LPP            = F                  ! peak wave length 
- PEAKD          = F                  ! peak direction
- PEAKDSPR       = F                  ! peak directional spreading
+ PEAKD          = T                  ! peak direction
+ PEAKDSPR       = T                  ! peak directional spreading
  DPEAK          = F                  ! peak direction 
  UBOT           = F                  ! bottom exc. vel. 
  ORBITAL        = F                  ! bottom orbital vel. 
@@ -396,11 +396,11 @@
  WATLEVOLD      = F                  ! water level at previous time step
  DEPDT          = F                  ! change of water level in time
  DEP            = F                  ! depth
- TAUW           = F                  ! surface stress from the wave
+ TAUW           = T                  ! surface stress from the wave
  TAUHF          = F                  ! high frequency surface stress
- TAUTOT         = F                  ! total surface stress
- STOKESSURFX    = F                  ! Surface Stokes drift in X direction
- STOKESSURFY    = F                  ! Surface Stokes drift in X direction
+ TAUTOT         = T                  ! total surface stress
+ STOKESSURFX    = T                  ! Surface Stokes drift in X direction
+ STOKESSURFY    = T                  ! Surface Stokes drift in X direction
  STOKESBAROX    = F                  ! Barotropic Stokes drift in X direction
  STOKESBAROY    = F                  ! Barotropic Stokes drift in Y direction
  RSXX           = F                  ! RSXX potential of LH
@@ -412,18 +412,18 @@
 /
 
 &STATION
- BEGTC          = '20030908.000000'  ! Start simulation time, yyyymmdd. hhmmss; must fit the simulation time otherwise no output
+ BEGTC          = '20200101.000000'  ! Start simulation time, yyyymmdd. hhmmss; must fit the simulation time otherwise no output
                                      ! Default is same as PROC%BEGTC
- DELTC          = 600                ! Time step for output; if smaller than simulation time step, the latter is used (output every step for better 1D 2D spectra analysis)
+ DELTC          = 3600                ! Time step for output; if smaller than simulation time step, the latter is used (output every step for better 1D 2D spectra analysis)
  UNITC          = 'SEC'              ! Unit
- ENDTC          = '20031008.000000'  ! Stop time simulation, yyyymmdd. hhmmss
+ ENDTC          = '20200201.000000'  ! Stop time simulation, yyyymmdd. hhmmss
                                      ! Default is same as PROC%ENDC
- DEFINETC       = 86400              ! Time for definition of station files
+ DEFINETC       = -1              ! Time for definition of station files
                                      ! If unset or set to a negative value
                                      ! then only one file is generated
                                      ! otherwise, for example for 86400
                                      ! daily output files are created.
- OUTSTYLE       = 'NO'               ! output option
+ OUTSTYLE       = 'NC'               ! output option
                                      ! 'NO' no output
                                      ! 'STE' classic station output (default)
                                      ! 'NC' for netcdf output
@@ -436,38 +436,38 @@
  PARAMWRITE      = T                 ! T: Write the physical parametrization
                                      !    and chosen numerical method
                                      !    in the netcdf file (default T)
- FILEOUT        = 'wwm_sta.dat'      !not used
+ FILEOUT        = 'wwm_sta.nc'      !not used
  LOUTITER       = F
- IOUTS          =  11
- NOUTS          = 'P-1', 'P-2', 'P-3', 'P-4', 'P-5', 'P-6', 'P-7', 'P-8', 'P-9', 'P-10', 'P-11' 
- XOUTS          = -76.0460 , -76.7780 , -75.8100 , -75.7200 , -74.8420 , -74.7030 , -75.3300 , -72.6310 , -74.8350 , -69.2480 , -72.6 
- YOUTS          = 39.152, 38.556, 38.033, 37.551, 36.9740, 37.2040, 37.0230, 36.9150, 36.6110, 38.4610, 35.7500
- CUTOFF         = 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15            ! cutoff freq (Hz) for each station - consistent with buoys, 
+ IOUTS   =          12
+ NOUTS   = 'BatemansBay','Brisbane','ByronBay','Cairns','CoffsHbr','CrowdyHead','Eden','HayPt','Mackay','PortKembla','Tsv','Mandurah'
+ XOUTS  =   150.31972,153.63166,153.745,145.715167,153.27722,152.85333,150.15833,149.31025,149.5467,151.01667,147.059333,115.572227 
+ YOUTS   =   -35.75528,-27.48716,-28.67167,-16.7305,-30.34361,-31.82694,-37.175,-21.2715,-21.037333,-34.46694,-19.159167,-32.452787
+ CUTOFF         = 0.0                ! cutoff freq (Hz) for each station - consistent with buoys
  LSP1D          = T                  ! 1D spectral station output
- LSP2D          = F                  ! 2D spectral station output
+ LSP2D          = T                  ! 2D spectral station output
  LSIGMAX        = T                  ! Adjust the cut-freq. for the output (e.g. consistent with buoy cut-off freq.)
- AC             = F                  ! spectrum 
+ AC             = T                  ! spectrum 
  WK             = F                  ! variable WK
  ACOUT_1D       = F                  ! variable ACOUT_1D
  ACOUT_2D       = F                  ! variable ACOUT_2D
- HS             = F                  ! significant wave height
- TM01           = F                  ! mean period
- TM02           = F                  ! zero-crossing mean period
+ HS             = T                  ! significant wave height
+ TM01           = T                  ! mean period
+ TM02           = T                  ! zero-crossing mean period
  KLM            = F                  ! mean wave number
  WLM            = F                  ! mean wave length
  ETOTC          = F                  ! Variable ETOTC
  ETOTS          = F                  ! Variable ETOTS
- DM             = F                  ! mean wave direction
- DSPR           = F                  ! directional spreading
- TPPD           = F                  ! Discrete Peak Period
- TPP            = F                  ! Peak Period
+ DM             = T                  ! mean wave direction
+ DSPR           = T                  ! directional spreading
+ TPPD           = T                  ! Discrete Peak Period
+ TPP            = T                  ! Peak Period
  CPP            = F
  WNPP           = F                  ! peak wave number
  CGPP           = F                  ! peak group speed
  KPP            = F                  ! peak wave number
  LPP            = F                  ! peak
- PEAKD          = F                  ! peak direction
- PEAKDSPR       = F                  ! peak directional spreading
+ PEAKD          = T                  ! peak direction
+ PEAKDSPR       = T                  ! peak directional spreading
  DPEAK          = F
  UBOT           = F
  ORBITAL        = F
@@ -477,20 +477,20 @@
  UFRIC          = F                  ! air friction velocity
  Z0             = F                  ! air roughness length
  ALPHA_CH       = F                  ! Charnoch coefficient for air
- WINDX          = F                  ! Wind in X direction
- WINDY          = F                  ! Wind in Y direction
+ WINDX          = T                  ! Wind in X direction
+ WINDY          = T                  ! Wind in Y direction
  CD             = F                  ! Drag coefficient
  CURRTX         = F                  ! current in X direction
  CURRTY         = F                  ! current in Y direction
  WATLEV         = F                  ! water level
  WATLEVOLD      = F                  ! water level at previous time step
  DEPDT          = F                  ! change of water level in time
- DEP            = F                  ! depth
+ DEP            = T                  ! depth
  TAUW           = F                  ! surface stress from the wave
  TAUHF          = F                  ! high frequency surface stress
  TAUTOT         = F                  ! total surface stress
- STOKESSURFX    = F                  ! Surface Stokes drift in X direction
- STOKESSURFY    = F                  ! Surface Stokes drift in X direction
+ STOKESSURFX    = T                  ! Surface Stokes drift in X direction
+ STOKESSURFY    = T                  ! Surface Stokes drift in X direction
  STOKESBAROX    = F                  ! Barotropic Stokes drift in X direction
  STOKESBAROY    = F                  ! Barotropic Stokes drift in Y direction
  RSXX           = F                  ! RSXX potential of LH
@@ -503,13 +503,13 @@
 
 &HOTFILE
  LHOTF          = T                  ! Write hotfile
- FILEHOT_OUT    = 'hotfile_out_WWM.nc'      !name of output
- BEGTC          = '20030908.000000'  !Starting time of hotfile writing. With ihot!=0 in SCHISM,
+ FILEHOT_OUT    = 'wwm_hot_out.nc'      !name of output
+ BEGTC          = '20200101.000000'  !Starting time of hotfile writing. With ihot!=0 in SCHISM,
                                      !this will be whatever the new hotstarted time is (even with ihot=2)
- DELTC          = 86400.             ! time between hotfile writes
+ DELTC          = 2678400.0             ! time between hotfile writes
  UNITC          = 'SEC'              ! unit used above
- ENDTC          = '20031008.000000'  ! Ending time of hotfile writing (adjust with BEGTC)
- LCYCLEHOT      = T                  ! Applies only to netcdf
+ ENDTC          = '20200201.000000'  ! Ending time of hotfile writing (adjust with BEGTC)
+ LCYCLEHOT      = F                  ! Applies only to netcdf
                                      ! If T then hotfile contains 2 last records (1st is the most recent).
                                      ! If F then hotfile contains N record if N outputs
                                      ! have been done
@@ -521,11 +521,11 @@
                                      ! 1: hotfiles in separate files, each associated
                                      ! with one process
 
- !Input part: to use WWM input, need to turn on LHOTR in &INIT!
- FILEHOT_IN     = 'hotfile_in_WWM.nc'    ! (Full) hot file name for input (which can be copied from FILEHOT_OUT above)
+ !Input part: to use WWM input, need to turn on LHOTR in INIT!
+ FILEHOT_IN     = 'wwm_hot_in.nc'    ! (Full) hot file name for input (which can be copied from FILEHOT_OUT above)
  HOTSTYLE_IN    = 2                  ! 1: binary hotfile of data as input
                                      ! 2: netcdf hotfile of data as input (default)
- IHOTPOS_IN     = 1                  ! Position in hotfile (only for netcdf)
+ IHOTPOS_IN     = 2                  ! Position in hotfile (only for netcdf)
                                      ! for reading. If LCYCLEHOT=T, this can be 1 or 2 (out of the 2 time records). '1' is the most recent time.
  MULTIPLEIN     = 0                  ! 0: read hotfile from one single file
                                      ! 1: read hotfile from multiple files (must use same # of CPU?)

@@ -529,8 +529,10 @@ class SCHISMConfig(BaseConfig):
         if self.grid is not None:
             self.grid.get(runtime.staging_dir)
         if self.data is not None:
-            self.data.get(
-                destdir=runtime.staging_dir, grid=self.grid, time=runtime.period
+            self.nml.update_data_sources(
+                self.data.get(
+                    destdir=runtime.staging_dir, grid=self.grid, time=runtime.period
+                )
             )
         self.nml.update_times(period=runtime.period)
         self.nml.write_nml(runtime.staging_dir)

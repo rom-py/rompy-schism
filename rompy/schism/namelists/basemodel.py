@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Any, Dict, Optional, Type, Union, get_type_hints
 
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
 
 from rompy.core.types import RompyBaseModel
 
@@ -52,8 +52,17 @@ def recursive_update(model: BaseModel, updates: Dict[str, Any]) -> BaseModel:
 class NamelistBaseModel(RompyBaseModel):
     """Base model for namelist variables"""
 
+    @model_validator(mode="before")
+    def __lowercase_property_keys__(cls, values: Any) -> Any:
+        def __lower__(value: Any) -> Any:
+            if isinstance(value, dict):
+                return {k.lower(): __lower__(v) for k, v in value.items()}
+            return value
+
+        return __lower__(values)
+
     def update(self, update: Dict[str, Any]):
-        print(f"Before update: {self}")
+        """Update the namelist variable with new values. Reninitializes the instance, ensuring all validations are run"""
         updated_self = recursive_update(self, update)
         updated_instance = self.__init__(**updated_self.dict())
         return updated_instance
@@ -68,17 +77,26 @@ class NamelistBaseModel(RompyBaseModel):
                 ret += [f"&{section}"]
                 for variable, value in values.items():
                     if value is not None:
-                        for ii in range(13):
+                        for ii in sorted(range(40), reverse=True):
                             variable = variable.replace(f"__{ii}", f"({ii})")
                         if isinstance(value, list):
-                            value = ", ".join([str(item) for item in value])
-                        if isinstance(value, bool):
-                            value = self.boolean_to_string(value)
-                        if isinstance(value, str):
-                            value = f"{value}"
+                            value = ", ".join(
+                                [self.process_value(item) for item in value]
+                            )
+                        else:
+                            value = self.process_value(value)
                         ret += [f"{variable} = {value}"]
-                ret += ["/"]
+                ret += ["/\n"]
         return "\n".join(ret)
+
+    def process_value(self, value: Any) -> Any:
+        """Process the value before rendering"""
+        if isinstance(value, bool):
+            value = self.boolean_to_string(value)
+        elif isinstance(value, str):
+            if value not in ["T", "F"]:
+                value = f"'{value}'"
+        return str(value)
 
     def boolean_to_string(self, value: bool) -> str:
         return "T" if value else "F"
