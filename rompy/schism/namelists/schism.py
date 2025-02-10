@@ -76,6 +76,14 @@ class NML(NamelistBaseModel):
                             "begtc": period.start.strftime(date_format),
                             "endtc": period.end.strftime(date_format),
                         },
+                        "history": {
+                            "begtc": period.start.strftime(date_format),
+                            "endtc": period.end.strftime(date_format),
+                        },
+                        "bouc": {
+                            "begtc": period.start.strftime(date_format),
+                            "endtc": period.end.strftime(date_format),
+                        },
                         "station": {
                             "begtc": period.start.strftime(date_format),
                             "endtc": period.end.strftime(date_format),
@@ -87,6 +95,40 @@ class NML(NamelistBaseModel):
                     }
                 }
             )
+        self.update(update)
+
+    def update_data_sources(self, datasources: dict):
+        """Update the data sources in the namelist based on rompy data preparation."""
+        update = {}
+        if datasources["wave"] is not None:
+            if hasattr(
+                self, "wwminput"
+            ):  # TODO change this check to the actual flag value
+                if self.wwminput.bouc is not None:
+                    logger.warn(
+                        "Overwriting existing wave data source specified in namelist with rompy generated data"
+                    )
+                update.update(
+                    {
+                        "wwminput": {
+                            "bouc": {
+                                "filewave": datasources["wave"].name,
+                            },
+                        }
+                    }
+                )
+        if datasources["atmos"] is not None:
+            if self.param.opt.nws is not 2:
+                logger.warn(
+                    f"Overwriting param nws value of {self.param.opt.nws} to 2 to use rompy generated sflux data"
+                )
+                update.update(
+                    {
+                        "param": {
+                            "opt": {"nws": 2},
+                        }
+                    }
+                )
         self.update(update)
 
     def write_nml(self, workdir: Path):
