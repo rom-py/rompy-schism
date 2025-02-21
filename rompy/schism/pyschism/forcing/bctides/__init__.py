@@ -1,4 +1,4 @@
-from pyschism.forcing.bctides.tides import Tides
-from pyschism.forcing.bctides.bctides import Bctides
+from .bctides import Bctides
+from .tides import Tides
 
 __all__ = ["Bctides", "Tides"]

@@ -1,16 +1,16 @@
 import pathlib
 import tempfile
 
-from matplotlib.cm import ScalarMappable
 import matplotlib.pyplot as plt
-from mpl_toolkits.axes_grid1 import make_axes_locatable
 import numpy as np
 import requests
+from matplotlib.cm import ScalarMappable
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-from pyschism.figures import figure, get_topobathy_kwargs
-from pyschism.mesh.parsers import grd
-from pyschism.mesh.base import Gr3  # , sort_edges, signed_polygon_area
-from pyschism.mesh.boundaries import Boundaries
+from .base import Gr3  # , sort_edges, signed_polygon_area
+from .boundaries import Boundaries
+from .figures import figure, get_topobathy_kwargs
+from .parsers import grd
 
 
 class Hgrid(Gr3):
@@ -72,7 +72,7 @@ class Hgrid(Gr3):
         # figsize=rcParams["figure.figsize"],
         extent=None,
         cbar_label=None,
-        **kwargs
+        **kwargs,
     ):
         if vmin is None:
             vmin = np.min(self.values)
