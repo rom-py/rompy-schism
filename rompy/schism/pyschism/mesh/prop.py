@@ -1,12 +1,12 @@
 import pathlib
 from typing import List, Tuple, Union
 
-from matplotlib.collections import PolyCollection
 import numpy as np
-from shapely.geometry import Polygon, MultiPolygon, LinearRing
+from matplotlib.collections import PolyCollection
+from shapely.geometry import LinearRing, MultiPolygon, Polygon
 
-from pyschism.mesh.base import Gr3
-from pyschism.figures import figure
+from .base import Gr3
+from .figures import figure
 
 
 class Prop:
@@ -15,13 +15,13 @@ class Prop:
 
         if not isinstance(gr3, Gr3):
             raise TypeError(
-                f'Argument gr3 must be an instance of type {Gr3}, not type '
-                f'{type(gr3)}.')
+                f"Argument gr3 must be an instance of type {Gr3}, not type "
+                f"{type(gr3)}."
+            )
 
         values = np.array(element_values).flatten()
         if len(gr3.elements) != values.shape[0]:
-            raise ValueError(
-                'Shape mismatch between element_values and hgrid.')
+            raise ValueError("Shape mismatch between element_values and hgrid.")
 
         self.gr3 = gr3
         self.values = values
@@ -29,8 +29,8 @@ class Prop:
     def __str__(self):
         f = []
         for i, (iele, element) in enumerate(self.gr3.elements.to_dict().items()):
-            f.append(f'{iele} {self.values[i]:G}')
-        return '\n'.join(f)
+            f.append(f"{iele} {self.values[i]:G}")
+        return "\n".join(f)
 
     @classmethod
     def constant(cls, gr3: Gr3, value: np.array):
@@ -39,18 +39,12 @@ class Prop:
     def write(self, path, overwrite: bool = False):
         path = pathlib.Path(path)
         if path.exists() and not overwrite:
-            raise IOError('path exists and overwrite is False')
-        with open(path, 'w') as f:
+            raise IOError("path exists and overwrite is False")
+        with open(path, "w") as f:
             f.write(str(self))
 
     @figure
-    def make_plot(
-        self,
-        axes=None,
-        show=False,
-        figsize=None,
-        **kwargs
-    ):
+    def make_plot(self, axes=None, show=False, figsize=None, **kwargs):
 
         tria = PolyCollection(self.gr3.coords[self.gr3.elements.triangles])
         quad = PolyCollection(self.gr3.coords[self.gr3.elements.quads])
@@ -62,9 +56,10 @@ class Prop:
 
 
 class Fluxflag(Prop):
-    """ Class for writing fluxflag.prop file, which is parameter for
-        checking volume and salt conservation.
+    """Class for writing fluxflag.prop file, which is parameter for
+    checking volume and salt conservation.
     """
+
     @classmethod
     def default(cls, hgrid):
         return cls.constant(hgrid, -1)
@@ -74,14 +69,19 @@ class Fluxflag(Prop):
         def get_next_value_pair():
             next_value = np.max(self.values) + 1
             return next_value + 1, next_value
+
         upstream_val, downstream_val = get_next_value_pair()
 
         upstream_node_mask = self.gr3.nodes.gdf.within(Polygon(upstream)).to_numpy()
-        upstream_elem_idxs = np.where(np.any(upstream_node_mask[self.gr3.elements.array], axis=1))
+        upstream_elem_idxs = np.where(
+            np.any(upstream_node_mask[self.gr3.elements.array], axis=1)
+        )
         self.values[upstream_elem_idxs] = upstream_val
 
         downstream_node_mask = self.gr3.nodes.gdf.within(Polygon(downstream)).to_numpy()
-        downstream_elem_idxs = np.where(np.any(downstream_node_mask[self.gr3.elements.array], axis=1))
+        downstream_elem_idxs = np.where(
+            np.any(downstream_node_mask[self.gr3.elements.array], axis=1)
+        )
         self.values[downstream_elem_idxs] = downstream_val
 
     @classmethod
@@ -93,9 +93,9 @@ class Fluxflag(Prop):
 
 
 class Tvdflag(Prop):
-    """Class for writing tvd.prop file, which specify horizontal regions 
-       where upwind or TVD/TVD^2 is used based on the element property values
-       (0: upwind; 1: TVD/TVD^2).
+    """Class for writing tvd.prop file, which specify horizontal regions
+    where upwind or TVD/TVD^2 is used based on the element property values
+    (0: upwind; 1: TVD/TVD^2).
     """
 
     @classmethod
@@ -104,24 +104,26 @@ class Tvdflag(Prop):
 
     @classmethod
     def from_geometry(
-            cls,
-            gr3: Gr3,
-            region: Union[Polygon, MultiPolygon],
-            inner_value: float = 0,
-            outer_value: float = 1,
+        cls,
+        gr3: Gr3,
+        region: Union[Polygon, MultiPolygon],
+        inner_value: float = 0,
+        outer_value: float = 1,
     ):
-        '''inner_value == 0 implies the use of updwind, TVD is the default
-        everywhere'''
+        """inner_value == 0 implies the use of updwind, TVD is the default
+        everywhere"""
 
         if not isinstance(gr3, Gr3):
             raise TypeError(
-                f'Argument gr3 must be an instance of type {Gr3}, not type '
-                f'{type(gr3)}.')
+                f"Argument gr3 must be an instance of type {Gr3}, not type "
+                f"{type(gr3)}."
+            )
 
         if not isinstance(region, (Polygon, MultiPolygon)):
             raise TypeError(
-                f'Argument region must be an instance of types {Polygon} or '
-                f'{MultiPolygon}, not type {type(region)}.')
+                f"Argument region must be an instance of types {Polygon} or "
+                f"{MultiPolygon}, not type {type(region)}."
+            )
 
         if isinstance(region, Polygon):
             region = [region]
@@ -168,12 +170,12 @@ def prop_table_to_list_of_tuples(file) -> List[Tuple[Polygon, Polygon]]:
     file = pathlib.Path(file)
     with open(file) as f:
         lines = f.read()
-    for line in lines.split('\n'):
-        if ';' not in line:
+    for line in lines.split("\n"):
+        if ";" not in line:
             break
-        reg_upstream, reg_downstream = line.split(';')
-        reg_downstream_file = reg_downstream.split(':')[0]
-        reg_upstream_file = reg_upstream.split(':')[0]
+        reg_upstream, reg_downstream = line.split(";")
+        reg_downstream_file = reg_downstream.split(":")[0]
+        reg_upstream_file = reg_upstream.split(":")[0]
         reg_upstream_file = reg_upstream_file.strip()
         reg_downstream_file = reg_downstream_file.strip()
         downstream = reg2multipoly(file.parent / reg_downstream_file).geoms[0].exterior

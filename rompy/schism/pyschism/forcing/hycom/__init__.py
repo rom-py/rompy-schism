@@ -1,8 +1,4 @@
-from pyschism.forcing.hycom.base import Hycom
-from pyschism.forcing.hycom.gofs import GOFS
+from .base import Hycom
+from .gofs import GOFS
 
-__all__ = [
-    'Hycom',
-    'GOFS',
-    'RTOFS'
-]
+__all__ = ["Hycom", "GOFS", "RTOFS"]
