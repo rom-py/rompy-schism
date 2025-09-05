@@ -6,9 +6,9 @@ This module tests the core grid components of the SCHISM implementation.
 
 import pytest
 
-from rompy.schism.grid import GR3Generator
+from rompy_schism.grid import GR3Generator
 
-pytest.importorskip("rompy.schism")
+pytest.importorskip("rompy_schism")
 
 
 # Include basic grid tests
@@ -17,7 +17,7 @@ class TestSCHISMGrid:
 
     def test_vgrid_model(self):
         """Test the SchismVGrid model class."""
-        from rompy.schism.vgrid import VGrid
+        from rompy_schism.vgrid import VGrid
 
         # Create vertical grid
         vgrid = VGrid(ivcor=2, nvrt=10, h_c=20.0, theta_b=0.5, theta_f=5.0)  # SZ type
@@ -36,7 +36,7 @@ class TestSCHISMGrid:
 
     def test_grid_model_structure(self):
         """Test the model class structure (not the instantiation)."""
-        from rompy.schism.grid import SCHISMGrid
+        from rompy_schism.grid import SCHISMGrid
 
         # Just test the class structure and model fields, not instantiation
         assert hasattr(SCHISMGrid, "model_fields")

@@ -8,16 +8,16 @@ import numpy as np
 import pytest
 import xarray as xr
 
-pytest.importorskip("rompy.schism")
+pytest.importorskip("rompy_schism")
 
 # Import yaml for configuration loading
 import yaml
 
 from rompy.model import ModelRun
-from rompy.schism.config_plotting import plot_sflux_spatial, plot_sflux_timeseries
+from rompy_schism.config_plotting import plot_sflux_spatial, plot_sflux_timeseries
 
 # Import the plotting modules directly
-from rompy.schism.config_plotting_boundary import (
+from rompy_schism.config_plotting_boundary import (
     plot_boundary_points,
     plot_boundary_profile,
     plot_boundary_timeseries,

@@ -7,7 +7,7 @@ This module tests the generation and validation of SCHISM namelists.
 import pytest
 import yaml
 
-# Since rompy.schism.nml doesn't exist, we'll create stub classes for testing
+# Since rompy_schism.nml doesn't exist, we'll create stub classes for testing
 from pydantic import BaseModel, Field, model_validator
 
 
@@ -48,7 +48,7 @@ class SCHISMNameListConfig(BaseModel):
     )
 
 
-pytest.importorskip("rompy.schism")
+pytest.importorskip("rompy_schism")
 
 
 class TestNamelistGeneration:

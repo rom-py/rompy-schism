@@ -17,7 +17,7 @@ from rompy.core.types import RompyBaseModel
 from rompy.logging import get_logger
 
 # Import bctides and boundary modules
-from rompy.schism.boundary_core import (
+from rompy_schism.boundary_core import (
     BoundaryConfig,
     ElevationType,
     TidalBoundary,
@@ -25,7 +25,7 @@ from rompy.schism.boundary_core import (
     TracerType,
     VelocityType,
 )
-from rompy.schism.grid import SCHISMGrid
+from rompy_schism.grid import SCHISMGrid
 
 logger = get_logger(__name__)
 

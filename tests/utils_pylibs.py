@@ -60,7 +60,7 @@ def compare_nmls_values(nml1, nml2, raise_missing=False):
 
 def compare_nmls(nml1, nml2, raise_missing=False):
     """Compare two namelists."""
-    from rompy.schism.namelists.generate_models import nml_to_dict
+    from rompy_schism.namelists.generate_models import nml_to_dict
 
     # Convert namelists to dictionaries if they're not already
     if not isinstance(nml1, dict):

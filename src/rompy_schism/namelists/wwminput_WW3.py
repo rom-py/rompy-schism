@@ -5,7 +5,7 @@ from typing import List, Optional
 
 from pydantic import Field, field_validator, model_validator
 
-from rompy.schism.namelists.basemodel import NamelistBaseModel
+from rompy_schism.namelists.basemodel import NamelistBaseModel
 
 
 class Proc(NamelistBaseModel):

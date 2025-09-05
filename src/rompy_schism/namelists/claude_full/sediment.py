@@ -4,7 +4,7 @@ from typing import List, Literal, Optional
 
 from pydantic import ConfigDict, Field, field_validator
 
-from rompy.schism.namelists.basemodel import NamelistBaseModel
+from rompy_schism.namelists.basemodel import NamelistBaseModel
 
 
 class SedCore(NamelistBaseModel):

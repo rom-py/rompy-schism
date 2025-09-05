@@ -8,7 +8,7 @@ from test_utils.logging import get_test_logger
 # Initialize logger
 logger = get_test_logger(__name__)
 
-from rompy.schism.grid import VgridGenerator
+from rompy_schism.grid import VgridGenerator
 
 HERE = Path(__file__).parent
 

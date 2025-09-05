@@ -94,7 +94,7 @@ class SchismExampleRunner:
         self.schism_version = "v5.13.0"
         self.project_root = self._find_project_root()
         self.examples_dir = (
-            self.project_root / "notebooks" / "schism" / "boundary_conditions_examples"
+            self.project_root / "examples" / "boundary_conditions_examples"
         )
         self.base_output_dir = self.project_root / "boundary_conditions_test_outputs"
 
@@ -214,11 +214,11 @@ class SchismExampleRunner:
             self.project_root
             / "tests"
             / "schism"
-            / "test_data"
+            / "data" / "schism"
             / "tides"
             / "oceanum-atlas.tar.gz"
         )
-        tidal_dir = self.project_root / "tests" / "schism" / "test_data" / "tides"
+        tidal_dir = self.project_root / "tests" / "data" / "schism" / "tides"
 
         if not tidal_archive.exists():
             log_error(f"Tidal data archive not found at {tidal_archive}")
@@ -343,7 +343,7 @@ class SchismExampleRunner:
                 return False
 
             # Step 3: Copy station.in file if it exists
-            station_file = self.project_root / "notebooks" / "schism" / "station.in"
+            station_file = self.project_root / "examples" / "station.in"
             if station_file.exists():
                 log_info("Copying station.in file to SCHISM directory")
                 import shutil

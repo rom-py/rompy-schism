@@ -7,12 +7,12 @@ This module tests common end-to-end workflows for SCHISM model setup and configu
 import pytest
 
 from rompy.core.source import SourceFile
-from rompy.schism.data import SCHISMDataBoundary, SCHISMDataSflux, SfluxAir
+from rompy_schism.data import SCHISMDataBoundary, SCHISMDataSflux, SfluxAir
 
 # Import our stub class from test_namelist instead of the non-existent module
-from tests.schism.integration.test_namelist import SCHISMNamelist
+from tests.integration.test_namelist import SCHISMNamelist
 
-pytest.importorskip("rompy.schism")
+pytest.importorskip("rompy_schism")
 
 
 class TestCommonWorkflows:
@@ -106,7 +106,7 @@ class TestCommonWorkflows:
         assert (model_dir / "hgrid.gr3").exists()
 
         # 3. Test that the boundary conditions system can be imported and used
-        from rompy.schism.boundary_conditions import create_tidal_only_boundary_config
+        from rompy_schism.boundary_conditions import create_tidal_only_boundary_config
 
         # Just test that we can import and create the basic configuration type
         # without requiring actual tidal data files in this integration test

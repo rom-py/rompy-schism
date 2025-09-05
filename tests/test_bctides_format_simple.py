@@ -6,7 +6,7 @@ from pathlib import Path
 import numpy as np
 
 # Import Bctides class directly
-from rompy.schism.bctides import Bctides
+from rompy_schism.bctides import Bctides
 
 
 def test_files_dir():

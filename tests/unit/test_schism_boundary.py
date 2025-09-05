@@ -7,9 +7,9 @@ This module tests the boundary components and data handling for SCHISM.
 import pytest
 
 from rompy.core.data import DataBlob
-from rompy.schism.data import SCHISMDataBoundary
+from rompy_schism.data import SCHISMDataBoundary
 
-pytest.importorskip("rompy.schism")
+pytest.importorskip("rompy_schism")
 
 
 class TestBoundaryHandling:

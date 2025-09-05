@@ -17,9 +17,9 @@ from test_utils.logging import get_test_logger
 # Initialize logger
 logger = get_test_logger(__name__)
 
-pytest.importorskip("rompy.schism")
+pytest.importorskip("rompy_schism")
 
-from rompy.schism.namelists import Ice, Icm, Mice, Param, Sediment
+from rompy_schism.namelists import Ice, Icm, Mice, Param, Sediment
 
 SAMPLE_DIR = (
     Path(__file__).parent

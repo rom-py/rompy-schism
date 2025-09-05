@@ -14,14 +14,14 @@ import pytest
 
 from rompy.core.data import DataBlob
 from rompy.core.time import TimeRange
-from rompy.schism.boundary_conditions import (
+from rompy_schism.boundary_conditions import (
     create_hybrid_boundary_config,
     create_nested_boundary_config,
     create_river_boundary_config,
     create_tidal_only_boundary_config,
 )
-from rompy.schism.boundary_core import ElevationType, TracerType, VelocityType
-from rompy.schism.data import BoundarySetupWithSource, SCHISMDataBoundaryConditions
+from rompy_schism.boundary_core import ElevationType, TracerType, VelocityType
+from rompy_schism.data import BoundarySetupWithSource, SCHISMDataBoundaryConditions
 
 
 @pytest.fixture
@@ -262,7 +262,7 @@ class TestSCHISMDataBoundaryConditions:
 def test_factory_functions_basic(function_name, expected_type):
     """Test basic functionality of factory functions."""
     # Get the factory function
-    import rompy.schism.boundary_conditions as bc_module
+    import rompy_schism.boundary_conditions as bc_module
 
     factory_func = getattr(bc_module, function_name)
 
@@ -397,7 +397,7 @@ def test_integration_with_schism_data(
     grid2d, time_range, temp_output_dir, tidal_dataset
 ):
     """Test integration with SCHISMData."""
-    from rompy.schism import SCHISMData
+    from rompy_schism import SCHISMData
 
     # Create a boundary configuration with real tidal data
     bc = create_tidal_only_boundary_config(

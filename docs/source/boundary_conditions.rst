@@ -21,7 +21,7 @@ SCHISMDataBoundaryConditions
 
 The main class for configuring boundary conditions. This unified interface handles all boundary types and their associated data sources.
 
-.. autoclass:: rompy.schism.data.SCHISMDataBoundaryConditions
+.. autoclass:: rompy_schism.data.SCHISMDataBoundaryConditions
    :members:
    :undoc-members:
    :show-inheritance:
@@ -31,7 +31,7 @@ BoundarySetupWithSource
 
 Configures individual boundary segments with their data sources and boundary condition types.
 
-.. autoclass:: rompy.schism.data.BoundarySetupWithSource
+.. autoclass:: rompy_schism.data.BoundarySetupWithSource
    :members:
    :undoc-members:
    :show-inheritance:
@@ -41,7 +41,7 @@ BoundaryHandler
 
 Core boundary handler that extends BoundaryData and supports all SCHISM boundary types.
 
-.. autoclass:: rompy.schism.boundary_core.BoundaryHandler
+.. autoclass:: rompy_schism.boundary_core.BoundaryHandler
    :members:
    :undoc-members:
    :show-inheritance:
@@ -51,7 +51,7 @@ BoundaryConfig
 
 Configuration for individual boundary segments.
 
-.. autoclass:: rompy.schism.boundary_core.BoundaryConfig
+.. autoclass:: rompy_schism.boundary_core.BoundaryConfig
    :members:
    :undoc-members:
    :show-inheritance:
@@ -62,21 +62,21 @@ Boundary Type Enums
 ElevationType
 -------------
 
-.. autoclass:: rompy.schism.boundary_core.ElevationType
+.. autoclass:: rompy_schism.boundary_core.ElevationType
    :members:
    :undoc-members:
 
 VelocityType
 ------------
 
-.. autoclass:: rompy.schism.boundary_core.VelocityType
+.. autoclass:: rompy_schism.boundary_core.VelocityType
    :members:
    :undoc-members:
 
 TracerType
 ----------
 
-.. autoclass:: rompy.schism.boundary_core.TracerType
+.. autoclass:: rompy_schism.boundary_core.TracerType
    :members:
    :undoc-members:
 
@@ -91,13 +91,13 @@ High-Level Configuration Functions
 create_tidal_only_boundary_config
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autofunction:: rompy.schism.boundary_conditions.create_tidal_only_boundary_config
+.. autofunction:: rompy_schism.boundary_conditions.create_tidal_only_boundary_config
 
 **Example Usage:**
 
 .. code-block:: python
 
-    from rompy.schism.boundary_conditions import create_tidal_only_boundary_config
+    from rompy_schism.boundary_conditions import create_tidal_only_boundary_config
     
     # Basic tidal configuration
     bc = create_tidal_only_boundary_config(
@@ -115,13 +115,13 @@ create_tidal_only_boundary_config
 create_hybrid_boundary_config
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autofunction:: rompy.schism.boundary_conditions.create_hybrid_boundary_config
+.. autofunction:: rompy_schism.boundary_conditions.create_hybrid_boundary_config
 
 **Example Usage:**
 
 .. code-block:: python
 
-    from rompy.schism.boundary_conditions import create_hybrid_boundary_config
+    from rompy_schism.boundary_conditions import create_hybrid_boundary_config
     from rompy.core.data import DataBlob
     
     # Hybrid configuration with external data
@@ -138,13 +138,13 @@ create_hybrid_boundary_config
 create_river_boundary_config
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autofunction:: rompy.schism.boundary_conditions.create_river_boundary_config
+.. autofunction:: rompy_schism.boundary_conditions.create_river_boundary_config
 
 **Example Usage:**
 
 .. code-block:: python
 
-    from rompy.schism.boundary_conditions import create_river_boundary_config
+    from rompy_schism.boundary_conditions import create_river_boundary_config
     
     # River boundary with tidal forcing on other boundaries
     bc = create_river_boundary_config(
@@ -166,14 +166,14 @@ create_river_boundary_config
 create_nested_boundary_config
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autofunction:: rompy.schism.boundary_conditions.create_nested_boundary_config
+.. autofunction:: rompy_schism.boundary_conditions.create_nested_boundary_config
 
 **Example Usage:**
 
 .. code-block:: python
 
-    from rompy.schism.boundary_conditions import create_nested_boundary_config
-    from rompy.schism.data import SCHISMDataBoundary
+    from rompy_schism.boundary_conditions import create_nested_boundary_config
+    from rompy_schism.data import SCHISMDataBoundary
     from rompy.core.source import SourceFile
     
     # Nested boundary with tides and parent model data
@@ -206,10 +206,10 @@ Low-Level Boundary Creation Functions
 
 These functions create ``BoundaryHandler`` objects for direct grid-based boundary manipulation:
 
-.. autofunction:: rompy.schism.boundary_core.create_tidal_boundary
-.. autofunction:: rompy.schism.boundary_core.create_hybrid_boundary
-.. autofunction:: rompy.schism.boundary_core.create_river_boundary
-.. autofunction:: rompy.schism.boundary_core.create_nested_boundary
+.. autofunction:: rompy_schism.boundary_core.create_tidal_boundary
+.. autofunction:: rompy_schism.boundary_core.create_hybrid_boundary
+.. autofunction:: rompy_schism.boundary_core.create_river_boundary
+.. autofunction:: rompy_schism.boundary_core.create_nested_boundary
 
 Usage Examples
 ==============
@@ -221,8 +221,8 @@ For simulations with purely tidal forcing:
 
 .. code-block:: python
 
-    from rompy.schism.boundary_conditions import create_tidal_only_boundary_config
-    from rompy.schism.data import SCHISMData
+    from rompy_schism.boundary_conditions import create_tidal_only_boundary_config
+    from rompy_schism.data import SCHISMData
     
     # Create tidal-only boundary configuration
     boundary_conditions = create_tidal_only_boundary_config(
@@ -244,7 +244,7 @@ For simulations combining tidal forcing with external ocean data:
 
 .. code-block:: python
 
-    from rompy.schism.boundary_conditions import create_hybrid_boundary_config
+    from rompy_schism.boundary_conditions import create_hybrid_boundary_config
     from rompy.core.data import DataBlob
     
     # Create hybrid boundary configuration
@@ -266,7 +266,7 @@ For simulations with river inputs:
 
 .. code-block:: python
 
-    from rompy.schism.boundary_conditions import create_river_boundary_config
+    from rompy_schism.boundary_conditions import create_river_boundary_config
     
     # Create river boundary configuration
     boundary_conditions = create_river_boundary_config(
@@ -285,8 +285,8 @@ For simulations nested within a larger model:
 
 .. code-block:: python
 
-    from rompy.schism.boundary_conditions import create_nested_boundary_config
-    from rompy.schism.data import SCHISMDataBoundary
+    from rompy_schism.boundary_conditions import create_nested_boundary_config
+    from rompy_schism.data import SCHISMDataBoundary
     from rompy.core.source import SourceFile
     
     # Create nested boundary configuration
@@ -315,7 +315,7 @@ For maximum control, use the BoundaryHandler class directly:
 
 .. code-block:: python
 
-    from rompy.schism.boundary_core import (
+    from rompy_schism.boundary_core import (
         BoundaryHandler, 
         ElevationType, 
         VelocityType, 
@@ -356,8 +356,8 @@ For complex scenarios with mixed boundary types:
 
 .. code-block:: python
 
-    from rompy.schism.data import SCHISMDataBoundaryConditions, BoundarySetupWithSource
-    from rompy.schism.boundary_core import ElevationType, VelocityType, TracerType
+    from rompy_schism.data import SCHISMDataBoundaryConditions, BoundarySetupWithSource
+    from rompy_schism.boundary_core import ElevationType, VelocityType, TracerType
     from rompy.core.data import DataBlob
     
     # Create custom boundary configuration
@@ -448,7 +448,7 @@ Advanced data source with variable mapping and coordinate transformation:
 
 .. code-block:: python
 
-    from rompy.schism.data import SCHISMDataBoundary
+    from rompy_schism.data import SCHISMDataBoundary
     from rompy.core.source import SourceFile
     
     vel_source = SCHISMDataBoundary(
@@ -626,8 +626,8 @@ All factory functions support additional parameters for fine-tuning:
 
 .. code-block:: python
 
-    from rompy.schism.data import BoundarySetupWithSource
-    from rompy.schism.boundary_core import ElevationType, VelocityType, TracerType
+    from rompy_schism.data import BoundarySetupWithSource
+    from rompy_schism.boundary_core import ElevationType, VelocityType, TracerType
     
     # Custom boundary with specific types
     custom_boundary = BoundarySetupWithSource(
@@ -646,7 +646,7 @@ Configure Flather radiation boundaries using the low-level BoundaryHandler:
 
 .. code-block:: python
 
-    from rompy.schism.boundary_core import BoundaryHandler, ElevationType, VelocityType
+    from rompy_schism.boundary_core import BoundaryHandler, ElevationType, VelocityType
     
     # Create boundary handler
     boundary = BoundaryHandler(grid_path="path/to/hgrid.gr3")
@@ -707,6 +707,6 @@ See Also
 
 - :doc:`../core/data` - Core data handling classes
 - :doc:`../core/boundary` - Base boundary condition classes
-- :class:`rompy.schism.data.SCHISMData` - Main SCHISM configuration class
-- :class:`rompy.schism.grid.SCHISMGrid` - SCHISM grid handling
+- :class:`rompy_schism.data.SCHISMData` - Main SCHISM configuration class
+- :class:`rompy_schism.grid.SCHISMGrid` - SCHISM grid handling
 - :doc:`hotstart` - Hotstart configuration documentation

@@ -5,9 +5,9 @@ from pathlib import Path
 import pytest
 
 from rompy.core.time import TimeRange
-from rompy.schism.boundary_core import ElevationType, TracerType, VelocityType
-from rompy.schism.data import SCHISMDataBoundary
-from rompy.schism.tides_enhanced import (
+from rompy_schism.boundary_core import ElevationType, TracerType, VelocityType
+from rompy_schism.data import SCHISMDataBoundary
+from rompy_schism.tides_enhanced import (
     BoundarySetup,
     SCHISMDataTidesEnhanced,
     TidalDataset,
@@ -30,7 +30,7 @@ def test_time_range():
 @pytest.fixture
 def tidal_dataset():
     """Return a test tidal dataset."""
-    test_data_dir = Path(__file__).parent.parent / "test_data" / "tpxo9-neaus"
+    test_data_dir = Path(__file__).parent / "data" / "schism" / "tpxo9-neaus"
     elev_file = test_data_dir / "h_m2s2n2.nc"
     vel_file = test_data_dir / "u_m2s2n2.nc"
 
@@ -135,7 +135,7 @@ class TestSCHISMDataTidesEnhanced:
 
     def test_init_with_constituents(self):
         """Test initialization with constituents."""
-        from rompy.schism.boundary_core import TidalDataset
+        from rompy_schism.boundary_core import TidalDataset
 
         constituents = ["M2", "S2", "N2"]
         tidal_data = TidalDataset(constituents=constituents)

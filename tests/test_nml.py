@@ -6,8 +6,8 @@ from test_utils.logging import get_test_logger
 # Initialize logger
 logger = get_test_logger(__name__)
 
-from rompy.schism.namelists import NML
-from rompy.schism.namelists.param import Core
+from rompy_schism.namelists import NML
+from rompy_schism.namelists.param import Core
 
 
 def test_basic():

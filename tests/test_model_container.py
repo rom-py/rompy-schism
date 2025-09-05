@@ -23,20 +23,20 @@ def test_schism_container_basic_config(
     import tarfile
 
     from rompy.core.data import DataBlob
-    from rompy.schism.boundary_core import TidalDataset
-    from rompy.schism.config import SCHISMConfig
-    from rompy.schism.data import (
+    from rompy_schism.boundary_core import TidalDataset
+    from rompy_schism.config import SCHISMConfig
+    from rompy_schism.data import (
         BoundarySetupWithSource,
         SCHISMData,
         SCHISMDataBoundaryConditions,
     )
-    from rompy.schism.grid import SCHISMGrid
-    from rompy.schism.namelists import NML, Param
+    from rompy_schism.grid import SCHISMGrid
+    from rompy_schism.namelists import NML, Param
 
     # Paths
     # Use paths relative to this test file (tests/integration/test_model_containers.py)
     test_dir = Path(__file__).parent
-    tides_dir = test_dir.parent / "schism" / "test_data" / "tides"
+    tides_dir = test_dir.parent / "schism" / "data" / "schism" / "tides"
     tides_archive = tides_dir / "oceanum-atlas.tar.gz"
 
     # Extract tidal atlas if not already extracted (matches example runner)
@@ -47,12 +47,12 @@ def test_schism_container_basic_config(
     # Create SCHISM grid component
     from rompy.core.data import DataBlob
     from rompy.core.types import RompyBaseModel
-    from rompy.schism.grid import SCHISMGrid
-    from rompy.schism.namelists.param import Param, Schout
+    from rompy_schism.grid import SCHISMGrid
+    from rompy_schism.namelists.param import Param, Schout
 
     hgrid_blob = DataBlob(
         id="hgrid",
-        source=str(test_dir.parent / "schism" / "test_data" / "hgrid.gr3"),
+        source=str(test_dir.parent / "schism" / "data" / "schism" / "hgrid.gr3"),
     )
     grid_config = SCHISMGrid(hgrid=hgrid_blob, drag=2.5e-3, crs="epsg:4326")
 

@@ -76,8 +76,8 @@ def generate_pydantic_models(
     data: dict,
     filename: str,
     master_model_name=None,
-    # basemodel="rompy.schism.basemodel.NamelistBaseModel",
-    basemodel="rompy.schism.namelists.basemodel.NamelistBaseModel",
+    # basemodel="rompy_schism.basemodel.NamelistBaseModel",
+    basemodel="rompy_schism.namelists.basemodel.NamelistBaseModel",
     none_option=False,
 ):
     with open(filename, "w") as file:

@@ -31,7 +31,7 @@ logger = get_logger(__name__)
 
 HERE = Path(__file__).parent
 
-SCHISM_TEMPLATE = str(Path(__file__).parent.parent / "templates" / "schism")
+SCHISM_TEMPLATE = str(Path(__file__).parent / "templates" / "schism")
 
 
 class SCHISMConfig(BaseConfig):
@@ -65,7 +65,7 @@ class SCHISMConfig(BaseConfig):
     @model_serializer
     def serialize_model(self, **kwargs):
         """Custom serializer to handle proper serialization of nested components."""
-        from rompy.schism.grid import GR3Generator
+        from rompy_schism.grid import GR3Generator
 
         result = {}
 

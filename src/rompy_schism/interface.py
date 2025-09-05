@@ -13,9 +13,9 @@ from pydantic import Field
 
 from rompy.core.time import TimeRange
 from rompy.core.types import RompyBaseModel
-from rompy.schism.data import SCHISMData
-from rompy.schism.grid import SCHISMGrid
-from rompy.schism.namelists import NML
+from rompy_schism.data import SCHISMData
+from rompy_schism.grid import SCHISMGrid
+from rompy_schism.namelists import NML
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +29,7 @@ class DataInterface(RompyBaseModel):
     .. ipython:: python
         :okwarning:
 
-        from rompy.schism.interface import DataInterface
+        from rompy_schism.interface import DataInterface
 
     """
 

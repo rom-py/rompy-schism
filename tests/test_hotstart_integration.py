@@ -13,8 +13,8 @@ import pytest
 from rompy.core.source import SourceFile
 from rompy.core.time import TimeRange
 from rompy.core.types import DatasetCoords
-from rompy.schism.boundary_core import TidalDataset
-from rompy.schism.data import (
+from rompy_schism.boundary_core import TidalDataset
+from rompy_schism.data import (
     BoundarySetupWithSource,
     HotstartConfig,
     SCHISMDataBoundary,

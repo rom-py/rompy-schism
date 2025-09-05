@@ -7,14 +7,14 @@ from pathlib import Path
 
 import pytest
 
-from rompy.schism.grid import GR3Generator
+from rompy_schism.grid import GR3Generator
 
 
 # Skip this test if required files don't exist
 def get_test_hgrid():
     """Find a suitable hgrid.gr3 file for testing"""
     # Try to find a test grid in the test data directory
-    test_data_dir = Path(__file__).parent.parent / "data"
+    test_data_dir = Path(__file__).parent / "data"
 
     # Look for hgrid.gr3 files in the test data directory
     potential_files = list(test_data_dir.glob("**/hgrid.gr3"))

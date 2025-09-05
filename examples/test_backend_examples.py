@@ -12,7 +12,7 @@ import sys
 from pathlib import Path
 
 # Add the rompy directory to Python path if needed
-sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from run_boundary_conditions_examples import SchismExampleRunner
 
@@ -190,7 +190,7 @@ def test_prerequisites():
             runner.project_root
             / "tests"
             / "schism"
-            / "test_data"
+            / "data" / "schism"
             / "tides"
             / "oceanum-atlas.tar.gz",
             runner.examples_dir,

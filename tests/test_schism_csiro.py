@@ -9,12 +9,12 @@ from test_utils.logging import get_test_logger
 # Initialize logger
 logger = get_test_logger(__name__)
 
-pytest.importorskip("rompy.schism")
+pytest.importorskip("rompy_schism")
 from rompy.core.data import DataBlob
 from rompy.core.time import TimeRange
 from rompy.model import ModelRun
-from rompy.schism.config_legacy import Inputs, SchismCSIROConfig
-from rompy.schism.grid import SCHISMGrid
+from rompy_schism.config_legacy import Inputs, SchismCSIROConfig
+from rompy_schism.grid import SCHISMGrid
 from tests.utils import compare_files
 
 here = Path(__file__).parent
@@ -33,34 +33,34 @@ def test_schism_render(tmpdir):
         output_dir=str(tmpdir),
         config=SchismCSIROConfig(
             grid=SCHISMGrid(
-                hgrid=DataBlob(id="hgrid", source=here / "test_data" / "hgrid.gr3"),
-                vgrid=DataBlob(id="vgrid", source=here / "test_data" / "vgrid.in"),
+                hgrid=DataBlob(id="hgrid", source=here / "data" / "schism" / "hgrid.gr3"),
+                vgrid=DataBlob(id="vgrid", source=here / "data" / "schism" / "vgrid.in"),
                 diffmin=DataBlob(
-                    id="diffmin", source=here / "test_data" / "diffmin.gr3"
+                    id="diffmin", source=here / "data" / "schism" / "diffmin.gr3"
                 ),
                 diffmax=DataBlob(
-                    id="diffmax", source=here / "test_data" / "diffmax.gr3"
+                    id="diffmax", source=here / "data" / "schism" / "diffmax.gr3"
                 ),
                 # drag=DataBlob(id="drag", source=here /
-                #               "test_data" / "drag.gr3"),
+                #               "data" / "schism" / "drag.gr3"),
                 manning=DataBlob(
-                    id="manning", source=here / "test_data" / "manning.gr3"
+                    id="manning", source=here / "data" / "schism" / "manning.gr3"
                 ),
                 # rough=DataBlob(id="rough", source=here /
-                #                "test_data" / "rough.gr3"),
+                #                "data" / "schism" / "rough.gr3"),
                 # hgridll=DataBlob(
-                #     id="hgridll", source=here / "test_data" / "hgridll.gr3"
+                #     id="hgridll", source=here / "data" / "schism" / "hgridll.gr3"
                 # ),
                 hgrid_WWM=DataBlob(
-                    id="hgrid_WWM", source=here / "test_data" / "hgrid_WWM.gr3"
+                    id="hgrid_WWM", source=here / "data" / "schism" / "hgrid_WWM.gr3"
                 ),
-                wwmbnd=DataBlob(id="wwmbnd", source=here / "test_data" / "wwmbnd.gr3"),
+                wwmbnd=DataBlob(id="wwmbnd", source=here / "data" / "schism" / "wwmbnd.gr3"),
             ),
             inputs=Inputs(
                 filewave=DataBlob(
                     id="filewave",
                     source=here
-                    / "test_data"
+                    / "data" / "schism"
                     / "schism_bnd_spec_SWAN_500m_use_in_schism_2021Aug-Nov.nc",
                 ),
             ),

@@ -3,9 +3,9 @@ import tempfile
 from datetime import datetime
 from pathlib import Path
 
-from rompy.schism.bctides import Bctides
-from rompy.schism.boundary_core import TidalBoundary  # Backward compatibility alias
-from rompy.schism.boundary_core import (
+from rompy_schism.bctides import Bctides
+from rompy_schism.boundary_core import TidalBoundary  # Backward compatibility alias
+from rompy_schism.boundary_core import (
     BoundaryConfig,
     ElevationType,
     VelocityType,

@@ -1,6 +1,6 @@
 from pydantic import Field
 
-from rompy.schism.namelists.basemodel import NamelistBaseModel
+from rompy_schism.namelists.basemodel import NamelistBaseModel
 
 
 class MARCO(NamelistBaseModel):

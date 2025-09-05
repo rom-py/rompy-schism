@@ -4,7 +4,7 @@ from typing import Literal, Optional
 
 from pydantic import Field
 
-from rompy.schism.namelists.basemodel import NamelistBaseModel
+from rompy_schism.namelists.basemodel import NamelistBaseModel
 
 
 class Marco(NamelistBaseModel):

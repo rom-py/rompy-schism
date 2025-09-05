@@ -11,10 +11,10 @@ import tempfile
 import pytest
 
 from rompy.core.data import DataBlob
-from rompy.schism.config import SCHISMConfig
-from rompy.schism.grid import SCHISMGrid
-from rompy.schism.namelists import NML
-from rompy.schism.namelists.param import Param
+from rompy_schism.config import SCHISMConfig
+from rompy_schism.grid import SCHISMGrid
+from rompy_schism.namelists import NML
+from rompy_schism.namelists.param import Param
 
 
 class TestSCHISMConfigSchema:

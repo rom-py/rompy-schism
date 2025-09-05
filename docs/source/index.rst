@@ -9,7 +9,7 @@ Grids
    :nosignatures:
    :toctree: _generated/
 
-   rompy.schism.grid.SCHISMGrid
+   rompy_schism.grid.SCHISMGrid
 
 Data
 -----
@@ -19,11 +19,11 @@ Supporting objects for SCHISM data files.jects
 .. autosummary::
    :nosignatures:
    :toctree: _generated/
-   rompy.schism.data.SfluxSource
-   rompy.schism.data.SfluxAir
-   rompy.schism.data.SfluxRad
-   rompy.schism.data.SfluxPrc
-   rompy.schism.data.SCHISMDataBoundary
+   rompy_schism.data.SfluxSource
+   rompy_schism.data.SfluxAir
+   rompy_schism.data.SfluxRad
+   rompy_schism.data.SfluxPrc
+   rompy_schism.data.SCHISMDataBoundary
 
 Main objects
 
@@ -31,11 +31,11 @@ Main objects
    :nosignatures:
    :toctree: _generated/
 
-   rompy.schism.data.SCHISMDataSflux
-   rompy.schism.data.SCHISMDataWave
-   rompy.schism.data.SCHISMDataBoundaryConditions
-   rompy.schism.data.HotstartConfig
-   rompy.schism.data.SCHISMData
+   rompy_schism.data.SCHISMDataSflux
+   rompy_schism.data.SCHISMDataWave
+   rompy_schism.data.SCHISMDataBoundaryConditions
+   rompy_schism.data.HotstartConfig
+   rompy_schism.data.SCHISMData
 
 
 Boundary Conditions
@@ -73,12 +73,12 @@ The backend framework provides unified execution of SCHISM simulations using Doc
    :nosignatures:
    :toctree: _generated/
 
-   rompy.schism.data.SCHISMDataBoundaryConditions
-   rompy.schism.data.BoundarySetupWithSource
-   rompy.schism.boundary_conditions.create_tidal_only_boundary_config
-   rompy.schism.boundary_conditions.create_hybrid_boundary_config
-   rompy.schism.boundary_conditions.create_river_boundary_config
-   rompy.schism.boundary_conditions.create_nested_boundary_config
+   rompy_schism.data.SCHISMDataBoundaryConditions
+   rompy_schism.data.BoundarySetupWithSource
+   rompy_schism.boundary_conditions.create_tidal_only_boundary_config
+   rompy_schism.boundary_conditions.create_hybrid_boundary_config
+   rompy_schism.boundary_conditions.create_river_boundary_config
+   rompy_schism.boundary_conditions.create_nested_boundary_config
 
 
 Config Minimal
@@ -90,7 +90,7 @@ This object has been implemented to meet the initial operational requirements of
    :nosignatures:
    :toctree: _generated/
 
-   rompy.schism.config.SchismCSIROConfig
+   rompy_schism.config.SchismCSIROConfig
 
 Full Namelist Implementation
 -----------------------------
@@ -104,11 +104,11 @@ PARAM
    :nosignatures:
    :toctree: _generated/
 
-   rompy.schism.namelists.param.Core
-   rompy.schism.namelists.param.Opt
-   rompy.schism.namelists.param.Schout
-   rompy.schism.namelists.param.Vertical
-   rompy.schism.namelists.param.Param
+   rompy_schism.namelists.param.Core
+   rompy_schism.namelists.param.Opt
+   rompy_schism.namelists.param.Schout
+   rompy_schism.namelists.param.Vertical
+   rompy_schism.namelists.param.Param
 
 ICE
 ~~~~~~
@@ -117,8 +117,8 @@ ICE
    :nosignatures:
    :toctree: _generated/
 
-   rompy.schism.namelists.ice.Ice_in
-   rompy.schism.namelists.ice.Ice
+   rompy_schism.namelists.ice.Ice_in
+   rompy_schism.namelists.ice.Ice
 
 MICE
 ~~~~~~
@@ -127,8 +127,8 @@ MICE
    :nosignatures:
    :toctree: _generated/
 
-   rompy.schism.namelists.mice.Mice_in
-   rompy.schism.namelists.mice.Mice
+   rompy_schism.namelists.mice.Mice_in
+   rompy_schism.namelists.mice.Mice
 
 ICM
 ~~~~~~
@@ -137,19 +137,19 @@ ICM
    :nosignatures:
    :toctree: _generated/
 
-   rompy.schism.namelists.icm.Bag
-   rompy.schism.namelists.icm.Core
-   rompy.schism.namelists.icm.Ero
-   rompy.schism.namelists.icm.Marco
-   rompy.schism.namelists.icm.Ph_icm
-   rompy.schism.namelists.icm.Poc
-   rompy.schism.namelists.icm.Sav
-   rompy.schism.namelists.icm.Sfm
-   rompy.schism.namelists.icm.Silica
-   rompy.schism.namelists.icm.Stem
-   rompy.schism.namelists.icm.Veg
-   rompy.schism.namelists.icm.Zb
-   rompy.schism.namelists.icm.Icm
+   rompy_schism.namelists.icm.Bag
+   rompy_schism.namelists.icm.Core
+   rompy_schism.namelists.icm.Ero
+   rompy_schism.namelists.icm.Marco
+   rompy_schism.namelists.icm.Ph_icm
+   rompy_schism.namelists.icm.Poc
+   rompy_schism.namelists.icm.Sav
+   rompy_schism.namelists.icm.Sfm
+   rompy_schism.namelists.icm.Silica
+   rompy_schism.namelists.icm.Stem
+   rompy_schism.namelists.icm.Veg
+   rompy_schism.namelists.icm.Zb
+   rompy_schism.namelists.icm.Icm
 
 SEDIMENT
 ~~~~~~~~~~
@@ -158,9 +158,9 @@ SEDIMENT
    :nosignatures:
    :toctree: _generated/
 
-   rompy.schism.namelists.sediment.Sed_opt
-   rompy.schism.namelists.sediment.Sed_core
-   rompy.schism.namelists.sediment.Sediment
+   rompy_schism.namelists.sediment.Sed_opt
+   rompy_schism.namelists.sediment.Sed_core
+   rompy_schism.namelists.sediment.Sediment
 
 
 COSINE
@@ -170,10 +170,10 @@ COSINE
    :nosignatures:
    :toctree: _generated/
 
-   rompy.schism.namelists.cosine.Core
-   rompy.schism.namelists.cosine.Marco
-   rompy.schism.namelists.cosine.Misc
-   rompy.schism.namelists.cosine.Cosine
+   rompy_schism.namelists.cosine.Core
+   rompy_schism.namelists.cosine.Marco
+   rompy_schism.namelists.cosine.Misc
+   rompy_schism.namelists.cosine.Cosine
 
 
 WWMINPUT
@@ -183,18 +183,18 @@ WWMINPUT
    :nosignatures:
    :toctree: _generated/
 
-   rompy.schism.namelists.wwminput.Coupl
-   rompy.schism.namelists.wwminput.Engs
-   rompy.schism.namelists.wwminput.Grid
-   rompy.schism.namelists.wwminput.History
-   rompy.schism.namelists.wwminput.Hotfile
-   rompy.schism.namelists.wwminput.Init
-   rompy.schism.namelists.wwminput.Nesting
-   rompy.schism.namelists.wwminput.Nums
-   rompy.schism.namelists.wwminput.Petscoptions
-   rompy.schism.namelists.wwminput.Proc
-   rompy.schism.namelists.wwminput.Station
-   rompy.schism.namelists.wwminput.Wwminput
+   rompy_schism.namelists.wwminput.Coupl
+   rompy_schism.namelists.wwminput.Engs
+   rompy_schism.namelists.wwminput.Grid
+   rompy_schism.namelists.wwminput.History
+   rompy_schism.namelists.wwminput.Hotfile
+   rompy_schism.namelists.wwminput.Init
+   rompy_schism.namelists.wwminput.Nesting
+   rompy_schism.namelists.wwminput.Nums
+   rompy_schism.namelists.wwminput.Petscoptions
+   rompy_schism.namelists.wwminput.Proc
+   rompy_schism.namelists.wwminput.Station
+   rompy_schism.namelists.wwminput.Wwminput
 
 
 NML
@@ -206,7 +206,7 @@ This is the full namelist object that is the container for all the other namelis
    :nosignatures:
    :toctree: _generated/
 
-   rompy.schism.namelists.NML
+   rompy_schism.namelists.NML
 
 
 
@@ -221,4 +221,4 @@ Config Object
    :nosignatures:
    :toctree: _generated/
 
-   rompy.schism.config.SCHISMConfig
+   rompy_schism.config.SCHISMConfig

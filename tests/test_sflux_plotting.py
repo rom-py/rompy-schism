@@ -8,7 +8,7 @@ import pandas as pd
 import pytest
 import xarray as xr
 
-pytest.importorskip("rompy.schism")
+pytest.importorskip("rompy_schism")
 
 
 # Define the location of test files

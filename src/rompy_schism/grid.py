@@ -196,7 +196,7 @@ VGRID_TYPE_SZ = "sz"
 
 class VgridGenerator(GeneratorBase):
     """
-    Generate vgrid.in using the unified VGrid class from rompy.schism.vgrid.
+    Generate vgrid.in using the unified VGrid class from rompy_schism.vgrid.
     This class directly uses the VGrid API which mirrors the create_schism_vgrid function from PyLibs.
     """
 
@@ -237,7 +237,7 @@ class VgridGenerator(GeneratorBase):
 
     def _create_vgrid_instance(self) -> "VGrid":
         """Create the appropriate VGrid instance based on configuration."""
-        from rompy.schism.vgrid import VGrid
+        from rompy_schism.vgrid import VGrid
 
         if self.vgrid_type.lower() == "2d":
             return create_2d_vgrid()

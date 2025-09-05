@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 HERE = Path(__file__).parent
 
-CSIRO_TEMPLATE = str(Path(__file__).parent.parent / "templates" / "schismcsiro")
+CSIRO_TEMPLATE = str(Path(__file__).parent / "templates" / "schismcsiro")
 
 
 class Inputs(RompyBaseModel):

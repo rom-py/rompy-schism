@@ -5,7 +5,7 @@ from typing import Optional
 from pydantic import Field, model_serializer
 
 from rompy.core.time import TimeRange
-from rompy.schism.namelists.basemodel import NamelistBaseModel
+from rompy_schism.namelists.basemodel import NamelistBaseModel
 
 from .cosine import Cosine
 from .ice import Ice

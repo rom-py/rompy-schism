@@ -141,7 +141,7 @@ def generate_pydantic_model(
     data: dict,
     filename: str,
     master_model_name: str,
-    basemodel="rompy.schism.namelists.basemodel.NamelistBaseModel",
+    basemodel="rompy_schism.namelists.basemodel.NamelistBaseModel",
     claude_analysis: dict = None,
 ):
     analysis = claude_analysis or {}
@@ -210,7 +210,7 @@ def generate_pydantic_model(
 def nml_to_models(file_in: str, file_out: str):
     nml_dict = nml_to_dict(file_in)
     master_model_name = os.path.basename(file_in).split(".")[0].capitalize()
-    basemodel = "rompy.schism.namelists.basemodel.NamelistBaseModel"
+    basemodel = "rompy_schism.namelists.basemodel.NamelistBaseModel"
 
     var_spec_file = os.path.join(VAR_SPEC_DIR, f"{file_out}.json")
     if os.path.exists(var_spec_file):

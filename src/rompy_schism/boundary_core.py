@@ -17,7 +17,7 @@ its role as the core boundary handling module for all boundary types, not just t
 
 Example Usage:
     ```python
-    from rompy.schism.boundary_core import (
+    from rompy_schism.boundary_core import (
         BoundaryHandler,
         ElevationType,
         VelocityType,
@@ -933,7 +933,7 @@ def create_tidal_only_boundary_config(
     SCHISMDataBoundaryConditions
         Configured boundary conditions
     """
-    from rompy.schism.data import SCHISMDataBoundaryConditions
+    from rompy_schism.data import SCHISMDataBoundaryConditions
 
     # Create tidal dataset
     tidal_data = TidalDataset(
@@ -1003,8 +1003,8 @@ def create_hybrid_boundary_config(
     SCHISMDataBoundaryConditions
         Configured boundary conditions
     """
-    from rompy.schism.data import BoundarySetupWithSource, SCHISMDataBoundaryConditions
-    from rompy.schism.tides_enhanced import TidalDataset
+    from rompy_schism.data import BoundarySetupWithSource, SCHISMDataBoundaryConditions
+    from rompy_schism.tides_enhanced import TidalDataset
 
     # Create tidal dataset
     tidal_data = TidalDataset(
@@ -1082,8 +1082,8 @@ def create_river_boundary_config(
     SCHISMDataBoundaryConditions
         Configured boundary conditions
     """
-    from rompy.schism.data import BoundarySetupWithSource, SCHISMDataBoundaryConditions
-    from rompy.schism.tides_enhanced import TidalDataset
+    from rompy_schism.data import BoundarySetupWithSource, SCHISMDataBoundaryConditions
+    from rompy_schism.tides_enhanced import TidalDataset
 
     # Create tidal dataset if both paths are provided and needed
     tidal_data = None
@@ -1172,8 +1172,8 @@ def create_nested_boundary_config(
     SCHISMDataBoundaryConditions
         Configured boundary conditions
     """
-    from rompy.schism.data import BoundarySetupWithSource, SCHISMDataBoundaryConditions
-    from rompy.schism.tides_enhanced import TidalDataset
+    from rompy_schism.data import BoundarySetupWithSource, SCHISMDataBoundaryConditions
+    from rompy_schism.tides_enhanced import TidalDataset
 
     # Create tidal dataset if both paths are provided and needed
     tidal_data = None

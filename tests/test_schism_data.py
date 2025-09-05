@@ -10,12 +10,12 @@ from test_utils.logging import get_test_logger
 # Initialize logger
 logger = get_test_logger(__name__)
 
-pytest.importorskip("rompy.schism")
+pytest.importorskip("rompy_schism")
 import xarray as xr
 
 from rompy.core.source import SourceFile, SourceIntake
-from rompy.schism import SCHISMGrid
-from rompy.schism.data import SCHISMDataBoundary, SCHISMDataSflux, SfluxAir
+from rompy_schism import SCHISMGrid
+from rompy_schism.data import SCHISMDataBoundary, SCHISMDataSflux, SfluxAir
 
 HERE = Path(__file__).parent
 DATAMESH_TOKEN = os.environ.get("DATAMESH_TOKEN")
@@ -27,23 +27,23 @@ logging.basicConfig(level=logging.INFO)
 def grid_atmos_source():
     return SourceIntake(
         dataset_id="era5",
-        catalog_uri=HERE / ".." / "data" / "catalog.yaml",
+        catalog_uri=HERE / "data" / "catalog.yaml",
     )
 
 
 @pytest.fixture
 def hycom_bnd2d():
-    hycomdata = HERE / "test_data" / "hycom.nc"
+    hycomdata = HERE / "data" / "schism" / "hycom.nc"
     if not hycomdata.exists():
         from tests.utils import download_hycom
 
         logging.info("Hycom test data not found, downloading...")
         logging.info("This may take a while...only has to be done once.")
-        download_hycom(dest=HERE / "test_data", hgrid=HERE / "test_data" / "hgrid.gr3")
+        download_hycom(dest=HERE / "data" / "schism", hgrid=HERE / "data" / "schism" / "hgrid.gr3")
     return SCHISMDataBoundary(
         id="hycom",
         source=SourceFile(
-            uri=HERE / "test_data" / "hycom.nc",
+            uri=HERE / "data" / "schism" / "hycom.nc",
         ),
         variables=["surf_el"],
         coords={"t": "time", "y": "ylat", "x": "xlon"},
@@ -52,17 +52,17 @@ def hycom_bnd2d():
 
 @pytest.fixture
 def hycom_bnd_temp_3d():
-    hycomdata = HERE / "test_data" / "hycom.nc"
+    hycomdata = HERE / "data" / "schism" / "hycom.nc"
     if not hycomdata.exists():
         from tests.utils import download_hycom
 
         logging.info("Hycom test data not found, downloading...")
         logging.info("This may take a while...only has to be done once.")
-        download_hycom(dest=HERE / "test_data", hgrid=HERE / "test_data" / "hgrid.gr3")
+        download_hycom(dest=HERE / "data" / "schism", hgrid=HERE / "data" / "schism" / "hgrid.gr3")
     return SCHISMDataBoundary(
         id="hycom",
         source=SourceFile(
-            uri=HERE / "test_data" / "hycom.nc",
+            uri=HERE / "data" / "schism" / "hycom.nc",
         ),
         variables=["temperature"],
         coords={"t": "time", "y": "ylat", "x": "xlon", "z": "depth"},

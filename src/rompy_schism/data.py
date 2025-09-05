@@ -14,15 +14,15 @@ from rompy.core.time import TimeRange
 from rompy.core.types import RompyBaseModel
 from rompy.formatting import ARROW
 from rompy.logging import get_logger
-from rompy.schism.boundary_core import (
+from rompy_schism.boundary_core import (
     BoundaryHandler,
     ElevationType,
     TidalDataset,
     TracerType,
     VelocityType,
 )
-from rompy.schism.grid import SCHISMGrid
-from rompy.schism.tides_enhanced import BoundarySetup
+from rompy_schism.grid import SCHISMGrid
+from rompy_schism.tides_enhanced import BoundarySetup
 from rompy.utils import total_seconds
 
 from .namelists import Sflux_Inputs
@@ -366,7 +366,7 @@ class SCHISMDataSflux(RompyBaseModel):
             if isinstance(air_value, dict):
                 try:
                     # Import here to avoid circular import
-                    from rompy.schism.data import SfluxAir
+                    from rompy_schism.data import SfluxAir
 
                     air_value = SfluxAir(**air_value)
                     logger.info(
@@ -389,7 +389,7 @@ class SCHISMDataSflux(RompyBaseModel):
         if isinstance(self.air_1, dict):
             try:
                 # Import here to avoid circular import
-                from rompy.schism.data import SfluxAir
+                from rompy_schism.data import SfluxAir
 
                 logger.info(
                     f"Converting air_1 dictionary to SfluxAir object: {self.air_1}"
@@ -403,7 +403,7 @@ class SCHISMDataSflux(RompyBaseModel):
 
         if isinstance(self.air_2, dict):
             try:
-                from rompy.schism.data import SfluxAir
+                from rompy_schism.data import SfluxAir
 
                 logger.info(
                     f"Converting air_2 dictionary to SfluxAir object: {self.air_2}"
@@ -1805,7 +1805,7 @@ class SCHISMDataBoundaryConditions(RompyBaseModel):
         Returns:
             Path to the generated hotstart file
         """
-        from rompy.schism.hotstart import SCHISMDataHotstart
+        from rompy_schism.hotstart import SCHISMDataHotstart
 
         # Find a boundary that has both temperature and salinity sources
         temp_source = None

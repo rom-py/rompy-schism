@@ -24,7 +24,7 @@ class ClaudeClient:
         - Construct cross-variable validators that might be necessary (use the new @model_validator decorator)
         - Provide a master model that takes all of the other constructed models as inputs. Names of the input variables should be lowercased version of the CamelCased model names. The name for this class should be CamelCased name of the file (whithout extension). Use default_factories of the corresponding models. Determine an overall summary for the docs
         - Add doctrings to each model
-        - The baseclass for all models should be rompy.schism.namelists.basemodel.NamelistBaseModel
+        - The baseclass for all models should be rompy_schism.namelists.basemodel.NamelistBaseModel
 
         Namelist content:
         {content}
@@ -59,7 +59,7 @@ claude_client = ClaudeClient()
 
 def generate_pydantic_models(
     filename: str,
-    basemodel="rompy.schism.namelists.basemodel.NamelistBaseModel",
+    basemodel="rompy_schism.namelists.basemodel.NamelistBaseModel",
     claude_analysis=None,
 ):
     analysis = claude_analysis or {}

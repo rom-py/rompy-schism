@@ -4,9 +4,9 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from rompy.schism.bctides import Bctides
-from rompy.schism.boundary_core import TidalBoundary  # Backward compatibility alias
-from rompy.schism.boundary_core import (
+from rompy_schism.bctides import Bctides
+from rompy_schism.boundary_core import TidalBoundary  # Backward compatibility alias
+from rompy_schism.boundary_core import (
     BoundaryConfig,
     ElevationType,
     TracerType,
@@ -93,7 +93,7 @@ class TestBoundaryConfig:
 @pytest.fixture
 def sample_grid_path():
     """Return path to a test grid file."""
-    grid_path = Path(__file__).parent.parent / "hgrid_20kmto60km_schism_testing.gr3"
+    grid_path = Path(__file__).parent / "hgrid_20kmto60km_schism_testing.gr3"
     if not grid_path.exists():
         pytest.skip("Test grid file not found")
     return str(grid_path)
@@ -102,7 +102,7 @@ def sample_grid_path():
 @pytest.fixture
 def sample_tidal_files():
     """Return paths to tidal data files."""
-    test_data_dir = Path(__file__).parent.parent / "test_data" / "tpxo9-neaus"
+    test_data_dir = Path(__file__).parent / "data" / "schism" / "tpxo9-neaus"
     elev_file = test_data_dir / "h_m2s2n2.nc"
     vel_file = test_data_dir / "u_m2s2n2.nc"
 

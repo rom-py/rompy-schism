@@ -33,7 +33,7 @@ HotstartConfig Class
 
 The ``HotstartConfig`` class defines all parameters needed for hotstart file generation:
 
-.. autoclass:: rompy.schism.data.HotstartConfig
+.. autoclass:: rompy_schism.data.HotstartConfig
    :members:
    :undoc-members:
    :show-inheritance:
@@ -128,8 +128,8 @@ You can also configure hotstart generation programmatically:
 
 .. code-block:: python
 
-   from rompy.schism.data import SCHISMDataBoundaryConditions, HotstartConfig
-   from rompy.schism.boundary_conditions import create_hybrid_boundary_config
+   from rompy_schism.data import SCHISMDataBoundaryConditions, HotstartConfig
+   from rompy_schism.boundary_conditions import create_hybrid_boundary_config
 
    # Create hotstart configuration
    hotstart_config = HotstartConfig(
@@ -160,7 +160,7 @@ All boundary condition factory functions support hotstart configuration:
 
 .. code-block:: python
 
-   from rompy.schism.boundary_conditions import create_hybrid_boundary_config
+   from rompy_schism.boundary_conditions import create_hybrid_boundary_config
 
    # Using factory function with hotstart
    boundary_config = create_hybrid_boundary_config(

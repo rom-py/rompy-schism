@@ -7,13 +7,13 @@ from pathlib import Path
 
 import pytest
 
-pytest.importorskip("rompy.schism")
+pytest.importorskip("rompy_schism")
 
 from rompy.core.data import DataBlob
 from rompy.core.source import SourceFile
 from rompy.core.time import TimeRange
-from rompy.schism import SCHISMGrid
-from rompy.schism.hotstart import SCHISMDataHotstart
+from rompy_schism import SCHISMGrid
+from rompy_schism.hotstart import SCHISMDataHotstart
 
 HERE = Path(__file__).parent
 import logging
