@@ -22,11 +22,9 @@ pytest.importorskip("rompy_schism")
 from rompy_schism.namelists import Ice, Icm, Mice, Param, Sediment
 
 SAMPLE_DIR = (
-    Path(__file__).parent
-    / ".."
-    / ".."
-    / "rompy"
-    / "schism"
+    Path(__file__).parent.parent
+    / "src"
+    / "rompy_schism"
     / "namelists"
     / "sample_inputs"
 )
