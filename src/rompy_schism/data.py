@@ -258,7 +258,7 @@ class SfluxAir(SfluxSource):
                     )
                     # Default to a sample data source for testing
                     source_obj = SourceFile(
-                        uri="../../tests/schism/test_data/sample.nc"
+                        uri="../../tests/data/schism/sample.nc"
                     )
         else:
             raise ValueError("SfluxAir requires a 'source' parameter")

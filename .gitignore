@@ -164,4 +164,4 @@ task-*.md
 
 # Tests data
 tests/data/
-tests/schism/test_data/
+tests/data/schism/

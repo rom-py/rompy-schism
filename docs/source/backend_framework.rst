@@ -281,7 +281,7 @@ Configure backend execution in YAML configuration files:
         grid_type: schism
         hgrid:
           model_type: data_blob
-          source: tests/schism/test_data/hgrid.gr3
+          source: tests/data/schism/hgrid.gr3
 
       data:
         data_type: schism
@@ -289,7 +289,7 @@ Configure backend execution in YAML configuration files:
           data_type: boundary_conditions
           setup_type: tidal
           tidal_data:
-            tidal_database: tests/schism/test_data/tides
+            tidal_database: tests/data/schism/tides
             tidal_model: 'OCEANUM-atlas'
             constituents: [M2, S2, N2]
           boundaries:

@@ -1206,7 +1206,7 @@ if __name__ == "__main__":
 
     grid = SCHISMGrid(
         hgrid=DataBlob(
-            source="../../tests/schism/test_data/hgrid.gr3",
+            source="../../tests/data/schism/hgrid.gr3",
             id="hgrid",
         )
     )

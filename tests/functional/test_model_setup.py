@@ -24,7 +24,7 @@ class TestFullModelSetup:
         # Create a sample YAML configuration
         yaml_content = """
         grid:
-          hgrid: tests/schism/test_data/hgrid.gr3
+          hgrid: tests/data/schism/hgrid.gr3
           gr3_files:
             - type: drag
               value: 0.0025
@@ -40,7 +40,7 @@ class TestFullModelSetup:
         boundaries:
           ocean:
             elev2D:
-              source: tests/schism/test_data/hycom_subset.nc
+              source: tests/data/schism/hycom_subset.nc
               variables: [surf_el]
               sel_method: interp
         """

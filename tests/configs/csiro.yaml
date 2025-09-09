@@ -13,15 +13,15 @@ config:
     hgrid:
       id: hgrid
       model_type: data_blob
-        #source: ../../tests/schism/test_data/hgrid.gr3
-      source: ../../tests/schism/test_data/hgrid_20kmto60km_rompyschism_testing.gr3
+        #source: ../../tests/data/schism/hgrid.gr3
+      source: ../../tests/data/schism/hgrid_20kmto60km_rompyschism_testing.gr3
     manning: 1
   data:
     data_type: schism
     atmos:
       air_1:
         source: 
-        uri:  "file://../../tests/schism/test_data/atmos.nc"
+        uri:  "file://../../tests/data/schism/atmos.nc"
         model_type: open_dataset
         uwind_name: u10
         vwind_name: v10
@@ -38,7 +38,7 @@ config:
           y: ylat
           z: depth
         source: 
-          uri:  ../../tests/schism/test_data/hycom.nc
+          uri:  ../../tests/data/schism/hycom.nc
           model_type: open_dataset
         variable: surf_el
     tides:
@@ -51,8 +51,8 @@ config:
         - [5, 3, 0, 0]
       tidal_data:
         data_type: tidal_dataset
-        elevations: ../../tests/schism/test_data/tpxo9-neaus/h_m2s2n2.nc
-        velocities: ../../tests/schism/test_data/tpxo9-neaus/u_m2s2n2.nc
+        elevations: ../../tests/data/schism/tpxo9-neaus/h_m2s2n2.nc
+        velocities: ../../tests/data/schism/tpxo9-neaus/u_m2s2n2.nc
     wave:
       buffer: 0.0
       coords:

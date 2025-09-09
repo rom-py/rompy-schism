@@ -106,7 +106,7 @@ Create a YAML configuration file for a simple tidal simulation:
         grid_type: schism
         hgrid:
           model_type: data_blob
-          source: tests/schism/test_data/hgrid.gr3
+          source: tests/data/schism/hgrid.gr3
         drag: 2.5e-3
 
       data:
@@ -115,7 +115,7 @@ Create a YAML configuration file for a simple tidal simulation:
           data_type: boundary_conditions
           setup_type: tidal
           tidal_data:
-            tidal_database: tests/schism/test_data/tides
+            tidal_database: tests/data/schism/tides
             tidal_model: 'OCEANUM-atlas'
             constituents: [M2, S2, N2]
           boundaries:
@@ -270,7 +270,7 @@ Configure hybrid boundaries that combine tidal and ocean data:
           data_type: boundary_conditions
           setup_type: hybrid
           tidal_data:
-            tidal_database: tests/schism/test_data/tides
+            tidal_database: tests/data/schism/tides
             tidal_model: 'OCEANUM-atlas'
             constituents: [M2, S2, N2]
           boundaries:
@@ -283,7 +283,7 @@ Configure hybrid boundaries that combine tidal and ocean data:
                 data_type: boundary
                 source:
                   model_type: file
-                  uri: tests/schism/test_data/hycom.nc
+                  uri: tests/data/schism/hycom.nc
                 variables: [surf_el]
                 coords:
                   t: time
@@ -293,7 +293,7 @@ Configure hybrid boundaries that combine tidal and ocean data:
                 data_type: boundary
                 source:
                   model_type: file
-                  uri: tests/schism/test_data/hycom.nc
+                  uri: tests/data/schism/hycom.nc
                 variables: [water_u, water_v]
                 coords:
                   t: time
@@ -362,7 +362,7 @@ Configure complex scenarios with multiple boundary types:
           data_type: boundary_conditions
           setup_type: mixed
           tidal_data:
-            tidal_database: tests/schism/test_data/tides
+            tidal_database: tests/data/schism/tides
             tidal_model: 'OCEANUM-atlas'
             constituents: [M2, S2, N2]
           boundaries:
