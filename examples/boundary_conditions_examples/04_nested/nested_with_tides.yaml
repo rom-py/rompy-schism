@@ -12,9 +12,9 @@ config:
     hgrid:
       id: hgrid
       model_type: data_blob
-      source: tests/schism/test_data/hgrid.gr3
+      source: tests/data/schism/hgrid.gr3
     vgrid:
-      source: tests/schism/test_data/vgrid.in
+      source: tests/data/schism/vgrid.in
     drag: 1
   data:
     data_type: schism
@@ -23,7 +23,7 @@ config:
         data_type: sflux_air
         source:
           model_type: file
-          uri: tests/schism/test_data/era5.nc
+          uri: tests/data/schism/era5.nc
         uwind_name: u10
         vwind_name: v10
         prmsl_name: msl
@@ -35,7 +35,7 @@ config:
     boundary_conditions:
       data_type: boundary_conditions
       tidal_data:
-        tidal_database: tests/schism/test_data/tides
+        tidal_database: tests/data/schism/tides
         tidal_model: 'OCEANUM-atlas'
         constituents:
         - M2
@@ -51,7 +51,7 @@ config:
             data_type: boundary
             source:
               model_type: file
-              uri: tests/schism/test_data/hycom.nc
+              uri: tests/data/schism/hycom.nc
             variables:
               - surf_el
             coords:
@@ -65,7 +65,7 @@ config:
             data_type: boundary
             source:
               model_type: file
-              uri: tests/schism/test_data/hycom.nc
+              uri: tests/data/schism/hycom.nc
             variables:
               - water_u
               - water_v
@@ -79,7 +79,7 @@ config:
             data_type: boundary
             source:
               model_type: file
-              uri: tests/schism/test_data/hycom.nc
+              uri: tests/data/schism/hycom.nc
             variables:
               - temperature
             coords:
@@ -92,7 +92,7 @@ config:
             data_type: boundary
             source:
               model_type: file
-              uri: tests/schism/test_data/hycom.nc
+              uri: tests/data/schism/hycom.nc
             variables:
               - salinity
             coords:

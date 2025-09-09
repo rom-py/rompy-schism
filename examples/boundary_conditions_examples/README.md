@@ -150,14 +150,14 @@ python notebooks/schism/run_boundary_conditions_examples.py [OPTIONS]
 All examples use relative paths from the project root:
 ```yaml
 # Tidal data
-elevations: tests/schism/test_data/tpxo9-neaus/h_m2s2n2.nc
-velocities: tests/schism/test_data/tpxo9-neaus/u_m2s2n2.nc
+elevations: tests/data/schism/tpxo9-neaus/h_m2s2n2.nc
+velocities: tests/data/schism/tpxo9-neaus/u_m2s2n2.nc
 
 # Grid files  
-source: tests/schism/test_data/hgrid.gr3
+source: tests/data/schism/hgrid.gr3
 
 # Ocean data
-uri: tests/schism/test_data/hycom.nc
+uri: tests/data/schism/hycom.nc
 ```
 
 ### Customizing for Your Domain
@@ -165,7 +165,7 @@ uri: tests/schism/test_data/hycom.nc
 When adapting these examples:
 
 1. **Update grid files**: Replace with your domain's hgrid.gr3 and vgrid.in
-2. **Update file paths**: Change all `tests/schism/test_data/` paths to point to your actual data files
+2. **Update file paths**: Change all `tests/data/schism/` paths to point to your actual data files
 3. **Update tidal data**: Use tidal data covering your domain with full constituent sets
 4. **Update tidal constituents**: Replace `[M2, S2, N2]` with appropriate constituents for your region (e.g., `[M2, S2, N2, K1, O1]` for most coastal applications)
 5. **Update ocean data**: Use appropriate ocean model data (HYCOM, CMEMS, etc.)

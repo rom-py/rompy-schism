@@ -32,10 +32,8 @@ from pathlib import Path
 from typing import List, Optional, Tuple
 
 import yaml
-
 from rompy.backends import DockerConfig
 from rompy.core.time import TimeRange
-
 # ROMPY imports
 from rompy.model import ModelRun
 
@@ -213,8 +211,8 @@ class SchismExampleRunner:
         tidal_archive = (
             self.project_root
             / "tests"
+            / "data"
             / "schism"
-            / "data" / "schism"
             / "tides"
             / "oceanum-atlas.tar.gz"
         )

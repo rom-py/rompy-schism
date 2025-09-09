@@ -13,9 +13,9 @@ config:
     hgrid:
       id: hgrid
       model_type: data_blob
-      source: tests/schism/test_data/hgrid.gr3
+      source: tests/data/schism/hgrid.gr3
     vgrid:
-      source: tests/schism/test_data/vgrid.in
+      source: tests/data/schism/vgrid.in
     drag: 1
   data:
     data_type: schism
@@ -24,7 +24,7 @@ config:
         data_type: sflux_air
         source:
           model_type: file
-          uri: tests/schism/test_data/era5.nc
+          uri: tests/data/schism/era5.nc
         uwind_name: u10
         vwind_name: v10
         prmsl_name: msl
@@ -44,8 +44,8 @@ config:
       ntip: 0
       cutoff_depth: 50.0
       tidal_data:
-        elevations: tests/schism/test_data/tpxo9-neaus/h_m2s2n2.nc
-        velocities: tests/schism/test_data/tpxo9-neaus/u_m2s2n2.nc
+        elevations: tests/data/schism/tpxo9-neaus/h_m2s2n2.nc
+        velocities: tests/data/schism/tpxo9-neaus/u_m2s2n2.nc
       boundaries:
         0:
           elev_type: 5
@@ -56,7 +56,7 @@ config:
             data_type: boundary
             source:
               model_type: file
-              uri: tests/schism/test_data/hycom.nc
+              uri: tests/data/schism/hycom.nc
             variables:
               - surf_el
             coords:
@@ -67,7 +67,7 @@ config:
             data_type: boundary
             source:
               model_type: file
-              uri: tests/schism/test_data/hycom.nc
+              uri: tests/data/schism/hycom.nc
             variables:
               - water_u
               - water_v
@@ -80,7 +80,7 @@ config:
             data_type: boundary
             source:
               model_type: file
-              uri: tests/schism/test_data/hycom.nc
+              uri: tests/data/schism/hycom.nc
             variables:
               - temperature
             coords:
@@ -92,7 +92,7 @@ config:
             data_type: boundary
             source:
               model_type: file
-              uri: tests/schism/test_data/hycom.nc
+              uri: tests/data/schism/hycom.nc
             variables:
               - salinity
             coords:
