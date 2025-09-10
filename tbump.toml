@@ -9,3 +9,7 @@ tag_template = "v{new_version}"
 [[file]]
 src = "src/rompy_schism/__init__.py"
 search = '__version__ = "{current_version}"'
+
+[[after_push]]
+name = "Create GitHub release (with confirmation)"
+cmd = 'read -p "Create GitHub release for v{new_version}? [y/N] " yn; if [ "$yn" = "y" ] || [ "$yn" = "Y" ]; then gh release create v{new_version} --title "v{new_version}" --notes "Release v{new_version}"; else echo "Skipped GitHub release."; fi'
