@@ -8,7 +8,7 @@ Overview
 The SCHISM boundary conditions system provides a unified interface for configuring all types of boundary conditions in SCHISM simulations. This system replaces the previous separate tidal and ocean configurations with a single, flexible approach that supports:
 
 - **Harmonic boundaries** - Pure harmonic tidal forcing using tidal constituents
-- **Hybrid boundaries** - Combined harmonic and external data forcing  
+- **Hybrid boundaries** - Combined harmonic and external data forcing
 - **River boundaries** - Constant or time-varying river inputs
 - **Nested boundaries** - Coupling with parent model outputs
 - **Custom configurations** - Flexible mixing of different boundary types
@@ -98,14 +98,14 @@ create_tidal_only_boundary_config
 .. code-block:: python
 
     from rompy_schism.boundary_conditions import create_tidal_only_boundary_config
-    
+
     # Basic tidal configuration
     bc = create_tidal_only_boundary_config(
         constituents=["M2", "S2", "N2", "K1", "O1"],
         tidal_elevations="/path/to/h_tpxo9.nc",
         tidal_velocities="/path/to/u_tpxo9.nc"
     )
-    
+
     # With earth tidal potential
     bc = create_tidal_only_boundary_config(
         constituents=["M2", "S2", "K1", "O1"],
@@ -113,7 +113,7 @@ create_tidal_only_boundary_config
     )
 
 create_hybrid_boundary_config
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autofunction:: rompy_schism.boundary_conditions.create_hybrid_boundary_config
 
@@ -123,7 +123,7 @@ create_hybrid_boundary_config
 
     from rompy_schism.boundary_conditions import create_hybrid_boundary_config
     from rompy.core.data import DataBlob
-    
+
     # Hybrid configuration with external data
     bc = create_hybrid_boundary_config(
         constituents=["M2", "S2"],
@@ -136,7 +136,7 @@ create_hybrid_boundary_config
     )
 
 create_river_boundary_config
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autofunction:: rompy_schism.boundary_conditions.create_river_boundary_config
 
@@ -145,7 +145,7 @@ create_river_boundary_config
 .. code-block:: python
 
     from rompy_schism.boundary_conditions import create_river_boundary_config
-    
+
     # River boundary with tidal forcing on other boundaries
     bc = create_river_boundary_config(
         river_boundary_index=1,
@@ -155,7 +155,7 @@ create_river_boundary_config
         other_boundaries="tidal",
         constituents=["M2", "S2", "N2"]
     )
-    
+
     # River-only configuration
     bc = create_river_boundary_config(
         river_boundary_index=0,
@@ -164,7 +164,7 @@ create_river_boundary_config
     )
 
 create_nested_boundary_config
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autofunction:: rompy_schism.boundary_conditions.create_nested_boundary_config
 
@@ -175,7 +175,7 @@ create_nested_boundary_config
     from rompy_schism.boundary_conditions import create_nested_boundary_config
     from rompy_schism.data import SCHISMDataBoundary
     from rompy.core.source import SourceFile
-    
+
     # Nested boundary with tides and parent model data
     bc = create_nested_boundary_config(
         with_tides=True,
@@ -191,7 +191,7 @@ create_nested_boundary_config
             variables=["u", "v"]
         )
     )
-    
+
     # Nested boundary without tides
     bc = create_nested_boundary_config(
         with_tides=False,
@@ -223,7 +223,7 @@ For simulations with purely tidal forcing:
 
     from rompy_schism.boundary_conditions import create_tidal_only_boundary_config
     from rompy_schism.data import SCHISMData
-    
+
     # Create tidal-only boundary configuration
     boundary_conditions = create_tidal_only_boundary_config(
         constituents=["M2", "S2", "N2", "K1", "O1"],
@@ -231,7 +231,7 @@ For simulations with purely tidal forcing:
         tidal_elevations="path/to/tidal_elevations.nc",
         tidal_velocities="path/to/tidal_velocities.nc",
     )
-    
+
     # Use in SCHISM configuration
     schism_data = SCHISMData(
         boundary_conditions=boundary_conditions,
@@ -246,7 +246,7 @@ For simulations combining tidal forcing with external ocean data:
 
     from rompy_schism.boundary_conditions import create_hybrid_boundary_config
     from rompy.core.data import DataBlob
-    
+
     # Create hybrid boundary configuration
     boundary_conditions = create_hybrid_boundary_config(
         constituents=["M2", "S2"],
@@ -267,7 +267,7 @@ For simulations with river inputs:
 .. code-block:: python
 
     from rompy_schism.boundary_conditions import create_river_boundary_config
-    
+
     # Create river boundary configuration
     boundary_conditions = create_river_boundary_config(
         river_boundary_index=1,     # Index of the river boundary
@@ -288,7 +288,7 @@ For simulations nested within a larger model:
     from rompy_schism.boundary_conditions import create_nested_boundary_config
     from rompy_schism.data import SCHISMDataBoundary
     from rompy.core.source import SourceFile
-    
+
     # Create nested boundary configuration
     boundary_conditions = create_nested_boundary_config(
         with_tides=True,
@@ -316,12 +316,12 @@ For maximum control, use the BoundaryHandler class directly:
 .. code-block:: python
 
     from rompy_schism.boundary_core import (
-        BoundaryHandler, 
-        ElevationType, 
-        VelocityType, 
+        BoundaryHandler,
+        ElevationType,
+        VelocityType,
         TracerType
     )
-    
+
     # Create boundary handler
     boundary = BoundaryHandler(
         grid_path="path/to/hgrid.gr3",
@@ -330,21 +330,21 @@ For maximum control, use the BoundaryHandler class directly:
         tidal_elevations="path/to/h_tpxo9.nc",
         tidal_velocities="path/to/uv_tpxo9.nc"
     )
-    
+
     # Configure different boundary types
     boundary.set_boundary_type(
         0,  # Ocean boundary with tides
         elev_type=ElevationType.HARMONIC,
         vel_type=VelocityType.HARMONIC
     )
-    
+
     boundary.set_boundary_type(
         1,  # River boundary
         elev_type=ElevationType.NONE,
         vel_type=VelocityType.CONSTANT,
         vthconst=-500.0  # River inflow
     )
-    
+
     # Set simulation parameters and write output
     boundary.set_run_parameters(start_time, run_days)
     boundary.write_boundary_file("path/to/bctides.in")
@@ -359,7 +359,7 @@ For complex scenarios with mixed boundary types:
     from rompy_schism.data import SCHISMDataBoundaryConditions, BoundarySetupWithSource
     from rompy_schism.boundary_core import ElevationType, VelocityType, TracerType
     from rompy.core.data import DataBlob
-    
+
     # Create custom boundary configuration
     boundary_conditions = SCHISMDataBoundaryConditions(
         constituents=["M2", "S2"],
@@ -438,7 +438,7 @@ Simple file-based data source for pre-processed SCHISM input files:
 .. code-block:: python
 
     from rompy.core.data import DataBlob
-    
+
     elev_source = DataBlob(source="path/to/elev2D.th.nc")
 
 SCHISMDataBoundary
@@ -450,7 +450,7 @@ Advanced data source with variable mapping and coordinate transformation:
 
     from rompy_schism.data import SCHISMDataBoundary
     from rompy.core.source import SourceFile
-    
+
     vel_source = SCHISMDataBoundary(
         source=SourceFile(uri="path/to/ocean_model.nc"),
         variables=["u", "v"],
@@ -628,7 +628,7 @@ All factory functions support additional parameters for fine-tuning:
 
     from rompy_schism.data import BoundarySetupWithSource
     from rompy_schism.boundary_core import ElevationType, VelocityType, TracerType
-    
+
     # Custom boundary with specific types
     custom_boundary = BoundarySetupWithSource(
         elev_type=ElevationType.HARMONICEXTERNAL,
@@ -647,10 +647,10 @@ Configure Flather radiation boundaries using the low-level BoundaryHandler:
 .. code-block:: python
 
     from rompy_schism.boundary_core import BoundaryHandler, ElevationType, VelocityType
-    
+
     # Create boundary handler
     boundary = BoundaryHandler(grid_path="path/to/hgrid.gr3")
-    
+
     # Configure Flather boundary
     boundary.set_boundary_type(
         boundary_index=1,
@@ -686,7 +686,7 @@ Common Tidal Constituents
     bc = create_tidal_only_boundary_config(
         constituents=[
             "M2", "S2", "N2", "K2",     # Semi-diurnal
-            "K1", "O1", "P1", "Q1",     # Diurnal  
+            "K1", "O1", "P1", "Q1",     # Diurnal
             "Mf", "Mm", "Ssa"           # Long period
         ]
     )

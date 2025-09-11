@@ -32,6 +32,7 @@ extensions = [
     "sphinx.ext.autosummary",
     "sphinx.ext.viewcode",
     "sphinx.ext.napoleon",
+    "sphinx.ext.intersphinx",
     "sphinxcontrib.autodoc_pydantic",
     "nbsphinx",
     "IPython.sphinxext.ipython_console_highlighting",
@@ -138,4 +139,19 @@ autoclass_content = "class"
 autodoc_pydantic_model_show_json = True
 autodoc_pydantic_model_show_config_summary = False
 autodoc_pydantic_settings_show_validator_summary = True
+
+# Intersphinx configuration
+intersphinx_mapping = {
+    'python': ('https://docs.python.org/3', None),
+    'xarray': ('https://xarray.pydata.org/en/stable', None),
+    'numpy': ('https://numpy.org/doc/stable', None),
+    'pandas': ('https://pandas.pydata.org/docs', None),
+    'rompy': ('https://rom-py.github.io/rompy', None),
+}
+
+# External links configuration for referencing rompy docs
+extlinks = {
+    'rompy-doc': ('https://rom-py.github.io/rompy/%s', 'rompy documentation'),
+}
+
 man_pages = [(master_doc, "rompy-schism", "Rompy SCHISM Documentation", [author], 1)]
