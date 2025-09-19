@@ -12,6 +12,7 @@ import sys
 import tempfile
 import zipfile
 from pathlib import Path
+import subprocess
 
 import pytest
 import requests
