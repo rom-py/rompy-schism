@@ -9,7 +9,7 @@ from rompy.run.docker import DockerRunBackend
 
 @pytest.mark.slow
 def test_schism_container_basic_config(
-    tmp_path, docker_available, should_skip_docker_builds
+    tmp_path, docker_available, should_skip_docker_builds, tidal_dataset, tidal_data_files
 ):
     if not docker_available:
         pytest.skip("Docker not available")
@@ -36,7 +36,7 @@ def test_schism_container_basic_config(
     # Paths
     # Use paths relative to this test file (tests/integration/test_model_containers.py)
     test_dir = Path(__file__).parent
-    tides_dir = test_dir.parent / "schism" / "data" / "schism" / "tides"
+    tides_dir = test_dir.parent /  "data" / "schism" / "tides"
     tides_archive = tides_dir / "oceanum-atlas.tar.gz"
 
     # Extract tidal atlas if not already extracted (matches example runner)
@@ -52,7 +52,7 @@ def test_schism_container_basic_config(
 
     hgrid_blob = DataBlob(
         id="hgrid",
-        source=str(test_dir.parent / "schism" / "data" / "schism" / "hgrid.gr3"),
+        source=str(test_dir / "data" / "schism" / "hgrid.gr3"),
     )
     grid_config = SCHISMGrid(hgrid=hgrid_blob, drag=2.5e-3, crs="epsg:4326")
 
@@ -61,7 +61,7 @@ def test_schism_container_basic_config(
         data_type="boundary_conditions",
         setup_type="tidal",
         tidal_data=TidalDataset(
-            tidal_database=tides_dir,
+            tidal_database=tidal_data_files,
             tidal_model="OCEANUM-atlas",
             constituents=["M2", "S2", "N2"],
             nodal_corrections=False,
@@ -117,7 +117,7 @@ def test_schism_container_basic_config(
     run_cmd = "schism_v5.13.0 4"
 
     # Get dockerfile paths for DockerRunBackend to handle building if needed
-    repo_root = Path(__file__).resolve().parents[2]
+    repo_root = Path(__file__).resolve().parents[1]
     context_path = repo_root / "docker" / "schism"
 
     docker_config = DockerConfig(
@@ -143,6 +143,7 @@ def test_schism_container_basic_config(
     # Verify outputs
     outputs_dir = generated_dir / "outputs"
     assert outputs_dir.exists(), f"SCHISM outputs directory not created: {outputs_dir}"
+
 
     # Check for the specific expected SCHISM output file
     out2d_file = outputs_dir / "out2d_1.nc"
