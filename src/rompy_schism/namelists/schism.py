@@ -119,8 +119,8 @@ class NML(NamelistBaseModel):
         """Update the data sources in the namelist based on rompy data preparation."""
         update = {}
         if ("wave" in datasources) and (datasources["wave"] is not None):
-            if hasattr(
-                self, "wwminput"
+            if hasattr(self, "wwminput") and (
+                self.wwminput is not None
             ):  # TODO change this check to the actual flag value
                 if self.wwminput.bouc is not None:
                     logger.warn(
