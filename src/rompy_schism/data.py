@@ -97,7 +97,7 @@ class SfluxSource(DataGrid):
     @property
     def outfile(self) -> str:
         # TODO - filenumber is. Hardcoded to 1 for now.
-        return f'{self.id}.{str(1).rjust(4, "0")}.nc'
+        return f"{self.id}.{str(1).rjust(4, '0')}.nc"
 
     def _set_variables(self) -> None:
         for variable in self._variable_names:
@@ -257,9 +257,7 @@ class SfluxAir(SfluxSource):
                         "Source dictionary does not contain URI, creating a minimal source"
                     )
                     # Default to a sample data source for testing
-                    source_obj = SourceFile(
-                        uri="../../tests/data/schism/sample.nc"
-                    )
+                    source_obj = SourceFile(uri="../../tests/data/schism/sample.nc")
         else:
             raise ValueError("SfluxAir requires a 'source' parameter")
 
