@@ -1024,7 +1024,9 @@ def create_hybrid_boundary_config(
         boundaries={
             0: BoundarySetupWithSource(
                 elev_type=ElevationType.HARMONICEXTERNAL,
-                vel_type=VelocityType.HARMONICEXTERNAL,
+                vel_type=VelocityType.HARMONICEXTERNAL
+                if vel_source
+                else VelocityType.NONE,
                 temp_type=TracerType.EXTERNAL if temp_source else TracerType.INITIAL,
                 salt_type=TracerType.EXTERNAL if salt_source else TracerType.INITIAL,
                 elev_source=elev_source,
