@@ -1,0 +1,91 @@
+run_id: test_schism
+run_id_subdir: true
+delete_existing: true
+output_dir: schism_demo_config
+period:
+    start: 2023-01-01 00:00:00
+    end: 2023-01-01 12:00:00
+config:
+    model_type: schism
+    grid:
+        grid_type: schism
+        hgrid:
+            id: hgrid
+            model_type: data_blob
+            source: "../tests/data/schism/hgrid.gr3"
+        # vgrid:
+        #     source: "../tests/data/schism/vgrid.in"
+        drag: 1
+    data:
+        atmos:
+            air_1:
+                data_type: sflux_air
+                source:
+                    model_type: file
+                    uri: "../tests/data/schism/era5.nc"
+                uwind_name: u10
+                vwind_name: v10
+                prmsl_name: msl
+                filter:
+                    sort:
+                        coords:
+                            - latitude
+                buffer: 5
+        boundary_conditions:
+            data_type: boundary_conditions
+            setup_type: tidal
+            tidal_data:
+                tidal_database: "../tests/data/schism/tides"
+                tidal_model: "OCEANUM-atlas"
+                constituents:
+                    - M2
+                    - S2
+                    - N2
+                nodal_corrections: false
+                tidal_potential: false
+                extrapolate_tides: true
+            boundaries:
+                0:
+                    elev_type: 5
+                    vel_type: 5
+                    temp_type: 0
+                    salt_type: 0
+                    elev_source:
+                        data_type: boundary
+                        source:
+                            model_type: file
+                            uri: "../tests/data/schism/hycom.nc"
+                        variables:
+                            - surf_el
+                        coords:
+                            t: time
+                            x: xlon
+                            y: ylat
+        wave:
+            data_type: wave
+            coords:
+                t: time
+                x: lon
+                y: lat
+            grid_type: boundary_wave_station
+            id: wavedata
+            source:
+                catalog_uri: "../tests/data/catalog.yaml"
+                dataset_id: ausspec
+                model_type: intake
+    nml:
+        param:
+            core:
+                dt: 150.0
+            schout:
+                iof_hydro__1: 1 # Water elevation output
+                iof_hydro__14: 1 # Wind speed output
+                iof_hydro__16: 1 # Surface velocities output
+                iof_wwm__18: 1 # Peak wave direction output
+                iof_wwm__1: 1 # Significant wave height output
+                iof_wwm__9: 1 # Peak wave period output
+        wwminput:
+            engs:
+                fricc: 0.006
+            proc:
+                deltc: 150
