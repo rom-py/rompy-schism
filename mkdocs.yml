@@ -9,6 +9,11 @@ nav:
   - Installation: installation.md
   - Usage: usage.md
   - Contributing: contributing.md
+  - Boundary Conditions: boundary_conditions.md
+  - Hotstart Configuration: hotstart.md
+  - Backend Framework:
+    - Overview: backend_framework.md
+    - Tutorial: backend_tutorial.md
   - API Reference:
     - Config: reference/config.md
 
