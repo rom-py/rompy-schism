@@ -6,12 +6,8 @@ build-backend = "setuptools.build_meta"
 name = "rompy-schism"
 description = "SCHISM model plugin for rompy"
 readme = "README.md"
-authors = [
-  {name = "Rompy Contributors", email = "developers@rompy.com"}
-]
-maintainers = [
-  {name = "Rompy Contributors", email = "developers@rompy.com"}
-]
+authors = [{ name = "Rompy Contributors", email = "developers@rompy.com" }]
+maintainers = [{ name = "Rompy Contributors", email = "developers@rompy.com" }]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Science/Research",
@@ -25,35 +21,16 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
 ]
-license = {text = "Apache Software License 2.0"}
+license = { text = "Apache Software License 2.0" }
 requires-python = ">=3.10"
-dependencies = [
-    "rompy>=0.6",
-    "pydantic>2",
-    "pylibs-ocean",
-    "pytmd",
-]
+dependencies = ["rompy>=0.6", "pydantic>2", "pylibs-ocean", "pytmd"]
 
 dynamic = ["version"]
 
 [project.optional-dependencies]
-dev = [
-    "coverage",
-    "mypy",
-    "pytest",
-    "ruff",
-    "requests"
-]
-test = [
-    "pytest",
-    "coverage",
-    "requests"
-]
-docs = [
-    "mkdocs",
-    "mkdocs-material",
-    "mkdocstrings[python]"
-]
+dev = ["coverage", "mypy", "pytest", "ruff", "requests"]
+test = ["pytest", "coverage", "requests"]
+docs = ["mkdocs", "mkdocs-material", "mkdocstrings[python]", "mkdocs-jupyter"]
 
 [project.entry-points."rompy.config"]
 schismcsiro = "rompy_schism.config:SchismCSIROConfig"
@@ -65,13 +42,13 @@ changelog = "https://github.com/rom-py/rompy-schism/blob/master/changelog.md"
 homepage = "https://github.com/rom-py/rompy-schism"
 
 [tool.setuptools]
-package-dir = {"" = "src"}
+package-dir = { "" = "src" }
 
 [tool.setuptools.package-data]
 "*" = ["*.y*ml", "*.csv", "*.html"]
 
 [tool.setuptools.dynamic]
-version = {attr = "rompy_schism.__version__"}
+version = { attr = "rompy_schism.__version__" }
 
 [tool.pytest.ini_options]
 log_cli = true
