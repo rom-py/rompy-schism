@@ -202,7 +202,7 @@ class Bctides:
             f"{ARROW} Computing tidal factors for {len(self.tnames)} constituents"
         )
         # Use pyTMD for all calculations
-        ts = timescale.time.Timescale().from_datetime(self._start_time)
+        ts = timescale.time.Timescale().from_datetime(np.datetime64(self._start_time))
         MJD = ts.MJD
         # Astronomical longitudes
         if self.tidal_model.startswith("FES"):
