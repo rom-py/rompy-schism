@@ -1002,7 +1002,7 @@ class Schout(NamelistBaseModel):
         0, description="turbulent mixing length [m] {mixingLength}  3D"
     )
     iof_hydro__26: Optional[int] = Field(
-        1, description="horizontal vel vector [m/s] {horizontalVelX,Y} 3D vector"
+        0, description="horizontal vel vector [m/s] {horizontalVelX,Y} 3D vector"
     )
     iof_hydro__27: Optional[int] = Field(
         0,
