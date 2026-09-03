@@ -1,5 +1,6 @@
 # This file was auto generated from a SCHISM namelist file on 2025-01-24.
 
+import warnings
 from typing import List, Optional
 
 from pydantic import Field, field_validator, model_validator
@@ -53,6 +54,13 @@ class Core(NamelistBaseModel):
     nbins_veg_vert: Optional[int] = Field(
         2,
         description="Number of vertical bins for vegetation model. Only used if iveg=1.",
+    )
+    nmarsh_types: Optional[int] = Field(
+        2,
+        description=(
+            "Number of marsh types (CORE). Required by SCHISM ≥ v5.12 even when "
+            "USE_MARSH is off; sample_inputs use 2."
+        ),
     )
 
     @field_validator("ipre")
@@ -146,6 +154,20 @@ class Core(NamelistBaseModel):
             raise ValueError("ihfskip must be positive")
         return v
 
+    @field_validator("nbins_veg_vert")
+    @classmethod
+    def validate_nbins_veg_vert(cls, v):
+        if v is not None and v <= 0:
+            raise ValueError("nbins_veg_vert must be positive")
+        return v
+
+    @field_validator("nmarsh_types")
+    @classmethod
+    def validate_nmarsh_types(cls, v):
+        if v is not None and v <= 0:
+            raise ValueError("nmarsh_types must be positive")
+        return v
+
     @model_validator(mode="after")
     def validate_ibc_ibtp(self):
         if self.ibc == 0 and self.ibtp != 1:
@@ -154,6 +176,22 @@ class Core(NamelistBaseModel):
 
 
 class Opt(NamelistBaseModel):
+    @model_validator(mode="before")
+    @classmethod
+    def drop_removed_isconsv(cls, values):
+        if not isinstance(values, dict) or "isconsv" not in values:
+            return values
+        values = dict(values)
+        raw = values.pop("isconsv")
+        if raw not in (0, None, "0", False):
+            warnings.warn(
+                "opt.isconsv is ignored; SCHISM ≥ v5.12 derives precip/evap "
+                "from PREC_EVAP at compile time",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+        return values
+
     ipre2: Optional[int] = Field(
         0,
         description="Pre-processing flag for diagnostic outputs. If non-zero, the code will output drag coefficients (Cdp) and stop.",
@@ -436,14 +474,16 @@ class Opt(NamelistBaseModel):
         description="only used if nws=-1: hurricane model type (1: Holland; 10: GAHM)",
     )
     ihconsv: Optional[int] = Field(0, description="heat exchange option")
-    isconsv: Optional[int] = Field(0, description="evaporation/precipitation model")
+    # isconsv removed in SCHISM ≥ v5.12 (derived from PREC_EVAP at compile time)
     i_hmin_airsea_ex: Optional[int] = Field(2, description="no effect if ihconsv=0")
     hmin_airsea_ex: Optional[float] = Field(
         0.2, description="[m], no effect if ihconsv=0"
     )
-    i_hmin_salt_ex: Optional[int] = Field(2, description="no effect if isconsv=0")
+    i_hmin_salt_ex: Optional[int] = Field(
+        2, description="no effect if PREC_EVAP is off"
+    )
     hmin_salt_ex: Optional[float] = Field(
-        0.2, description="[m], no effect if isconsv=0"
+        0.2, description="[m], no effect if PREC_EVAP is off"
     )
     iprecip_off_bnd: Optional[int] = Field(
         0, description="if /=0, precip will be turned off near land bnd"
