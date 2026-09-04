@@ -373,9 +373,10 @@ class GridLinker(GeneratorBase):
 
     def generate(self, destdir: str | Path, name: str = None) -> Path:
         if isinstance(self.hgrid, DataBlob):
-            if not self.hgrid._copied:
-                self.hgrid.get(destdir, name="hgrid.gr3")
-            ref = self.hgrid._copied.name
+            copied_path = self.hgrid.copied_path
+            if copied_path is None:
+                copied_path = self.hgrid.get(destdir, name="hgrid.gr3")
+            ref = copied_path.name
         else:
             ref = self.hgrid
         if self.gridtype == "hgridll":

@@ -6,7 +6,8 @@ This module tests the core grid components of the SCHISM implementation.
 
 import pytest
 
-from rompy_schism.grid import GR3Generator
+from rompy.core.data import DataBlob
+from rompy_schism.grid import GR3Generator, GridLinker
 
 pytest.importorskip("rompy_schism")
 
@@ -49,6 +50,25 @@ class TestSCHISMGrid:
         # Check model methods
         assert hasattr(SCHISMGrid, "model_dump")
         assert hasattr(SCHISMGrid, "model_json_schema")
+
+
+class TestGridLinker:
+    """Tests for linking generated grid files."""
+
+    @pytest.mark.parametrize(
+        "gridtype, filename",
+        [("hgridll", "hgrid.ll"), ("hgrid_WWM", "hgrid_WWM.gr3")],
+    )
+    def test_datablob_uses_public_copied_path(self, tmp_path, gridtype, filename):
+        source = tmp_path / "source.gr3"
+        source.write_text("grid")
+        blob = DataBlob(source=source)
+
+        output = GridLinker(hgrid=blob, gridtype=gridtype).generate(tmp_path)
+
+        assert output == tmp_path / filename
+        assert output.is_symlink()
+        assert output.resolve() == tmp_path / "hgrid.gr3"
 
 
 class TestGR3Generator:
