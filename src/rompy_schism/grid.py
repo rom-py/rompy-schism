@@ -373,10 +373,11 @@ class GridLinker(GeneratorBase):
 
     def generate(self, destdir: str | Path, name: str = None) -> Path:
         if isinstance(self.hgrid, DataBlob):
-            copied_path = self.hgrid.copied_path
+            # Support released rompy versions until copied_path is available.
+            copied_path = getattr(self.hgrid, "copied_path", None)
             if copied_path is None:
                 copied_path = self.hgrid.get(destdir, name="hgrid.gr3")
-            ref = copied_path.name
+            ref = Path(copied_path).name
         else:
             ref = self.hgrid
         if self.gridtype == "hgridll":
