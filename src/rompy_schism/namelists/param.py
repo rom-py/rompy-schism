@@ -1,14 +1,19 @@
 # This file was auto generated from a SCHISM namelist file on 2025-01-24.
 
-import warnings
-from typing import List, Optional
+from typing import Annotated, List, Literal, Optional, Union
 
-from pydantic import Field, field_validator, model_validator
+from pydantic import (
+    BeforeValidator,
+    Field,
+    TypeAdapter,
+    field_validator,
+    model_validator,
+)
 
 from rompy_schism.namelists.basemodel import NamelistBaseModel
 
 
-class Core(NamelistBaseModel):
+class CoreCommon(NamelistBaseModel):
     ipre: Optional[int] = Field(
         0,
         description="Pre-processor flag (1: on; 0: off). Useful for checking grid errors etc. Use 1 core only for compute (plus necessary scribe cores) when enabled. Under scribe I/O, the code (scribe part) will hang but outputs will be available. Job should be manually terminated.",
@@ -54,13 +59,6 @@ class Core(NamelistBaseModel):
     nbins_veg_vert: Optional[int] = Field(
         2,
         description="Number of vertical bins for vegetation model. Only used if iveg=1.",
-    )
-    nmarsh_types: Optional[int] = Field(
-        2,
-        description=(
-            "Number of marsh types (CORE). Required by SCHISM ≥ v5.12 even when "
-            "USE_MARSH is off; sample_inputs use 2."
-        ),
     )
 
     @field_validator("ipre")
@@ -161,13 +159,6 @@ class Core(NamelistBaseModel):
             raise ValueError("nbins_veg_vert must be positive")
         return v
 
-    @field_validator("nmarsh_types")
-    @classmethod
-    def validate_nmarsh_types(cls, v):
-        if v is not None and v <= 0:
-            raise ValueError("nmarsh_types must be positive")
-        return v
-
     @model_validator(mode="after")
     def validate_ibc_ibtp(self):
         if self.ibc == 0 and self.ibtp != 1:
@@ -175,23 +166,24 @@ class Core(NamelistBaseModel):
         return self
 
 
-class Opt(NamelistBaseModel):
-    @model_validator(mode="before")
-    @classmethod
-    def drop_removed_isconsv(cls, values):
-        if not isinstance(values, dict) or "isconsv" not in values:
-            return values
-        values = dict(values)
-        raw = values.pop("isconsv")
-        if raw not in (0, None, "0", False):
-            warnings.warn(
-                "opt.isconsv is ignored; SCHISM ≥ v5.12 derives precip/evap "
-                "from PREC_EVAP at compile time",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-        return values
+class CoreV513(CoreCommon):
+    """CORE namelist accepted by SCHISM releases through v5.13."""
 
+
+class CoreV514(CoreCommon):
+    """CORE namelist used by the SCHISM v5.14 input format."""
+
+    nmarsh_types: int = Field(
+        2,
+        gt=0,
+        description=(
+            "Number of marsh types. Required by the SCHISM v5.14 input format, "
+            "including when USE_MARSH is disabled."
+        ),
+    )
+
+
+class OptCommon(NamelistBaseModel):
     ipre2: Optional[int] = Field(
         0,
         description="Pre-processing flag for diagnostic outputs. If non-zero, the code will output drag coefficients (Cdp) and stop.",
@@ -474,16 +466,15 @@ class Opt(NamelistBaseModel):
         description="only used if nws=-1: hurricane model type (1: Holland; 10: GAHM)",
     )
     ihconsv: Optional[int] = Field(0, description="heat exchange option")
-    # isconsv removed in SCHISM ≥ v5.12 (derived from PREC_EVAP at compile time)
     i_hmin_airsea_ex: Optional[int] = Field(2, description="no effect if ihconsv=0")
     hmin_airsea_ex: Optional[float] = Field(
         0.2, description="[m], no effect if ihconsv=0"
     )
     i_hmin_salt_ex: Optional[int] = Field(
-        2, description="no effect if PREC_EVAP is off"
+        2, description="shallow-water treatment for salt exchange"
     )
     hmin_salt_ex: Optional[float] = Field(
-        0.2, description="[m], no effect if PREC_EVAP is off"
+        0.2, description="[m], salt-exchange depth threshold"
     )
     iprecip_off_bnd: Optional[int] = Field(
         0, description="if /=0, precip will be turned off near land bnd"
@@ -565,6 +556,25 @@ class Opt(NamelistBaseModel):
         if self.iloadtide in [2, 3] and self.loadtide_coef == 0:
             raise ValueError("loadtide_coef must be set when iloadtide is 2 or 3")
         return self
+
+
+class OptV513(OptCommon):
+    """OPT namelist accepted by SCHISM releases through v5.13."""
+
+    isconsv: int = Field(
+        0,
+        ge=0,
+        le=1,
+        description="Legacy evaporation/precipitation model switch.",
+    )
+
+
+class OptV514(OptCommon):
+    """OPT namelist used by the SCHISM v5.14 input format.
+
+    ``isconsv`` is intentionally absent because precipitation and evaporation
+    are selected at compile time with PREC_EVAP in this format.
+    """
 
 
 class Vegetation(NamelistBaseModel):
@@ -1571,9 +1581,101 @@ class Schout(NamelistBaseModel):
         return self
 
 
-class Param(NamelistBaseModel):
-    core: Optional[Core] = Field(default_factory=Core)
-    opt: Optional[Opt] = Field(default_factory=Opt)
+class ParamBase(NamelistBaseModel):
+    """Shared behavior for versioned SCHISM ``param.nml`` schemas."""
+
+    namelist_name = "param"
+
+    param_schema: str
+    core: Optional[CoreCommon] = None
+    opt: Optional[OptCommon] = None
     vertical: Optional[Vertical] = Field(default_factory=Vertical)
     vegetation: Optional[Vegetation] = Field(default_factory=Vegetation)
     schout: Optional[Schout] = Field(default_factory=Schout)
+
+    def render(self) -> str:
+        """Render only Fortran namelist sections, excluding ROMPY metadata."""
+        sections = self.model_dump()
+        sections.pop("param_schema", None)
+        return self._render_sections(sections)
+
+    def to_schema(
+        self, param_schema: Literal["schism-v5.13", "schism-v5.14"]
+    ) -> "ParamBase":
+        """Return a validated copy using another parameter schema."""
+        return convert_param_schema(self, param_schema)
+
+
+class ParamV513(ParamBase):
+    """Parameter model for the SCHISM input format through v5.13."""
+
+    param_schema: Literal["schism-v5.13"] = "schism-v5.13"
+    core: Optional[CoreV513] = Field(default_factory=CoreV513)
+    opt: Optional[OptV513] = Field(default_factory=OptV513)
+
+
+class ParamV514(ParamBase):
+    """Parameter model for the SCHISM v5.14 input format."""
+
+    param_schema: Literal["schism-v5.14"] = "schism-v5.14"
+    core: Optional[CoreV514] = Field(default_factory=CoreV514)
+    opt: Optional[OptV514] = Field(default_factory=OptV514)
+
+
+# Backwards-compatible procedural API. These proxy classes retain the original
+# public class names and construct the legacy schema by default.
+class Core(CoreV513):
+    """Backwards-compatible proxy for :class:`CoreV513`."""
+
+
+class Opt(OptV513):
+    """Backwards-compatible proxy for :class:`OptV513`."""
+
+
+class Param(ParamV513):
+    """Backwards-compatible proxy for :class:`ParamV513`."""
+
+    core: Optional[Core] = Field(default_factory=Core)
+    opt: Optional[Opt] = Field(default_factory=Opt)
+
+
+def _default_param_schema(value):
+    """Treat configurations without a discriminator as legacy v5.13 input."""
+    if isinstance(value, dict) and "param_schema" not in value:
+        return {**value, "param_schema": "schism-v5.13"}
+    return value
+
+
+ParamConfig = Annotated[
+    Union[Param, ParamV514],
+    Field(discriminator="param_schema"),
+    BeforeValidator(_default_param_schema),
+]
+
+_PARAM_CONFIG_ADAPTER = TypeAdapter(ParamConfig)
+
+
+def convert_param_schema(
+    param: ParamBase,
+    param_schema: Literal["schism-v5.13", "schism-v5.14"],
+) -> ParamBase:
+    """Convert compatible values between the supported parameter schemas."""
+    data = param.model_dump()
+    data["param_schema"] = param_schema
+
+    if param_schema == "schism-v5.13":
+        data.get("core", {}).pop("nmarsh_types", None)
+        data.get("opt", {}).setdefault("isconsv", 0)
+    elif param_schema == "schism-v5.14":
+        opt = data.get("opt", {})
+        isconsv = opt.pop("isconsv", None)
+        if isconsv not in (None, 0):
+            raise ValueError(
+                "Cannot convert to schism-v5.14 with opt.isconsv enabled; "
+                "compile SCHISM with PREC_EVAP instead"
+            )
+        data.get("core", {}).setdefault("nmarsh_types", 2)
+    else:
+        raise ValueError(f"Unsupported SCHISM parameter schema: {param_schema}")
+
+    return _PARAM_CONFIG_ADAPTER.validate_python(data)
