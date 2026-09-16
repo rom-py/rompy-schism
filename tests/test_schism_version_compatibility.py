@@ -1,0 +1,150 @@
+"""Run ROMPY-generated parameter schemas against real SCHISM revisions."""
+
+from pathlib import Path
+
+import pytest
+from rompy.backends.config import DockerConfig
+from rompy.core.data import DataBlob
+from rompy.model import ModelRun
+
+from rompy_schism.boundary_core import TidalDataset
+from rompy_schism.config import SCHISMConfig
+from rompy_schism.data import (
+    BoundarySetupWithSource,
+    SCHISMData,
+    SCHISMDataBoundaryConditions,
+)
+from rompy_schism.grid import SCHISMGrid
+from rompy_schism.namelists import NML, Param, ParamV514
+
+# This is the first upstream revision which has both nmarsh_types and the removal
+# of isconsv. Pinning it makes the compatibility boundary stable if master changes.
+POST_V513_REF = "2135910d067608ca6b3d3663234cc0f01fd11f3d"
+
+
+def _compatibility_model_run(tmp_path, tidal_data_files, param):
+    """Create the smallest existing ROMPY SCHISM case suitable for ipre=1."""
+    test_data = Path(__file__).parent / "data" / "schism"
+
+    grid = SCHISMGrid(
+        hgrid=DataBlob(id="hgrid", source=str(test_data / "hgrid.gr3")),
+        drag=2.5e-3,
+        crs="epsg:4326",
+    )
+    boundary_conditions = SCHISMDataBoundaryConditions(
+        data_type="boundary_conditions",
+        setup_type="tidal",
+        tidal_data=TidalDataset(
+            tidal_database=tidal_data_files,
+            tidal_model="OCEANUM-atlas",
+            constituents=["M2", "S2", "N2"],
+            nodal_corrections=False,
+            tidal_potential=False,
+            extrapolate_tides=True,
+        ),
+        boundaries={
+            0: BoundarySetupWithSource(
+                elev_type=3,
+                vel_type=3,
+                temp_type=0,
+                salt_type=0,
+            )
+        },
+    )
+    config = SCHISMConfig(
+        model_type="schism",
+        grid=grid,
+        data=SCHISMData(
+            data_type="schism",
+            boundary_conditions=boundary_conditions,
+        ),
+        nml=NML(param=param),
+    )
+
+    return ModelRun(
+        output_dir=str(tmp_path),
+        period={
+            "start": "20230101T00",
+            "end": "20230101T01",
+            "interval": 3600,
+        },
+        run_id=f"param_compat_{param.param_schema}",
+        delete_existing=True,
+        config=config,
+    )
+
+
+@pytest.mark.slow
+@pytest.mark.parametrize(
+    ("schism_ref", "param"),
+    [
+        pytest.param(
+            "v5.13.0",
+            Param(
+                core={
+                    "ipre": 1,
+                    "dt": 150.0,
+                    "ibc": 1,
+                    "ibtp": 0,
+                },
+                schout={"iout_sta": 0},
+            ),
+            id="schism-v5.13",
+        ),
+        pytest.param(
+            POST_V513_REF,
+            ParamV514(
+                core={
+                    "ipre": 1,
+                    "dt": 150.0,
+                    "ibc": 1,
+                    "ibtp": 0,
+                    "nmarsh_types": 2,
+                },
+                schout={"iout_sta": 0},
+            ),
+            id="schism-v5.14-schema",
+        ),
+    ],
+)
+def test_generated_param_schema_initializes_in_schism(
+    tmp_path,
+    docker_available,
+    should_skip_docker_builds,
+    tidal_data_files,
+    schism_ref,
+    param,
+):
+    """SCHISM must parse and initialize each matching ROMPY parameter schema."""
+    if not docker_available:
+        pytest.skip("Docker is not available")
+    if should_skip_docker_builds:
+        pytest.skip("Docker builds are disabled in this environment")
+
+    model_run = _compatibility_model_run(tmp_path, tidal_data_files, param)
+    context_path = Path(__file__).resolve().parents[1] / "docker" / "schism"
+    docker_config = DockerConfig(
+        dockerfile=Path("Dockerfile.compat"),
+        build_context=context_path,
+        build_args={"SCHISM_REF": schism_ref},
+        executable="schism",
+        mpiexec="mpirun",
+        cpu=1,
+        timeout=1800,
+        env_vars={
+            "OMPI_ALLOW_RUN_AS_ROOT": "1",
+            "OMPI_ALLOW_RUN_AS_ROOT_CONFIRM": "1",
+        },
+    )
+
+    assert model_run.run(backend=docker_config) is True
+
+    generated_param = Path(model_run.staging_dir) / "param.nml"
+    rendered = generated_param.read_text()
+    assert "param_schema" not in rendered
+    if param.param_schema == "schism-v5.14":
+        assert "nmarsh_types = 2" in rendered
+        assert "isconsv" not in rendered
+    else:
+        assert "isconsv = 0" in rendered
+        assert "nmarsh_types" not in rendered

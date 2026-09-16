@@ -11,7 +11,7 @@ from .cosine import Cosine
 from .ice import Ice
 from .icm import Icm
 from .mice import Mice
-from .param import Param
+from .param import ParamBase, ParamConfig
 from .sediment import Sediment
 from .wwminput import Wwminput
 
@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 class NML(NamelistBaseModel):
-    param: Optional[Param] = Field(description="Model paramaters", default=None)
+    param: Optional[ParamConfig] = Field(description="Model parameters", default=None)
     ice: Optional[Ice] = Field(description="Ice model parameters", default=None)
     icm: Optional[Icm] = Field(description="Icm model parameters", default=None)
     mice: Optional[Mice] = Field(description="Mice model parameters", default=None)
@@ -218,9 +218,7 @@ class NML(NamelistBaseModel):
             return "\n".join(lines)
 
         # Format Param class
-        from .param import Param
-
-        if isinstance(obj, Param):
+        if isinstance(obj, ParamBase):
             header, footer, bullet = get_formatted_header_footer(
                 title="SCHISM PARAMETERS", use_ascii=USE_ASCII_ONLY
             )

@@ -1,0 +1,62 @@
+FROM ubuntu:22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV LC_ALL=C.UTF-8
+ENV LANG=C.UTF-8
+
+RUN apt-get update -y && \
+    apt-get install -y --no-install-recommends \
+        ca-certificates \
+        cmake \
+        gcc \
+        g++ \
+        gfortran \
+        libnetcdf-dev \
+        libnetcdff-dev \
+        make \
+        openmpi-bin \
+        libopenmpi-dev \
+        python3 \
+        wget && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+WORKDIR /usr/src/schism
+
+RUN ln --symbolic /usr/bin/python3 /usr/local/bin/python
+
+ARG SCHISM_REF=v5.13.0
+
+RUN wget --quiet \
+        --output-document=/tmp/schism.tar.gz \
+        "https://github.com/schism-dev/schism/archive/${SCHISM_REF}.tar.gz" && \
+    tar --extract \
+        --gzip \
+        --file=/tmp/schism.tar.gz \
+        --strip-components=1 \
+        --directory=/usr/src/schism && \
+    rm /tmp/schism.tar.gz
+
+COPY Make.defs.gfortran /usr/src/schism/mk/Make.defs.local
+COPY include_modules /usr/src/schism/mk/include_modules
+COPY gen_version_fallback.py /tmp/gen_version_fallback.py
+
+# ipre=1 exits cleanly only when there are no scribe ranks waiting for output.
+# OLDIO therefore gives the compatibility test a true one-rank initialization mode.
+# Post-v5.13 revisions generate schism_version.F90 from CMake and no longer ship
+# Core/gen_version.py, but the makefile still invokes it.
+RUN if [ ! -f /usr/src/schism/src/Core/gen_version.py ]; then \
+        cp /tmp/gen_version_fallback.py /usr/src/schism/src/Core/gen_version.py; \
+    fi && \
+    sed --in-place \
+        's/^# USE_OLDIO = yes/USE_OLDIO = yes/' \
+        /usr/src/schism/mk/include_modules && \
+    sed --in-place \
+        's/^# EXEC := \$(EXEC)_OLDIO/EXEC := \$(EXEC)_OLDIO/' \
+        /usr/src/schism/mk/include_modules && \
+    make --directory=/usr/src/schism/src --jobs="$(nproc)" psc && \
+    install \
+        /usr/src/schism/src/pschism_git_HYDRO_OLDIO_VL \
+        /usr/local/bin/schism
+
+WORKDIR /app/run_id

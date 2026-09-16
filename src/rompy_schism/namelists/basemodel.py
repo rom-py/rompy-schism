@@ -1,5 +1,14 @@
 from pathlib import Path
-from typing import Any, Dict, Optional, Type, Union, get_type_hints
+from typing import (
+    Any,
+    ClassVar,
+    Dict,
+    Optional,
+    Type,
+    get_args,
+    get_origin,
+    get_type_hints,
+)
 
 from pydantic import BaseModel, model_serializer, model_validator
 
@@ -9,21 +18,25 @@ from rompy.core.types import RompyBaseModel
 def get_model_field_type(
     model: Type[BaseModel], field: str
 ) -> Optional[Type[BaseModel]]:
-    model_fields = get_type_hints(model)
+    model_fields = get_type_hints(model, include_extras=True)
     annotation = model_fields.get(field)
 
-    if annotation:
+    def find_model_type(candidate) -> Optional[Type[BaseModel]]:
         try:
-            if hasattr(annotation, "__origin__") and annotation.__origin__ is Union:
-                for arg in annotation.__args__:
-                    if arg is not type(None) and issubclass(arg, BaseModel):
-                        return arg
-            elif issubclass(annotation, BaseModel):
-                return annotation
-        except Exception:
-            __import__("ipdb").set_trace()
+            if isinstance(candidate, type) and issubclass(candidate, BaseModel):
+                return candidate
+        except TypeError:
+            pass
 
-    return None
+        if get_origin(candidate) is not None:
+            for argument in get_args(candidate):
+                model_type = find_model_type(argument)
+                if model_type is not None:
+                    return model_type
+
+        return None
+
+    return find_model_type(annotation)
 
 
 def recursive_update(model: BaseModel, updates: Dict[str, Any]) -> BaseModel:
@@ -51,6 +64,8 @@ def recursive_update(model: BaseModel, updates: Dict[str, Any]) -> BaseModel:
 
 class NamelistBaseModel(RompyBaseModel):
     """Base model for namelist variables"""
+
+    namelist_name: ClassVar[Optional[str]] = None
 
     @model_validator(mode="before")
     def __lowercase_property_keys__(cls, values: Any) -> Any:
@@ -82,10 +97,14 @@ class NamelistBaseModel(RompyBaseModel):
 
     def render(self) -> str:
         """Render the namelist variable as a string"""
+        return self._render_sections(self.model_dump())
+
+    def _render_sections(self, sections: Dict[str, Any]) -> str:
+        """Render an already-serialized mapping of namelist sections."""
         # create string of the form "variable = value"
         ret = []
         ret += [f"! SCHISM {self.__module__} namelist rendered from Rompy\n"]
-        for section, values in self.model_dump().items():
+        for section, values in sections.items():
             if values is not None:
                 ret += [f"&{section}"]
                 for variable, value in values.items():
@@ -131,6 +150,7 @@ class NamelistBaseModel(RompyBaseModel):
         """
         # Ensure workdir is a Path object
         workdir_path = Path(workdir) if isinstance(workdir, str) else workdir
-        output = workdir_path / f"{self.__class__.__name__.lower()}.nml"
+        filename = self.namelist_name or self.__class__.__name__.lower()
+        output = workdir_path / f"{filename}.nml"
         with open(output, "w") as f:
             f.write(self.render())
