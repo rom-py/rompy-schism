@@ -1,6 +1,6 @@
 import warnings
 from pathlib import Path
-from typing import Literal, Optional
+from typing import Any, Literal, Optional
 
 from pydantic import ConfigDict, Field, model_serializer, model_validator
 from rompy.core.config import BaseConfig
@@ -24,11 +24,8 @@ from .config_plotting_tides import (
 from .data import SCHISMData
 from .grid import SCHISMGrid
 from .namelists import NML
-from .namelists.param import (
-    DEFAULT_SCHISM_SCHEMA,
-    Param,
-    SchismSchemaVersion,
-)
+from .namelists.param import Param
+from .schema import DEFAULT_SCHISM_SCHEMA, SchismSchemaVersion
 
 logger = get_logger(__name__)
 
@@ -64,6 +61,44 @@ class SCHISMConfig(BaseConfig):
         description="The path to the model template",
         default=SCHISM_TEMPLATE,
     )
+
+    @model_validator(mode="before")
+    @classmethod
+    def migrate_nested_param_schema(cls, values: Any) -> Any:
+        """Migrate the short-lived nested discriminator to the top level."""
+        if not isinstance(values, dict):
+            return values
+
+        nml = values.get("nml")
+        if not isinstance(nml, dict):
+            return values
+        param = nml.get("param")
+        if not isinstance(param, dict) or "param_schema" not in param:
+            return values
+
+        migrated = dict(values)
+        migrated_nml = dict(nml)
+        migrated_param = dict(param)
+        nested_version = migrated_param.pop("param_schema")
+        explicit_version = migrated.get("schema_version")
+
+        if explicit_version is not None and explicit_version != nested_version:
+            raise ValueError(
+                "Conflicting schema versions: SCHISMConfig.schema_version is "
+                f"{explicit_version!r}, but nml.param.param_schema is "
+                f"{nested_version!r}"
+            )
+
+        migrated["schema_version"] = nested_version
+        migrated_nml["param"] = migrated_param
+        migrated["nml"] = migrated_nml
+        warnings.warn(
+            "nml.param.param_schema is deprecated; move it to "
+            "SCHISMConfig.schema_version",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return migrated
 
     # add a validator that checks that nml.param.ihot is 1 if data.hotstart is not none
     @model_validator(mode="after")
@@ -117,7 +152,7 @@ class SCHISMConfig(BaseConfig):
             result["data"] = self.data
 
         if self.nml is not None:
-            result["nml"] = self.nml
+            result["nml"] = self.nml.resolved_dump(self.schema_version)
 
         if self.template is not None:
             result["template"] = self.template

@@ -32,6 +32,8 @@ class TestTopLevelSchemaVersion:
         dumped = config.model_dump()
         assert dumped["schema_version"] == "schism-v5.13"
         assert "param_schema" not in dumped["nml"]["param"]
+        assert "nmarsh_types" not in dumped["nml"]["param"]["core"]
+        assert dumped["nml"]["param"]["opt"]["isconsv"] == 0
 
         rendered = config.nml.param.render(config.schema_version)
         assert "isconsv = 0" in rendered
@@ -43,6 +45,10 @@ class TestTopLevelSchemaVersion:
             grid=_grid(tmp_path),
             nml=NML(param=Param()),
         )
+
+        dumped = config.model_dump()
+        assert dumped["nml"]["param"]["core"]["nmarsh_types"] == 2
+        assert "isconsv" not in dumped["nml"]["param"]["opt"]
 
         rendered = config.nml.param.render(config.schema_version)
         assert "nmarsh_types = 2" in rendered
@@ -81,6 +87,39 @@ class TestTopLevelSchemaVersion:
             SCHISMConfig(
                 schema_version="schism-v6.0",
                 grid=_grid(tmp_path),
+            )
+
+
+class TestNestedSchemaMigration:
+    def test_migrates_interim_nested_v514_schema(self, tmp_path):
+        with pytest.warns(DeprecationWarning, match="param_schema"):
+            config = SCHISMConfig.model_validate(
+                {
+                    "model_type": "schism",
+                    "grid": _grid(tmp_path),
+                    "nml": {
+                        "param": {
+                            "param_schema": "schism-v5.14",
+                            "core": {"nmarsh_types": 4},
+                        }
+                    },
+                }
+            )
+
+        assert config.schema_version == "schism-v5.14"
+        dumped = config.model_dump()
+        assert "param_schema" not in dumped["nml"]["param"]
+        assert dumped["nml"]["param"]["core"]["nmarsh_types"] == 4
+
+    def test_rejects_conflicting_top_level_and_nested_versions(self, tmp_path):
+        with pytest.raises(ValidationError, match="Conflicting schema versions"):
+            SCHISMConfig.model_validate(
+                {
+                    "model_type": "schism",
+                    "schema_version": "schism-v5.13",
+                    "grid": _grid(tmp_path),
+                    "nml": {"param": {"param_schema": "schism-v5.14"}},
+                }
             )
 
 

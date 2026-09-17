@@ -6,12 +6,13 @@ from pydantic import Field, model_serializer
 from rompy.core.time import TimeRange
 
 from rompy_schism.namelists.basemodel import NamelistBaseModel
+from rompy_schism.schema import DEFAULT_SCHISM_SCHEMA, SchismSchemaVersion
 
 from .cosine import Cosine
 from .ice import Ice
 from .icm import Icm
 from .mice import Mice
-from .param import DEFAULT_SCHISM_SCHEMA, Param, SchismSchemaVersion
+from .param import Param
 from .sediment import Sediment
 from .wwminput import Wwminput
 
@@ -148,6 +149,13 @@ class NML(NamelistBaseModel):
                     }
                 )
         self.update(update)
+
+    def resolved_dump(self, schema_version: SchismSchemaVersion) -> dict:
+        """Serialize all namelists using one complete schema contract."""
+        result = self.model_dump()
+        if self.param is not None:
+            result["param"] = self.param.resolved_dump(schema_version)
+        return result
 
     def write_nml(
         self,

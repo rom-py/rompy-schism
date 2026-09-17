@@ -2,14 +2,12 @@
 # This file is now maintained manually.
 
 from pathlib import Path
-from typing import List, Literal, Optional
+from typing import Any, Dict, List, Optional
 
 from pydantic import Field, field_validator, model_validator
 
 from rompy_schism.namelists.basemodel import NamelistBaseModel
-
-SchismSchemaVersion = Literal["schism-v5.13", "schism-v5.14"]
-DEFAULT_SCHISM_SCHEMA: SchismSchemaVersion = "schism-v5.13"
+from rompy_schism.schema import DEFAULT_SCHISM_SCHEMA, SchismSchemaVersion
 
 
 class Core(NamelistBaseModel):
@@ -24,7 +22,7 @@ class Core(NamelistBaseModel):
     ibtp: Optional[int] = Field(
         1, description="Barotropic option flag. Only used when ibc is not 0."
     )
-    rnday: Optional[float] = Field(30, description="Total run time in days.")
+    rnday: Optional[float] = Field(30.0, description="Total run time in days.")
     dt: Optional[float] = Field(100.0, description="Time step in seconds.")
     msc2: Optional[int] = Field(
         24,
@@ -341,7 +339,7 @@ class Opt(NamelistBaseModel):
     flag_ic__11: Optional[int] = Field(1, description="FABM")
     flag_ic__12: Optional[int] = Field(0, description="DVD (must=0)")
     gen_wsett: Optional[float] = Field(
-        0, description="Settling vel [m/s] for GEN module"
+        0.0, description="Settling vel [m/s] for GEN module"
     )
     ibcc_mean: Optional[int] = Field(0, description="")
     rmaxvel: Optional[float] = Field(5.0, description="")
@@ -1574,26 +1572,30 @@ class Param(NamelistBaseModel):
 
         raise ValueError(f"Unsupported SCHISM schema version: {schema_version}")
 
-    def render(
-        self, schema_version: SchismSchemaVersion = DEFAULT_SCHISM_SCHEMA
-    ) -> str:
-        """Render ``param.nml`` according to the selected full config schema."""
+    def resolved_dump(self, schema_version: SchismSchemaVersion) -> Dict[str, Any]:
+        """Serialize fields after applying the selected schema contract."""
         self.validate_schema(schema_version)
         sections = self.model_dump()
 
         if schema_version == "schism-v5.13":
             if sections.get("core") is not None:
                 sections["core"].pop("nmarsh_types", None)
-        else:
-            if (
-                sections.get("core") is not None
-                and sections["core"].get("nmarsh_types") is None
-            ):
-                sections["core"]["nmarsh_types"] = 2
-            if sections.get("opt") is not None:
-                sections["opt"].pop("isconsv", None)
+            return sections
 
-        return self._render_sections(sections)
+        if (
+            sections.get("core") is not None
+            and sections["core"].get("nmarsh_types") is None
+        ):
+            sections["core"]["nmarsh_types"] = 2
+        if sections.get("opt") is not None:
+            sections["opt"].pop("isconsv", None)
+        return sections
+
+    def render(
+        self, schema_version: SchismSchemaVersion = DEFAULT_SCHISM_SCHEMA
+    ) -> str:
+        """Render ``param.nml`` according to the selected full config schema."""
+        return self._render_sections(self.resolved_dump(schema_version))
 
     def write_nml(
         self,
