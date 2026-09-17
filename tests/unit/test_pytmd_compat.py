@@ -119,6 +119,37 @@ def test_interp_group_opens_chunked_then_crops():
     np.testing.assert_array_equal(pha, np.zeros((2, 1)))
 
 
+@pytest.mark.parametrize("data_type", ["h", "uv"])
+def test_oceanum_coastal_interpolation_is_finite(tidal_data_files, data_type):
+    """Wet coastal nodes must not silently produce non-finite harmonics."""
+    from rompy_schism.bctides import Bctides
+
+    # Grid node 2133 is finite with the pyTMD 2 bilinear path but becomes NaN
+    # when pyTMD 3 maps bilinear to xarray's masked-cell linear interpolation.
+    bc = Bctides(
+        hgrid=None,
+        constituents=["m2"],
+        tidal_database=tidal_data_files,
+        tidal_model="OCEANUM-atlas",
+        tide_interpolation_method="bilinear",
+        extrapolate_tides=False,
+        extrapolation_distance=50.0,
+        extra_databases=[tidal_data_files / "database.json"],
+    )
+
+    result = bc._interpolate_tidal_data(
+        np.array([152.2166853158]),
+        np.array([-24.4772773961]),
+        ["m2"],
+        data_type,
+    )
+
+    assert np.isfinite(result).all(), (
+        f"{data_type} interpolation returned non-finite tidal coefficients: "
+        f"{result!r}"
+    )
+
+
 def test_elevation_from_database_z_only():
     """Elevation-only extracts must not require u/v model files."""
     from rompy_schism.bctides import Bctides
