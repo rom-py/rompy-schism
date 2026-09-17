@@ -3,7 +3,6 @@ from pathlib import Path
 from typing import Literal, Optional
 
 from pydantic import ConfigDict, Field, model_serializer, model_validator
-
 from rompy.core.config import BaseConfig
 from rompy.logging import get_logger
 
@@ -25,7 +24,11 @@ from .config_plotting_tides import (
 from .data import SCHISMData
 from .grid import SCHISMGrid
 from .namelists import NML
-from .namelists.param import Param
+from .namelists.param import (
+    DEFAULT_SCHISM_SCHEMA,
+    Param,
+    SchismSchemaVersion,
+)
 
 logger = get_logger(__name__)
 
@@ -35,8 +38,22 @@ SCHISM_TEMPLATE = str(Path(__file__).parent / "templates" / "schism")
 
 
 class SCHISMConfig(BaseConfig):
+    """Complete SCHISM configuration governed by one top-level schema version.
+
+    ``schema_version`` controls version-sensitive defaults, validation, and
+    rendering across the whole configuration. Its legacy default is a permanent
+    compatibility contract for serialized configs that predate this field.
+    """
+
     model_type: Literal["schism"] = Field(
         "schism", description="The model type for SCHISM."
+    )
+    schema_version: SchismSchemaVersion = Field(
+        DEFAULT_SCHISM_SCHEMA,
+        description=(
+            "Version of the complete SCHISM configuration contract. Configs "
+            "without this field retain schism-v5.13 semantics."
+        ),
     )
     grid: SCHISMGrid = Field(description="The model grid")
     data: Optional[SCHISMData] = Field(None, description="Model inputs")
@@ -62,6 +79,13 @@ class SCHISMConfig(BaseConfig):
             self.nml.param.opt.ihot = 1
         return self
 
+    @model_validator(mode="after")
+    def validate_schema_contract(self):
+        """Validate all version-sensitive values from one top-level contract."""
+        if self.nml is not None and self.nml.param is not None:
+            self.nml.param.validate_schema(self.schema_version)
+        return self
+
     @model_serializer
     def serialize_model(self, **kwargs):
         """Custom serializer to handle proper serialization of nested components."""
@@ -71,6 +95,7 @@ class SCHISMConfig(BaseConfig):
 
         # Explicitly handle required fields
         result["model_type"] = self.model_type
+        result["schema_version"] = self.schema_version
 
         # Handle grid separately to process GR3Generator objects
         if self.grid is not None:
@@ -203,7 +228,7 @@ class SCHISMConfig(BaseConfig):
 
             # Update times and write namelists
             self.nml.update_times(period=runtime.period)
-            self.nml.write_nml(runtime.staging_dir)
+            self.nml.write_nml(runtime.staging_dir, schema_version=self.schema_version)
             logger.info(f"{ARROW} Namelists configured successfully")
 
         return str(runtime.staging_dir)
