@@ -7,7 +7,7 @@ import yaml
 
 from rompy_schism.config import SCHISMConfig
 
-FIXTURES = Path(__file__).parents[1] / "data" / "schema"
+FIXTURES = Path(__file__).parents[1] / "schema_fixtures"
 
 
 @pytest.mark.parametrize(
