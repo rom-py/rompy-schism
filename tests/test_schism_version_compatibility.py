@@ -145,6 +145,11 @@ def test_generated_param_schema_initializes_in_schism(
 
     assert model_run.run(backend=docker_config) is True
 
+    fatal_error = Path(model_run.staging_dir) / "outputs" / "fatal.error"
+    assert fatal_error.read_text().strip() == "", (
+        f"SCHISM reported a fatal error:\n{fatal_error.read_text()}"
+    )
+
     generated_param = Path(model_run.staging_dir) / "param.nml"
     rendered = generated_param.read_text()
     assert "schema_version" not in rendered
