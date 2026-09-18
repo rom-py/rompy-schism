@@ -47,21 +47,6 @@ Serialized configurations contain the resolved fields for their selected
 schema. Consequently, a load → dump → load round trip preserves both the schema
 version and the generated namelist behaviour.
 
-## Migration from the interim nested format
-
-The short-lived nested discriminator is accepted for migration:
-
-```yaml
-nml:
-  param:
-    param_schema: schism-v5.14
-```
-
-Rompy moves this value to `SCHISMConfig.schema_version` and emits a deprecation
-warning. If both locations are present with different values, validation fails
-rather than guessing which contract should apply. Newly written configurations
-must use only the top-level field.
-
 ## Adding a future schema
 
 Support for a new SCHISM schema must:

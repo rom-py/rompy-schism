@@ -90,39 +90,6 @@ class TestTopLevelSchemaVersion:
             )
 
 
-class TestNestedSchemaMigration:
-    def test_migrates_interim_nested_v514_schema(self, tmp_path):
-        with pytest.warns(DeprecationWarning, match="param_schema"):
-            config = SCHISMConfig.model_validate(
-                {
-                    "model_type": "schism",
-                    "grid": _grid(tmp_path),
-                    "nml": {
-                        "param": {
-                            "param_schema": "schism-v5.14",
-                            "core": {"nmarsh_types": 4},
-                        }
-                    },
-                }
-            )
-
-        assert config.schema_version == "schism-v5.14"
-        dumped = config.model_dump()
-        assert "param_schema" not in dumped["nml"]["param"]
-        assert dumped["nml"]["param"]["core"]["nmarsh_types"] == 4
-
-    def test_rejects_conflicting_top_level_and_nested_versions(self, tmp_path):
-        with pytest.raises(ValidationError, match="Conflicting schema versions"):
-            SCHISMConfig.model_validate(
-                {
-                    "model_type": "schism",
-                    "schema_version": "schism-v5.13",
-                    "grid": _grid(tmp_path),
-                    "nml": {"param": {"param_schema": "schism-v5.14"}},
-                }
-            )
-
-
 class TestVersionedParamRendering:
     def test_nml_write_passes_top_level_schema(self, tmp_path):
         NML(param=Param()).write_nml(tmp_path, schema_version="schism-v5.14")
