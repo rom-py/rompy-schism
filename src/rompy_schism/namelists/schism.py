@@ -3,15 +3,16 @@ from pathlib import Path
 from typing import Optional
 
 from pydantic import Field, model_serializer
-
 from rompy.core.time import TimeRange
+
 from rompy_schism.namelists.basemodel import NamelistBaseModel
+from rompy_schism.schema import DEFAULT_SCHISM_SCHEMA, SchismSchemaVersion
 
 from .cosine import Cosine
 from .ice import Ice
 from .icm import Icm
 from .mice import Mice
-from .param import ParamBase, ParamConfig
+from .param import Param
 from .sediment import Sediment
 from .wwminput import Wwminput
 
@@ -19,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 
 class NML(NamelistBaseModel):
-    param: Optional[ParamConfig] = Field(description="Model parameters", default=None)
+    param: Optional[Param] = Field(description="Model paramaters", default=None)
     ice: Optional[Ice] = Field(description="Ice model parameters", default=None)
     icm: Optional[Icm] = Field(description="Icm model parameters", default=None)
     mice: Optional[Mice] = Field(description="Mice model parameters", default=None)
@@ -149,19 +150,25 @@ class NML(NamelistBaseModel):
                 )
         self.update(update)
 
-    def write_nml(self, workdir: Path):
-        for nml in [
-            "param",
-            "ice",
-            "icm",
-            "mice",
-            "sediment",
-            "cosine",
-            "wwminput",
-        ]:
-            attr = getattr(self, nml)
-            if attr is not None:
-                attr.write_nml(workdir)
+    def resolved_dump(self, schema_version: SchismSchemaVersion) -> dict:
+        """Serialize all namelists using one complete schema contract."""
+        result = self.model_dump()
+        if self.param is not None:
+            result["param"] = self.param.resolved_dump(schema_version)
+        return result
+
+    def write_nml(
+        self,
+        workdir: Path,
+        schema_version: SchismSchemaVersion = DEFAULT_SCHISM_SCHEMA,
+    ) -> None:
+        if self.param is not None:
+            self.param.write_nml(workdir, schema_version=schema_version)
+
+        for name in ["ice", "icm", "mice", "sediment", "cosine", "wwminput"]:
+            namelist = getattr(self, name)
+            if namelist is not None:
+                namelist.write_nml(workdir)
 
     def _format_value(self, obj):
         """Custom formatter for NML values.
@@ -218,7 +225,9 @@ class NML(NamelistBaseModel):
             return "\n".join(lines)
 
         # Format Param class
-        if isinstance(obj, ParamBase):
+        from .param import Param
+
+        if isinstance(obj, Param):
             header, footer, bullet = get_formatted_header_footer(
                 title="SCHISM PARAMETERS", use_ascii=USE_ASCII_ONLY
             )

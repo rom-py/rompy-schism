@@ -100,7 +100,7 @@ class NamelistBaseModel(RompyBaseModel):
         return self._render_sections(self.model_dump())
 
     def _render_sections(self, sections: Dict[str, Any]) -> str:
-        """Render an already-serialized mapping of namelist sections."""
+        """Render an already-resolved mapping of namelist sections."""
         # create string of the form "variable = value"
         ret = []
         ret += [f"! SCHISM {self.__module__} namelist rendered from Rompy\n"]
