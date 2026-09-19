@@ -8,6 +8,7 @@ from datetime import datetime
 
 import numpy as np
 import pyTMD
+import pyTMD.constituents as _tmd_args
 import timescale
 import xarray as xr
 from scipy.spatial import KDTree
@@ -16,6 +17,13 @@ from rompy.formatting import ARROW
 from rompy.logging import get_logger
 
 logger = get_logger(__name__)
+
+try:
+    import dask  # noqa: F401
+
+    _OPEN_CHUNKS = "auto"
+except ImportError:  # pragma: no cover - xarray chunks need dask
+    _OPEN_CHUNKS = None
 
 
 class Bctides:
@@ -208,21 +216,21 @@ class Bctides:
         if self.tidal_model.startswith("FES"):
             # FES models use ASTRO5 method
             s, h, p, n, pp = pyTMD.astro.mean_longitudes(MJD, method="ASTRO5")
-            u, f = pyTMD.arguments.nodal_modulation(
+            u, f = _tmd_args.nodal_modulation(
                 n, p, self.tnames, corrections="FES"
             )
-            freq = pyTMD.arguments.frequency(self.tnames, corrections="FES")
+            freq = _tmd_args.frequency(self.tnames, corrections="FES")
         else:
             # Other models use ASTRO2 method
             s, h, p, n, pp = pyTMD.astro.mean_longitudes(MJD, method="Cartwright")
-            u, f = pyTMD.arguments.nodal_modulation(
+            u, f = _tmd_args.nodal_modulation(
                 n, p, self.tnames, corrections="OTIS"
             )
-            freq = pyTMD.arguments.frequency(self.tnames, corrections="OTIS")
+            freq = _tmd_args.frequency(self.tnames, corrections="OTIS")
 
         # Nodal corrections (u: phase, f: factor)
-        u = u.squeeze()
-        f = f.squeeze()
+        u = np.atleast_1d(np.squeeze(u))
+        f = np.atleast_1d(np.squeeze(f))
         u_deg = np.rad2deg(u)
 
         # Earth equilibrium argument
@@ -230,7 +238,7 @@ class Bctides:
         tau = 15.0 * hour - s + h
         k = 90.0 + np.zeros_like(MJD)
         fargs = np.c_[tau, s, h, p, n, pp, k]
-        coef = pyTMD.arguments.coefficients_table(self.tnames)
+        coef = _tmd_args.coefficients_table(self.tnames)
         G = np.mod(np.dot(fargs, coef), 360.0)
 
         # Compose info
@@ -240,7 +248,7 @@ class Bctides:
         self.nodal_phase_correction = []
         self.species = []
         for c, constituent in enumerate(self.tnames):
-            params = pyTMD.arguments._constituent_parameters(constituent)
+            params = _tmd_args._constituent_parameters(constituent)
             self.amp.append(params[0])
             self.freq.append(freq[c])
             self.nodal_factor.append(f[c])
@@ -251,7 +259,11 @@ class Bctides:
 
     def _interpolate_tidal_data(self, lons, lats, constituents, data_type="h"):
         """
-        Interpolate tidal data for a constituent to boundary points using pyTMD extract_constants.
+        Interpolate tidal harmonics to boundary points via pyTMD 3.
+
+        Opens with ``chunks='auto'`` when dask is installed, then
+        ``Dataset.tmd.crop`` on a caller-expanded bounds box (lazy hyperslab;
+        no open-time ``bounds`` kwarg).
 
         Parameters
         ----------
@@ -259,69 +271,117 @@ class Bctides:
             Longitude values of boundary points
         lats : array
             Latitude values of boundary points
-        constituent : str
-            Tidal constituent name
+        constituents : list
+            Tidal constituent names
         data_type : str
             'h' for elevation, 'uv' for velocity
 
         Returns
         -------
         np.ndarray
-            For elevation: [amp, pha] (shape: n_points, 2)
-            For velocity: [u_amp, u_pha, v_amp, v_pha] (shape: n_points, 4)
+            For elevation: [amp, pha] (shape: n_points, n_constituents, 2)
+            For velocity: [u_amp, u_pha, v_amp, v_pha]
+            (shape: n_points, n_constituents, 4)
         """
+        lons = np.atleast_1d(np.asarray(lons, dtype=float))
+        lats = np.atleast_1d(np.asarray(lats, dtype=float))
         tmd_model = pyTMD.io.model(
             self.tidal_database,
             extra_databases=self.extra_databases,
-            constituents=constituents,
         )
+        # Elevation-only databases have no u/v files; pathfinder would FileNotFound.
+        groups = ("z", "u", "v") if data_type == "uv" else ("z",)
+        model = tmd_model.from_database(self.tidal_model, group=groups)
+        bounds = self._bounds_for_points(lons, lats)
         if data_type == "h":
-            amp, pha, _ = tmd_model.elevation(self.tidal_model).extract_constants(
-                lons,
-                lats,
-                constituents=constituents,
-                method="bilinear",
-                crop=True,
-                extrapolate=self.extrapolate_tides,
-                cutoff=self.extrapolation_distance,
+            amp, pha = self._interp_group(
+                model, "z", lons, lats, constituents, bounds
             )
-            amp = amp.squeeze()[..., None]
-            pha = pha.squeeze()[..., None]
-            # Return shape (n_points, 2)
-            return np.concatenate((amp, pha), axis=-1)
-        elif data_type == "uv":
-            amp_u, pha_u, _ = tmd_model.current(self.tidal_model).extract_constants(
-                lons,
-                lats,
-                type="u",
-                constituents=constituents,
-                method="bilinear",
-                crop=True,
-                extrapolate=self.extrapolate_tides,
-                cutoff=self.extrapolation_distance,
+            return np.stack([amp, pha], axis=-1)
+        if data_type == "uv":
+            amp_u, pha_u = self._interp_group(
+                model, "u", lons, lats, constituents, bounds
             )
-            amp_v, pha_v, _ = tmd_model.current(self.tidal_model).extract_constants(
-                lons,
-                lats,
-                type="v",
-                constituents=constituents,
-                method="bilinear",
-                crop=True,
-                extrapolate=self.extrapolate_tides,
-                cutoff=self.extrapolation_distance,
+            amp_v, pha_v = self._interp_group(
+                model, "v", lons, lats, constituents, bounds
             )
-            amp_u = (amp_u.squeeze() / 100)[
-                ..., None
-            ]  # Convert cm/s to m/s - pyTMD always returns in cm/s
-            pha_u = pha_u.squeeze()[..., None]
-            amp_v = (amp_v.squeeze() / 100)[
-                ..., None
-            ]  # Convert cm/s to m/s - pyTMD always returns in cm/s
-            pha_v = pha_v.squeeze()[..., None]
-            # Return shape (n_points, 4)
-            return np.concatenate((amp_u, pha_u, amp_v, pha_v), axis=-1)
-        else:
-            raise ValueError(f"Unknown data_type: {data_type}")
+            # default units for currents remain cm/s → m/s for SCHISM
+            amp_u = amp_u / 100.0
+            amp_v = amp_v / 100.0
+            return np.stack([amp_u, pha_u, amp_v, pha_v], axis=-1)
+        raise ValueError(f"Unknown data_type: {data_type}")
+
+    def _bounds_for_points(self, lons, lats):
+        """Expand point envelope by ~extrapolation_distance (degrees, approx)."""
+        # ~111 km per degree latitude; pad at least half a degree for interp halo
+        pad = max(0.5, float(self.extrapolation_distance) / 111.0)
+        return [
+            float(np.min(lons) - pad),
+            float(np.max(lons) + pad),
+            float(np.min(lats) - pad),
+            float(np.max(lats) + pad),
+        ]
+
+    @staticmethod
+    def _resolve_constituent_key(ds, name):
+        """Match requested constituent name to a dataset variable."""
+        if name in ds:
+            return name
+        lower = {k.lower(): k for k in ds.data_vars}
+        key = lower.get(str(name).lower())
+        if key is None:
+            raise KeyError(
+                f"Constituent {name!r} not in model dataset "
+                f"({list(ds.data_vars)[:8]}…)"
+            )
+        return key
+
+    def _interp_group(self, model, group, lons, lats, constituents, bounds):
+        """Open one FES group, interp amp/phase → (n_points, n_cons) each."""
+        # open_dataset's reduce_constituents defaults to group "z"; reduce
+        # the requested group explicitly (needed for u/v).
+        model.reduce_constituents(list(constituents), group=group)
+        # pyTMD FES: chunked open + tmd.crop (no open-time bounds kwarg).
+        ds = model.open_dataset(
+            group=group,
+            constituents=list(constituents),
+            chunks=_OPEN_CHUNKS,
+        )
+        if bounds is not None:
+            ds = ds.tmd.crop(bounds, buffer=0)
+
+        # xarray multi-dim interp only supports linear/nearest (not spline/bilinear)
+        method = (self.tide_interpolation_method or "linear").lower()
+        if method in {"bilinear", "spline"}:
+            logger.warning(
+                "tide_interpolation_method %r is not supported by pyTMD 3 "
+                "xarray interp; using linear",
+                method,
+            )
+            method = "linear"
+        elif method != "linear" and method != "nearest":
+            logger.warning(
+                "Unknown tide_interpolation_method %r for pyTMD 3; using linear",
+                method,
+            )
+            method = "linear"
+        X, Y = ds.tmd.coords_as(lons, lats, type="drift", crs=4326)
+        local = ds.tmd.interp(
+            X,
+            Y,
+            method=method,
+            extrapolate=self.extrapolate_tides,
+            cutoff=self.extrapolation_distance,
+        )
+        npts = lons.size
+        ncons = len(constituents)
+        amp = np.empty((npts, ncons), dtype=float)
+        pha = np.empty((npts, ncons), dtype=float)
+        for i, name in enumerate(constituents):
+            key = self._resolve_constituent_key(local, name)
+            amp[:, i] = np.asarray(local[key].tmd.amplitude).reshape(-1)
+            pha[:, i] = np.asarray(local[key].tmd.phase).reshape(-1)
+        return amp, pha
 
     def write_bctides(self, output_file):
         """Generate bctides.in file directly using PyLibs approach.
