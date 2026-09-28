@@ -49,3 +49,11 @@ def test_vegetation_coefficients_are_integers():
     assert re.search(r"^veg_cw = 1$", opt, re.MULTILINE)
     with pytest.raises(ValidationError):
         Opt(veg_cw=1.5)
+
+
+def test_hotstart_output_interval_is_checked_across_groups():
+    Param(core={"ihfskip": 720}, schout={"nhot": 1, "nhot_write": 1440})
+    with pytest.raises(ValidationError, match="multiple of core.ihfskip"):
+        Param(core={"ihfskip": 720}, schout={"nhot": 1, "nhot_write": 1000})
+    with pytest.raises(ValidationError, match="multiple of schout.nspool_sta"):
+        Param(schout={"iout_sta": 1, "nspool_sta": 7, "nhot_write": 1000})

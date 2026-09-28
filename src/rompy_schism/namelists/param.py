@@ -1534,15 +1534,6 @@ class Schout(NamelistBaseModel):
         return v
 
     @model_validator(mode="after")
-    def validate_nhot_write_multiple(self):
-        if self.nhot == 1:
-            if self.nhot_write % self.ihfskip != 0:
-                raise ValueError("nhot_write must be a multiple of ihfskip when nhot=1")
-            if self.ihfskip % self.dt != 0:
-                raise ValueError("ihfskip must be a multiple of dt")
-        return self
-
-    @model_validator(mode="after")
     def validate_nspool_sta_requirement(self):
         if self.iout_sta != 0 and self.nspool_sta <= 0:
             raise ValueError("nspool_sta must be positive when iout_sta is non-zero")
@@ -1599,6 +1590,26 @@ class Param(NamelistBaseModel):
                 merged[key.lower()] = value
         data[opt_key] = merged
         return data
+
+    @model_validator(mode="after")
+    def hotstart_output_interval(self) -> "Param":
+        """Check nhot_write as SCHISM does: a multiple of the output file length
+        (core.ihfskip) with hotstart output, and of the station output interval
+        with station output."""
+        if self.core is None or self.schout is None:
+            return self
+        schout = self.schout
+        if schout.nhot == 1 and schout.nhot_write % self.core.ihfskip != 0:
+            raise ValueError(
+                f"schout.nhot_write ({schout.nhot_write}) must be a multiple of "
+                f"core.ihfskip ({self.core.ihfskip}) when schout.nhot=1"
+            )
+        if schout.iout_sta != 0 and schout.nhot_write % schout.nspool_sta != 0:
+            raise ValueError(
+                f"schout.nhot_write ({schout.nhot_write}) must be a multiple of "
+                f"schout.nspool_sta ({schout.nspool_sta}) when schout.iout_sta=1"
+            )
+        return self
 
     def validate_schema(self, schema_version: SchismSchemaVersion) -> None:
         """Validate fields whose meaning depends on the full SCHISM schema."""
