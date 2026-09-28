@@ -33,6 +33,15 @@ are continually evolving. Contributions and feedback are welcome!
 Releases
 ********
 
+Unreleased
+__________
+
+Bug Fixes
+---------
+* 3D models work with a vertical grid generated from ``VGrid`` or ``VgridGenerator``, not only with a ``vgrid.in`` file. ``SCHISMGrid.is_3d`` was False and ``pylibs_vgrid`` failed for them, so boundary data and hotstart files were written as 2D.
+* ``SCHISMGrid.is_3d`` and ``nvrt`` come from the vertical grid: a 2D ``vgrid.in`` file is no longer taken as 3D, and a 2D grid has ``nvrt=2`` instead of ``None``.
+* LSC2 vertical grids, which cannot be generated here (they need SCHISM's ``gen_vqs``), are rejected when configured with a message to give ``vgrid.in`` as a file. ``VGrid()`` defaulted to LSC2 and always failed; it now defaults to SZ. ``VgridGenerator.vgrid_type`` accepts only ``2d``, ``sz`` and ``lsc2`` instead of falling back to LSC2 for other values.
+
 0.5.0 (2025-07-13)
 ___________________
 
