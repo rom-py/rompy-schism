@@ -33,6 +33,17 @@ are continually evolving. Contributions and feedback are welcome!
 Releases
 ********
 
+Unreleased
+__________
+
+Bug Fixes
+---------
+* sflux air variables missing from the source are filled with a standard atmosphere (101325 Pa, 288.15 K, 0.01 kg/kg) instead of -999. With heat exchange (``ihconsv=1``) or the inverse barometer at the boundary (``inv_atm_bnd=1``), SCHISM uses these values.
+* The sflux forcing period is padded by one day on each side once. It grew by another day on each side for every active sflux file, and lost its interval.
+* The relative weights of ``rad`` and ``prc`` sflux sources are checked, not only ``air``.
+* ``SfluxPrc`` has ``data_type`` ``sflux_prc`` (it was ``sflux_rad``).
+* An ``SfluxAir`` source without a ``uri`` is an error; it silently used a test-data path.
+
 0.5.0 (2025-07-13)
 ___________________
 

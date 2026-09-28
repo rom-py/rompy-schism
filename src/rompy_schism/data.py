@@ -252,12 +252,7 @@ class SfluxAir(SfluxSource):
                         source_obj = SourceFile(uri=uri)
                     logger.info(f"Created source object from URI: {uri}")
                 else:
-                    # If no URI, create a minimal valid source
-                    logger.warning(
-                        "Source dictionary does not contain URI, creating a minimal source"
-                    )
-                    # Default to a sample data source for testing
-                    source_obj = SourceFile(uri="../../tests/data/schism/sample.nc")
+                    raise ValueError(f"SfluxAir source needs a 'uri', got {source_obj}")
         else:
             raise ValueError("SfluxAir requires a 'source' parameter")
 
@@ -283,21 +278,45 @@ class SfluxAir(SfluxSource):
         "spfh_name",
     ]
 
+    # Values for variables missing from the source: a standard atmosphere
+    _missing_values = {
+        "uwind_name": 0.0,  # m/s
+        "vwind_name": 0.0,  # m/s
+        "prmsl_name": 101325.0,  # Pa, SCHISM's prmsl_ref
+        "stmp_name": 288.15,  # K
+        "spfh_name": 0.01,  # kg/kg
+    }
+
     @property
     def ds(self):
-        """Return the xarray dataset for this data source."""
+        """Return the xarray dataset for this data source.
+
+        SCHISM needs all five sflux air variables. Those without a variable name are
+        filled with standard-atmosphere values, so a wind-only source gives uniform
+        pressure (no pressure gradient) and a plausible air density.
+        """
         ds = super().ds
+        template = next(
+            (
+                ds[getattr(self, name)]
+                for name in self._variable_names
+                if getattr(self, name) is not None
+            ),
+            None,
+        )
+        if template is None:
+            raise ValueError("SfluxAir needs the name of at least one variable")
+        filled = []
         for variable in self._variable_names:
-            data_var = getattr(self, variable)
-            if data_var is None:
+            if getattr(self, variable) is None:
                 proxy_var = variable.replace("_name", "")
-                ds[proxy_var] = ds[self.uwind_name].copy()
-                if variable == "spfh_name":
-                    missing = 0.01
-                else:
-                    missing = -999
-                ds[proxy_var][:, :, :] = missing
-                ds.data_vars[proxy_var].attrs["long_name"] = proxy_var
+                ds[proxy_var] = xr.full_like(
+                    template, self._missing_values[variable], dtype="float64"
+                )
+                ds[proxy_var].attrs = {"long_name": proxy_var}
+                filled.append(f"{proxy_var}={self._missing_values[variable]}")
+        if filled:
+            logger.info(f"  • Constant sflux air variables: {', '.join(filled)}")
         return ds
 
 
@@ -323,7 +342,7 @@ class SfluxPrc(SfluxSource):
     """This is a single variable source for and sflux input"""
 
     data_type: Literal["sflux_prc"] = Field(
-        default="sflux_rad",
+        default="sflux_prc",
         description="Model type discriminator",
     )
     prate_name: str = Field(
@@ -440,6 +459,15 @@ class SCHISMDataSflux(RompyBaseModel):
         active_variables = []
         source_info = {}
 
+        # SCHISM needs forcing beyond the run: one day on each side (once, for all
+        # variables)
+        if time is not None:
+            time = TimeRange(
+                start=time.start - pd.Timedelta(days=1),
+                end=time.end + pd.Timedelta(days=1),
+                interval=time.interval,
+            )
+
         for variable in ["air_1", "air_2", "rad_1", "rad_2", "prc_1", "prc_2"]:
             data = getattr(self, variable)
             if data is None:
@@ -453,12 +481,6 @@ class SCHISMDataSflux(RompyBaseModel):
 
             logger.debug(f"Processing {variable}")
             namelistargs.update(data.namelist)
-            # Expand time by one day on each end
-            if time is not None:
-                time = TimeRange(
-                    start=time.start - pd.Timedelta(days=1),
-                    end=time.end + pd.Timedelta(days=1),
-                )
             ret[variable] = data.get(destdir, grid, time)
 
         # Log summary of atmospheric data processing
@@ -502,16 +524,7 @@ class SCHISMDataSflux(RompyBaseModel):
                 raise ValueError(
                     f"Relative weights for {variable} do not add to 1.0: {weight}"
                 )
-            return v
-        # SCHISM doesn't like scale_factor and add_offset attributes and requires Float64 values
-        for var in ds.data_vars:
-            # If the variable has scale_factor or add_offset attributes, remove them
-            if "scale_factor" in ds[var].encoding:
-                del ds[var].encoding["scale_factor"]
-            if "add_offset" in ds[var].encoding:
-                del ds[var].encoding["add_offset"]
-            # set the data variable encoding to Float64
-            ds[var].encoding["dtype"] = np.dtypes.Float64DType()
+        return v
 
 
 class SCHISMDataWave(BoundaryWaveStation):
