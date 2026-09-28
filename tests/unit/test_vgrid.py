@@ -6,7 +6,10 @@ This module tests the vertical grid components of the SCHISM implementation.
 
 import pytest
 
-from rompy_schism.grid import VGRID_TYPE_LSC2, VGRID_TYPE_SZ, VgridGenerator
+from rompy.core.data import DataBlob
+
+from rompy_schism.grid import VGRID_TYPE_LSC2, VGRID_TYPE_SZ, SCHISMGrid, VgridGenerator
+from rompy_schism.vgrid import VGrid
 
 pytest.importorskip("rompy_schism")
 
@@ -35,25 +38,9 @@ class TestVgridGenerator:
         assert True
 
     def test_vgrid_lsc2(self, hgrid_path, tmp_path):
-        """Test LSC2 vertical grid specifically."""
-        if hgrid_path is None:
-            pytest.skip("No hgrid.gr3 file found for testing")
-
-        # Create LSC2 vgrid with specific settings
-        vgrid_generator = VgridGenerator(
-            vgrid_type=VGRID_TYPE_LSC2, nvrt=15, hsm=20.0  # LSC2 specific
-        )
-
-        # Create the actual VGrid instance to verify properties
-        vgrid = vgrid_generator._create_vgrid_instance()
-
-        # LSC2 is ivcor=1 in our API
-        assert vgrid.ivcor == 1
-        assert vgrid.nvrt == 15
-
-        # Create vgrid.in file
-        with pytest.raises(ValueError):
-            vgrid_generator.generate(tmp_path)
+        """LSC2 cannot be generated: it is made with SCHISM's gen_vqs tool."""
+        with pytest.raises(ValueError, match="give it to SCHISMGrid as a file"):
+            VgridGenerator(vgrid_type=VGRID_TYPE_LSC2, nvrt=15, hsm=20.0)
 
     def test_vgrid_sz(self, hgrid_path, tmp_path):
         """Test SZ vertical grid specifically."""
@@ -87,3 +74,23 @@ class TestVgridGenerator:
 
 if __name__ == "__main__":
     pytest.main(["-v", __file__])
+
+
+@pytest.mark.parametrize(
+    "vgrid, nvrt, is_3d",
+    [
+        (VgridGenerator(vgrid_type="sz", nvrt=10), 10, True),
+        (VgridGenerator(vgrid_type="2d"), 2, False),
+        (VGrid.create_sz(nvrt=8), 8, True),
+        (VGrid(), 2, False),
+    ],
+    ids=["generator-sz", "generator-2d", "vgrid-sz", "vgrid-default"],
+)
+def test_generated_vertical_grids(hgrid_path, vgrid, nvrt, is_3d):
+    """SCHISMGrid reads generated vertical grids, not only vgrid.in files."""
+    if hgrid_path is None:
+        pytest.skip("No hgrid.gr3 file found for testing")
+    grid = SCHISMGrid(hgrid=DataBlob(source=hgrid_path), vgrid=vgrid, drag=0.0025)
+    assert grid.is_3d is is_3d
+    assert grid.nvrt == nvrt
+    assert grid.pylibs_vgrid.nvrt == nvrt
