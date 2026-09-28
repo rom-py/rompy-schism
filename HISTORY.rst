@@ -33,6 +33,14 @@ are continually evolving. Contributions and feedback are welcome!
 Releases
 ********
 
+Unreleased
+__________
+
+Bug Fixes
+---------
+* ``wwminput.nml`` is written only when ``nml.wwminput`` is set; it was written for every run.
+* Generating a workspace a second time in the same directory no longer fails on the ``hgrid.ll`` and ``hgrid_WWM.gr3`` links ("File exists").
+
 0.5.0 (2025-07-13)
 ___________________
 

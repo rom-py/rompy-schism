@@ -74,7 +74,7 @@ class NML(NamelistBaseModel):
         }
 
         date_format = "%Y%m%d.%H%M%S"
-        if hasattr(self, "wwminput"):  # TODO change this check to the actual flag value
+        if self.wwminput is not None:  # WWM times only with a wwminput namelist
             # TODO these are currently all the same, but they could be different
             update.update(
                 {
