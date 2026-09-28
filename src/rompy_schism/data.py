@@ -30,6 +30,30 @@ from .namelists import Sflux_Inputs
 logger = get_logger(__name__)
 
 
+# Boundary files written from data: id, source attribute and which setups use them
+BOUNDARY_FILES = {
+    "elev2D": (
+        "elev_source",
+        lambda s: (
+            s.elev_type in (ElevationType.EXTERNAL, ElevationType.HARMONICEXTERNAL)
+        ),
+    ),
+    "uv3D": (
+        "vel_source",
+        lambda s: (
+            s.vel_type
+            in (
+                VelocityType.EXTERNAL,
+                VelocityType.HARMONICEXTERNAL,
+                VelocityType.RELAXED,
+            )
+        ),
+    ),
+    "TEM_3D": ("temp_source", lambda s: s.temp_type == TracerType.EXTERNAL),
+    "SAL_3D": ("salt_source", lambda s: s.salt_type == TracerType.EXTERNAL),
+}
+
+
 def to_python_type(value):
     """Convert numpy types to Python native types."""
     if isinstance(value, np.ndarray):
@@ -585,8 +609,8 @@ class SCHISMDataWave(BoundaryWaveStation):
 
 
 class SCHISMDataBoundary(DataBoundary):
-    """This class is used to extract ocean boundary data from a griddd dataset at all open
-    boundary nodes."""
+    """This class is used to extract ocean boundary data from a gridded dataset at the
+    nodes of the open boundaries, all of them unless ``open_boundaries`` is set."""
 
     data_type: Literal["boundary"] = Field(
         default="boundary",
@@ -615,6 +639,31 @@ class SCHISMDataBoundary(DataBoundary):
         default=[0, 1],
         description="Number of source data timesteps to buffer the time range if `filter_time` is True",
     )
+    open_boundaries: Optional[list[int]] = Field(
+        None,
+        description=(
+            "Indices of the open boundaries whose nodes are written, in mesh order; "
+            "all when not set. SCHISMDataBoundaryConditions sets it to the "
+            "boundaries that use the file."
+        ),
+    )
+
+    def _boundary_nodes(self, grid: SCHISMGrid) -> list[int]:
+        """Mesh nodes of the selected open boundaries, in bctides.in order."""
+        gd = grid.pylibs_hgrid
+        if hasattr(gd, "compute_bnd") and not hasattr(gd, "nob"):
+            gd.compute_bnd()
+        if not getattr(gd, "nob", 0):
+            raise ValueError("No open boundary nodes found in the grid")
+        indices = (
+            range(gd.nob) if self.open_boundaries is None else self.open_boundaries
+        )
+        return [node for i in indices for node in gd.iobn[i]]
+
+    def _boundary_points(self, grid: SCHISMGrid) -> tuple:
+        """Coordinates of the selected open boundary nodes."""
+        nodes = self._boundary_nodes(grid)
+        return grid.pylibs_hgrid.x[nodes], grid.pylibs_hgrid.y[nodes]
 
     def get(
         self,
@@ -767,18 +816,8 @@ class SCHISMDataBoundary(DataBoundary):
             gd = grid.pylibs_hgrid
             vgd = grid.pylibs_vgrid
 
-            # Make sure boundaries are computed
-            if hasattr(gd, "compute_bnd") and not hasattr(gd, "nob"):
-                gd.compute_bnd()
-
-            # Extract boundary information
-            if not hasattr(gd, "nob") or gd.nob is None or gd.nob == 0:
-                raise ValueError("No open boundary nodes found in the grid")
-
-            # Collect all boundary nodes
-            boundary_indices = []
-            for i in range(gd.nob):
-                boundary_indices.extend(gd.iobn[i])
+            # Nodes of the selected open boundaries
+            boundary_indices = self._boundary_nodes(grid)
 
             # Get bathymetry for boundary nodes
             boundary_depths = gd.dp[boundary_indices]
@@ -1396,7 +1435,14 @@ class SCHISMDataBoundaryConditions(RompyBaseModel):
     # Boundary configurations with integrated data sources
     boundaries: Dict[int, BoundarySetupWithSource] = Field(
         default_factory=dict,
-        description="Boundary configuration by boundary index",
+        description=(
+            "Setup of open boundaries by their index in the mesh (0 is the first "
+            "open boundary in hgrid.gr3)"
+        ),
+    )
+    default_boundary: Optional[BoundarySetupWithSource] = Field(
+        None,
+        description="Setup of the open boundaries not listed in boundaries",
     )
 
     # Predefined configuration types
@@ -1424,7 +1470,9 @@ class SCHISMDataBoundaryConditions(RompyBaseModel):
     @model_validator(mode="after")
     def validate_tidal_data(self):
         """Ensure tidal data is provided when needed for TIDAL or TIDALSPACETIME boundaries."""
-        boundaries = self.boundaries or {}
+        setups = list((self.boundaries or {}).values())
+        if self.default_boundary is not None:
+            setups.append(self.default_boundary)
         needs_tidal_data = False
 
         # Check setup_type first
@@ -1432,7 +1480,7 @@ class SCHISMDataBoundaryConditions(RompyBaseModel):
             needs_tidal_data = True
 
         # Then check individual boundaries
-        for setup in boundaries.values():
+        for setup in setups:
             if (
                 hasattr(setup, "elev_type")
                 and setup.elev_type
@@ -1496,6 +1544,27 @@ class SCHISMDataBoundaryConditions(RompyBaseModel):
 
         return self
 
+    def boundary_setups(self, nob: int) -> Dict[int, BoundarySetupWithSource]:
+        """Return the setup of each of the ``nob`` open boundaries of the mesh.
+
+        SCHISM needs one entry per open boundary in bctides.in. A boundary takes
+        its setup from ``boundaries``, or else from ``default_boundary``.
+        """
+        unknown = sorted(i for i in self.boundaries if not 0 <= i < nob)
+        if unknown:
+            raise ValueError(
+                f"boundaries {unknown} are not open boundaries of the mesh, which "
+                f"has {nob} (indices 0 to {nob - 1})"
+            )
+        setups = {i: self.boundaries.get(i, self.default_boundary) for i in range(nob)}
+        missing = [i for i, setup in setups.items() if setup is None]
+        if missing:
+            raise ValueError(
+                f"Open boundaries {missing} of the mesh have no setup: add them to "
+                "boundaries, or set default_boundary"
+            )
+        return setups
+
     def _create_boundary_config(self, grid):
         """Create a TidalBoundary object based on the configuration."""
         # Get tidal data paths
@@ -1555,13 +1624,15 @@ class SCHISMDataBoundaryConditions(RompyBaseModel):
             grid.pylibs_hgrid.write_hgrid(temp_path)
             grid_path = temp_path
 
-        boundary = BoundaryHandler(grid_path=grid_path, tidal_data=self.tidal_data)
+        boundary = BoundaryHandler(
+            grid_path=grid_path, tidal_data=self.tidal_data, nvrt=grid.nvrt or 2
+        )
 
         # Replace the TidalBoundary's grid with our pre-computed one to preserve boundary info
         boundary.grid = grid.pylibs_hgrid
 
-        # Configure each boundary segment
-        for idx, setup in self.boundaries.items():
+        # Configure each open boundary of the mesh
+        for idx, setup in self.boundary_setups(grid.pylibs_hgrid.nob).items():
             boundary_config = setup.to_boundary_config()
             boundary.set_boundary_config(idx, boundary_config)
 
@@ -1649,126 +1720,35 @@ class SCHISMDataBoundaryConditions(RompyBaseModel):
         # 3. Process ocean data based on boundary configurations
         processed_files = {"bctides": str(bctides_path)}
 
-        # Collect variables to process and source information for logging
-        variables_to_process = []
-        source_files = set()
-        for idx, setup in self.boundaries.items():
-            if (
-                setup.elev_type
-                in [ElevationType.EXTERNAL, ElevationType.HARMONICEXTERNAL]
-                and setup.elev_source
-            ):
-                variables_to_process.append("elevation")
-                if hasattr(setup.elev_source, "source") and hasattr(
-                    setup.elev_source.source, "uri"
-                ):
-                    source_files.add(str(setup.elev_source.source.uri))
-            if (
-                setup.vel_type
-                in [
-                    VelocityType.EXTERNAL,
-                    VelocityType.HARMONICEXTERNAL,
-                    VelocityType.RELAXED,
-                ]
-                and setup.vel_source
-            ):
-                variables_to_process.append("velocity")
-                if hasattr(setup.vel_source, "source") and hasattr(
-                    setup.vel_source.source, "uri"
-                ):
-                    source_files.add(str(setup.vel_source.source.uri))
-            if setup.temp_type == TracerType.EXTERNAL and setup.temp_source:
-                variables_to_process.append("temperature")
-                if hasattr(setup.temp_source, "source") and hasattr(
-                    setup.temp_source.source, "uri"
-                ):
-                    source_files.add(str(setup.temp_source.source.uri))
-            if setup.salt_type == TracerType.EXTERNAL and setup.salt_source:
-                variables_to_process.append("salinity")
-                if hasattr(setup.salt_source, "source") and hasattr(
-                    setup.salt_source.source, "uri"
-                ):
-                    source_files.add(str(setup.salt_source.source.uri))
-
-        if variables_to_process:
-            unique_vars = list(
-                dict.fromkeys(variables_to_process)
-            )  # Remove duplicates while preserving order
-            logger.info(f"{ARROW} Processing boundary data: {', '.join(unique_vars)}")
-            if source_files:
-                if len(source_files) == 1:
-                    logger.info(f"  • Source: {list(source_files)[0]}")
-                else:
-                    logger.info(f"  • Sources: {len(source_files)} files")
-
-        # Process each data source based on the boundary type
-        for idx, setup in self.boundaries.items():
-            # Process elevation data if needed
-            if setup.elev_type in [
-                ElevationType.EXTERNAL,
-                ElevationType.HARMONICEXTERNAL,
-            ]:
-                if setup.elev_source:
-                    if (
-                        hasattr(setup.elev_source, "data_type")
-                        and setup.elev_source.data_type == "boundary"
-                    ):
-                        # Process using SCHISMDataBoundary interface
-                        setup.elev_source.id = "elev2D"  # Set the ID for the boundary
-                        file_path = setup.elev_source.get(destdir, grid, time)
-                    else:
-                        # Process using DataBlob interface
-                        file_path = setup.elev_source.get(str(destdir))
-                    processed_files[f"elev_boundary_{idx}"] = file_path
-
-            # Process velocity data if needed
-            if setup.vel_type in [
-                VelocityType.EXTERNAL,
-                VelocityType.HARMONICEXTERNAL,
-                VelocityType.RELAXED,
-            ]:
-                if setup.vel_source:
-                    if (
-                        hasattr(setup.vel_source, "data_type")
-                        and setup.vel_source.data_type == "boundary"
-                    ):
-                        # Process using SCHISMDataBoundary interface
-                        setup.vel_source.id = "uv3D"  # Set the ID for the boundary
-                        file_path = setup.vel_source.get(destdir, grid, time)
-                    else:
-                        # Process using DataBlob interface
-                        file_path = setup.vel_source.get(str(destdir))
-                    processed_files[f"vel_boundary_{idx}"] = file_path
-
-            # Process temperature data if needed
-            if setup.temp_type == TracerType.EXTERNAL:
-                if setup.temp_source:
-                    if (
-                        hasattr(setup.temp_source, "data_type")
-                        and setup.temp_source.data_type == "boundary"
-                    ):
-                        # Process using SCHISMDataBoundary interface
-                        setup.temp_source.id = "TEM_3D"  # Set the ID for the boundary
-                        file_path = setup.temp_source.get(destdir, grid, time)
-                    else:
-                        # Process using DataBlob interface
-                        file_path = setup.temp_source.get(str(destdir))
-                    processed_files[f"temp_boundary_{idx}"] = file_path
-
-            # Process salinity data if needed
-            if setup.salt_type == TracerType.EXTERNAL:
-                if setup.salt_source:
-                    if (
-                        hasattr(setup.salt_source, "data_type")
-                        and setup.salt_source.data_type == "boundary"
-                    ):
-                        # Process using SCHISMDataBoundary interface
-                        setup.salt_source.id = "SAL_3D"  # Set the ID for the boundary
-                        file_path = setup.salt_source.get(destdir, grid, time)
-                    else:
-                        # Process using DataBlob interface
-                        file_path = setup.salt_source.get(str(destdir))
-                    processed_files[f"salt_boundary_{idx}"] = file_path
+        # Boundary files: one per kind, with the nodes of the open boundaries that
+        # use it, in mesh order, as SCHISM reads them
+        setups = self.boundary_setups(grid.pylibs_hgrid.nob)
+        for file_id, (attr, uses) in BOUNDARY_FILES.items():
+            indices = [i for i, setup in setups.items() if uses(setup)]
+            sources = [getattr(setups[i], attr) for i in indices]
+            distinct = []
+            for source in sources:
+                if all(source is not other for other in distinct):
+                    distinct.append(source)
+            if not distinct or distinct == [None]:
+                continue  # the file is provided some other way
+            if len(distinct) > 1:
+                raise ValueError(
+                    f"{file_id}.th.nc holds the open boundaries {indices}, which "
+                    f"use it, so they need the same {attr}"
+                )
+            source = distinct[0]
+            logger.info(
+                f"{ARROW} Writing {file_id}.th.nc for open boundaries {indices}"
+            )
+            if getattr(source, "data_type", None) == "boundary":
+                source = source.model_copy(
+                    update={"id": file_id, "open_boundaries": indices}
+                )
+                processed_files[file_id] = source.get(destdir, grid, time)
+            else:
+                # A file prepared elsewhere (DataBlob)
+                processed_files[file_id] = source.get(str(destdir))
 
         # Generate hotstart file if configured
         if self.hotstart_config and self.hotstart_config.enabled:
@@ -1809,7 +1789,10 @@ class SCHISMDataBoundaryConditions(RompyBaseModel):
         temp_source = None
         salt_source = None
 
-        for boundary_config in self.boundaries.values():
+        setups = list(self.boundaries.values())
+        if self.default_boundary is not None:
+            setups.append(self.default_boundary)
+        for boundary_config in setups:
             if boundary_config.temp_source is not None:
                 temp_source = boundary_config.temp_source
             if boundary_config.salt_source is not None:
