@@ -33,6 +33,22 @@ are continually evolving. Contributions and feedback are welcome!
 Releases
 ********
 
+Unreleased
+__________
+
+New Features
+------------
+* ``SCHISMDataBoundaryConditions.default_boundary`` sets up the open boundaries not listed in ``boundaries``. The factory functions use it, so ``create_tidal_only_boundary_config`` applies tidal elevation and currents to every open boundary, as documented.
+
+Bug Fixes
+---------
+* ``bctides.in`` has exactly one entry per open boundary of the mesh. It had one per key of ``boundaries`` up to the largest key, and a single ``5 5 0 0`` boundary when ``boundaries`` was empty. A missing or unknown open boundary is now an error that says which.
+* ``bctides.in`` follows SCHISM's reader for every boundary type. Types read from files (elevation 1 and 4, discharge 1, tracers 1 and 4, relaxed velocity) no longer have comment lines inside the data; constant elevation and discharge (type 2) are one value, as SCHISM reads them, instead of none or one per node; Flather boundaries have a mean normal velocity per vertical level. The unread ``ncbn``/``nfluxf`` lines at the end are gone.
+* Tidal constituents keep the order they are given in, so ``bctides.in`` is the same from one run to the next, and a single constituent works.
+* ``TidalDataset.tide_interpolation_method`` is used; it was always bilinear.
+* Boundary conditions without tidal data, and a ``TidalDataset`` without mean dynamic topography, no longer fail.
+* Boundary files (``elev2D.th.nc``, ``uv3D.th.nc``, ``TEM_3D.th.nc``, ``SAL_3D.th.nc``) hold the nodes of the open boundaries that use them, as SCHISM reads them. They held all open boundary nodes, which SCHISM cannot read when only some boundaries use the file, for example an ocean boundary with a river. Each file is written once, from one source, set with ``SCHISMDataBoundary.open_boundaries``.
+
 0.5.0 (2025-07-13)
 ___________________
 

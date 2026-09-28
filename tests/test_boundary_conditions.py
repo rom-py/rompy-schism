@@ -323,9 +323,9 @@ def test_hybrid_factory(
     assert bc.tidal_data is not None
     assert bc.tidal_data.tidal_database == tidal_data_files
     assert bc.tidal_data.tidal_model == "OCEANUM-atlas"
-    assert len(bc.boundaries) == 1
-    assert bc.boundaries[0].elev_type == ElevationType.HARMONICEXTERNAL
-    assert bc.boundaries[0].elev_source == elev_source
+    assert bc.boundaries == {}
+    assert bc.default_boundary.elev_type == ElevationType.HARMONICEXTERNAL
+    assert bc.default_boundary.elev_source == elev_source
 
     # Process the data to verify it works with real files
     result = bc.get(temp_output_dir, grid2d, time_range)
@@ -381,11 +381,11 @@ def test_nested_factory(
 
     # Check the configuration
     assert bc.setup_type == "nested"
-    assert len(bc.boundaries) == 1
-    assert bc.boundaries[0].vel_type == VelocityType.RELAXED
-    assert bc.boundaries[0].inflow_relax == 0.9
-    assert bc.boundaries[0].outflow_relax == 0.1
-    assert bc.boundaries[0].elev_source == elev_source
+    assert bc.boundaries == {}
+    assert bc.default_boundary.vel_type == VelocityType.RELAXED
+    assert bc.default_boundary.inflow_relax == 0.9
+    assert bc.default_boundary.outflow_relax == 0.1
+    assert bc.default_boundary.elev_source == elev_source
 
     # Process the data to verify it works with real files
     result = bc.get(temp_output_dir, grid2d, time_range)
