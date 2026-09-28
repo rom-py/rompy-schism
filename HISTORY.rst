@@ -33,6 +33,13 @@ are continually evolving. Contributions and feedback are welcome!
 Releases
 ********
 
+Unreleased
+__________
+
+Bug Fixes
+---------
+* A grid with ``manning`` or ``rough`` friction now runs: ``opt.nchi``, which tells SCHISM which friction file to read, stayed 0 (``drag.gr3``), so SCHISM stopped with "Cannot open file drag.gr3". ``nchi`` now follows the grid's friction field when not set, and a value that does not match is an error.
+
 0.5.0 (2025-07-13)
 ___________________
 

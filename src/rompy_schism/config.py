@@ -77,6 +77,33 @@ class SCHISMConfig(BaseConfig):
         return self
 
     @model_validator(mode="after")
+    def check_friction(self):
+        """Tell SCHISM which friction file the grid writes.
+
+        ``opt.nchi`` selects it: 0 for drag.gr3, -1 for manning.gr3, 1 for rough.gr3.
+        When not set, it follows the grid's friction field; a value that does not
+        match is an error.
+        """
+        if self.nml is None or self.nml.param is None or self.nml.param.opt is None:
+            return self
+        nchi = {"drag": 0, "manning": -1, "rough": 1}
+        friction = next(
+            (name for name in nchi if getattr(self.grid, name, None) is not None), None
+        )
+        if friction is None:
+            return self
+        opt = self.nml.param.opt
+        if "nchi" not in opt.model_fields_set:
+            opt.nchi = nchi[friction]
+        elif opt.nchi != nchi[friction]:
+            raise ValueError(
+                f"nml.param.opt.nchi={opt.nchi} makes SCHISM read a different friction "
+                f"file from the grid's {friction}.gr3: set nchi to {nchi[friction]} or "
+                "leave it unset"
+            )
+        return self
+
+    @model_validator(mode="after")
     def validate_schema_contract(self):
         """Validate all version-sensitive values from one top-level contract."""
         if self.nml is not None and self.nml.param is not None:
