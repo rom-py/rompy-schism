@@ -33,6 +33,13 @@ are continually evolving. Contributions and feedback are welcome!
 Releases
 ********
 
+Unreleased
+__________
+
+Bug Fixes
+---------
+* SCHISM now starts from the ``hotstart.nc`` written by ``boundary_conditions.hotstart_config``. ``opt.ihot`` stayed 0, so SCHISM cold-started and ignored the file: the check looked for a ``data.hotstart`` field that no longer exists. ``ihot`` is set to 1 when not set, and ``ihot=0`` with a hotstart is an error.
+
 0.5.0 (2025-07-13)
 ___________________
 
