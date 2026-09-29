@@ -40,6 +40,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         libopenmpi-dev \
         make \
         openmpi-bin \
+        patch \
         perl \
         python3 \
     && rm -rf /var/lib/apt/lists/* \
@@ -55,6 +56,10 @@ RUN curl -fsSL -o /tmp/schism.tar.gz "${SCHISM_URL}/v${SCHISM_VERSION}.tar.gz" \
     && tar -xzf /tmp/schism.tar.gz --strip-components=1 \
     && rm /tmp/schism.tar.gz \
     && echo "v${SCHISM_VERSION}" > src/Core/schism_version_user.txt
+
+# Fixes to the SCHISM source, see schism/patches/README.md
+COPY schism/patches /tmp/patches
+RUN for p in /tmp/patches/*.patch; do patch -p1 < "$p"; done
 
 COPY schism/Make.defs.gfortran mk/Make.defs.local
 COPY schism/include_modules schism/include_modules_wwm /tmp/
