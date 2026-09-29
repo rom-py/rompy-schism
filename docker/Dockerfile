@@ -97,8 +97,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY --from=builder /usr/local/bin/schism /usr/local/bin/schism_wwm \
     /usr/local/bin/combine_hotstart7 /usr/local/bin/
 
-# Containers run as root; allow Open MPI to start there
+# Containers run as root; allow Open MPI to start there. Scribes mostly wait for
+# output, so allow more processes than cores (mpirun would refuse otherwise)
 ENV OMPI_ALLOW_RUN_AS_ROOT=1 \
-    OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
+    OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1 \
+    OMPI_MCA_rmaps_base_oversubscribe=1
 
 WORKDIR /data

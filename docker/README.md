@@ -28,6 +28,8 @@ Each image contains SCHISM built with MPI and NetCDF:
 
 SCHISM always runs under MPI. Its argument is the number of **scribes**, processes that only write output, and `mpirun -n` counts them too: `mpirun -n 6 schism 2` runs 4 compute processes and 2 scribes.
 
+The image allows more processes than the machine has cores, since scribes mostly wait for output.
+
 SCHISM needs one scribe for all 2D outputs (plus `zCoordinates`), and one more for each 3D output variable, with vectors counting as two. With too few, it stops with `Too few scribes`.
 
 ### From rompy-schism
