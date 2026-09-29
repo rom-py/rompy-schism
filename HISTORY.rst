@@ -33,6 +33,13 @@ are continually evolving. Contributions and feedback are welcome!
 Releases
 ********
 
+Unreleased
+__________
+
+Bug Fixes
+---------
+* Boundary data missing from the source (open boundary nodes outside its wet cells, or levels below its bottom) are filled from the nearest valid data: up the water column, then from the nearest boundary node, then in time. Values at the ends of the boundary were filled with one constant, the median of all boundary values, which is often the case where an open boundary meets the coast. A warning gives the number of values filled, and a boundary without any valid data is an error.
+
 0.5.0 (2025-07-13)
 ___________________
 
