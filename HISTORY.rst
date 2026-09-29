@@ -33,6 +33,15 @@ are continually evolving. Contributions and feedback are welcome!
 Releases
 ********
 
+Unreleased
+__________
+
+Bug Fixes
+---------
+* 3D boundary files (``TEM_3D.th.nc``, ``SAL_3D.th.nc``, ``uv3D.th.nc``) are interpolated to the vertical grid's own levels. They held the value extrapolated from the top of the source profile at every level.
+* Source profiles are extended below the ocean model's seabed before they are interpolated to the boundary nodes and the hotstart, so profiles near the seabed are not cut short or mixed with values from elsewhere.
+* The hotstart takes the source time closest to the start of the run; it always took the first time in the source.
+
 0.5.0 (2025-07-13)
 ___________________
 
