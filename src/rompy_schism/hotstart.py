@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Literal, Optional, Union
 
 import numpy as np
+import pandas as pd
 from pydantic import Field
 from pylib import WriteNC, datenum, zdata
 
@@ -96,28 +97,24 @@ class SCHISMDataHotstart(DataGrid):
 
         # Find the closest time in the dataset
         if self.coords.t in ds.dims or self.coords.t in ds.coords:
-            # Convert time to a format we can compare with start_t
-            if hasattr(ds[self.coords.t].values[0], "astype"):
-                # Numeric time values
-                time_values = ds[self.coords.t].values
-                # Convert to datenum format for comparison
-                if hasattr(time_values[0], "tolist"):
-                    time_values = (
-                        time_values.astype(float) / 24.0
-                        + datenum(
-                            self.time_base.year,
-                            self.time_base.month,
-                            self.time_base.day,
-                        )
-                        + self.time_offset
-                    )
-            else:
-                # Datetime values
+            time_values = ds[self.coords.t].values
+            if np.issubdtype(time_values.dtype, np.datetime64):
                 time_values = np.array(
                     [
                         datenum(t.year, t.month, t.day, t.hour, t.minute, t.second)
-                        for t in pd.to_datetime(ds[self.coords.t].values)
+                        for t in pd.to_datetime(time_values)
                     ]
+                )
+            else:
+                # Numeric values: hours since time_base, plus time_offset days
+                time_values = (
+                    time_values.astype(float) / 24.0
+                    + datenum(
+                        self.time_base.year,
+                        self.time_base.month,
+                        self.time_base.day,
+                    )
+                    + self.time_offset
                 )
 
             # Find closest time index
