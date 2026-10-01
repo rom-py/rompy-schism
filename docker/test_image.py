@@ -111,17 +111,18 @@ def config(vgrid=None, wave=False, hotstart=False) -> SCHISMConfig:
     )
 
 
-# name: (config, command); scribes: 1 for the 2D outputs + zCoordinates (+ 2 for
-# the 3D velocity)
-CASES = {
-    "2d": (config(), ["mpirun", "-n", "4", "schism", "2"]),
-    "3d": (
-        config(vgrid=DATA / "schism" / "vgrid.in"),
-        ["mpirun", "-n", "6", "schism", "4"],
-    ),
-    "wwm": (config(wave=True), ["mpirun", "-n", "4", "schism_wwm", "2"]),
-    "hotstart": (config(hotstart=True), ["mpirun", "-n", "4", "schism", "2"]),
-}
+def cases():
+    """Build model cases after conftest has downloaded the required input data."""
+    # Scribes: 1 for the 2D outputs + zCoordinates (+ 2 for the 3D velocity).
+    return {
+        "2d": (config(), ["mpirun", "-n", "4", "schism", "2"]),
+        "3d": (
+            config(vgrid=DATA / "schism" / "vgrid.in"),
+            ["mpirun", "-n", "6", "schism", "4"],
+        ),
+        "wwm": (config(wave=True), ["mpirun", "-n", "4", "schism_wwm", "2"]),
+        "hotstart": (config(hotstart=True), ["mpirun", "-n", "4", "schism", "2"]),
+    }
 
 
 def is_netcdf(path: Path) -> bool:
@@ -151,7 +152,7 @@ def main(image: str) -> int:
     period = TimeRange(start="2023-01-01T00", end="2023-01-01T03", interval="1h")
     failed = []
     with tempfile.TemporaryDirectory() as tmp:
-        for name, (case, command) in CASES.items():
+        for name, (case, command) in cases().items():
             run = ModelRun(run_id=name, period=period, output_dir=tmp, config=case)
             workspace = Path(run()).resolve()
             if name == "hotstart":
