@@ -33,6 +33,13 @@ are continually evolving. Contributions and feedback are welcome!
 Releases
 ********
 
+Unreleased
+__________
+
+New Features
+------------
+* A Docker image to run SCHISM on rompy-schism workspaces, published as ``ghcr.io/rom-py/schism`` (``docker/Dockerfile``). It has SCHISM v5.13.0 with MPI and NetCDF, as ``schism`` and ``schism_wwm`` (with WWM waves), plus ``combine_hotstart7``. Each image is tested with rompy-schism workspaces before it is published.
+
 0.5.0 (2025-07-13)
 ___________________
 

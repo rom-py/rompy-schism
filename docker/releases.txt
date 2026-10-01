@@ -1,0 +1,4 @@
+# SCHISM releases published as ghcr.io/rom-py/schism:<version>, one per line:
+# <version> <sha256 of https://github.com/schism-dev/schism/archive/refs/tags/v<version>.tar.gz>
+# The last line is also tagged latest.
+5.13.0 f78165b0c773c64bf169d1d3ddb67555694ec2939a9072fbafc2dac370f6eccd
