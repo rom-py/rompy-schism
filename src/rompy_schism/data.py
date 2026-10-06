@@ -1014,15 +1014,12 @@ class SCHISMDataBoundary(DataBoundary):
         if missing:
             series = schism_ds.time_series
             for dim in ["nLevels", "nOpenBndNodes", "time"]:
-                if dim in series.dims and series.sizes[dim] > 1:
-                    # Linear inside gaps, the nearest value at the ends
-                    series = xr.apply_ufunc(
-                        _fill_nearest,
-                        series.interpolate_na(dim=dim),
-                        input_core_dims=[[dim]],
-                        output_core_dims=[[dim]],
-                        vectorize=True,
-                    ).transpose(*series.dims)
+                if dim not in series.dims or series.sizes[dim] <= 1:
+                    continue
+                if dim == "nOpenBndNodes":
+                    series = _fill_nearest_by_boundary(series, grid, self)
+                else:
+                    series = _fill_nearest_dim(series, dim)
             if series.isnull().any():
                 raise ValueError(
                     f"No valid {', '.join(self.variables)} data at the open boundary "
@@ -1877,6 +1874,40 @@ def _fill_nearest(values: np.ndarray) -> np.ndarray:
     index = np.arange(values.size)
     nearest = index[valid][np.abs(index[:, None] - index[valid]).argmin(axis=1)]
     return values[nearest]
+
+
+def _fill_nearest_dim(series: xr.DataArray, dim: str) -> xr.DataArray:
+    """Fill a DataArray along one dimension without interpolating between values."""
+    return xr.apply_ufunc(
+        _fill_nearest,
+        series,
+        input_core_dims=[[dim]],
+        output_core_dims=[[dim]],
+        vectorize=True,
+    ).transpose(*series.dims)
+
+
+def _fill_nearest_by_boundary(
+    series: xr.DataArray, grid: SCHISMGrid, source: SCHISMDataBoundary
+) -> xr.DataArray:
+    """Fill boundary nodes independently, never borrowing values across boundaries."""
+    hgrid = grid.pylibs_hgrid
+    boundaries = getattr(source, "open_boundaries", None)
+    if boundaries is None:
+        boundaries = range(hgrid.nob)
+    lengths = [len(hgrid.iobn[index]) for index in boundaries]
+    if sum(lengths) != series.sizes["nOpenBndNodes"]:
+        # A custom boundary spacing may not map 1:1 to hgrid nodes. Avoid silently
+        # treating the flattened sites as spatially adjacent in that case.
+        return series
+
+    chunks = []
+    start = 0
+    for length in lengths:
+        chunk = series.isel(nOpenBndNodes=slice(start, start + length))
+        chunks.append(_fill_nearest_dim(chunk, "nOpenBndNodes"))
+        start += length
+    return xr.concat(chunks, dim="nOpenBndNodes").transpose(*series.dims)
 
 
 def get_valid_rename_dict(ds, rename_dict):

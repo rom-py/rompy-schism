@@ -57,3 +57,27 @@ def test_fill_nearest_extends_a_single_valid_value():
     filled = _fill_nearest(np.array([np.nan, 1.0, np.nan, np.nan]))
     assert np.array_equal(filled, [1.0, 1.0, 1.0, 1.0])
     assert np.array_equal(_fill_nearest(np.array([2.0, np.nan, 5.0])), [2.0, 2.0, 5.0])
+
+
+def test_nearest_fill_does_not_linearly_interpolate_interior_gaps():
+    from rompy_schism.data import _fill_nearest_dim
+
+    values = xr.DataArray([1.0, np.nan, 9.0], dims=("time",))
+    filled = _fill_nearest_dim(values, "time")
+    assert np.array_equal(filled.values, [1.0, 1.0, 9.0])
+
+
+def test_nearest_fill_does_not_cross_open_boundary_segments():
+    from types import SimpleNamespace
+
+    from rompy_schism.data import _fill_nearest_by_boundary
+
+    values = xr.DataArray(
+        [np.nan, 1.0, np.nan, 100.0], dims=("nOpenBndNodes",)
+    )
+    grid = SimpleNamespace(
+        pylibs_hgrid=SimpleNamespace(nob=2, iobn=[np.array([0, 1]), np.array([2, 3])])
+    )
+    source = SimpleNamespace(open_boundaries=None)
+    filled = _fill_nearest_by_boundary(values, grid, source)
+    assert np.array_equal(filled.values, [1.0, 1.0, 100.0, 100.0])
