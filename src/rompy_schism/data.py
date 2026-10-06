@@ -516,8 +516,6 @@ class SCHISMDataSflux(RompyBaseModel):
                 data = getattr(v, f"{variable}_{i}")
                 if data is None:
                     continue
-                if data.fail_if_missing:
-                    continue
                 weight += data.relative_weight
                 active = True
             if active and weight != 1.0:

@@ -50,7 +50,7 @@ def test_forcing_period_is_padded_once_for_all_variables(
 
 
 def test_relative_weights_are_checked_for_every_kind():
-    # Only sources with fail_if_missing=False are checked
+    # Optional sources still contribute their configured weight.
     rad = SfluxRad(
         source=SourceFile(uri="rad.nc"),
         dlwrf_name="strd",
@@ -59,6 +59,25 @@ def test_relative_weights_are_checked_for_every_kind():
     )
     with pytest.raises(ValidationError, match="Relative weights for rad"):
         SCHISMDataSflux(rad_1=rad)
+
+
+def test_required_sources_contribute_to_relative_weights():
+    required = SfluxRad(
+        source=SourceFile(uri="rad-required.nc"),
+        dlwrf_name="strd",
+        relative_weight=0.5,
+        fail_if_missing=True,
+    )
+    with pytest.raises(ValidationError, match="Relative weights for rad"):
+        SCHISMDataSflux(rad_1=required)
+
+    optional = SfluxRad(
+        source=SourceFile(uri="rad-optional.nc"),
+        dlwrf_name="strd",
+        relative_weight=0.5,
+        fail_if_missing=False,
+    )
+    SCHISMDataSflux(rad_1=required, rad_2=optional)
 
 
 def test_precipitation_data_type():
