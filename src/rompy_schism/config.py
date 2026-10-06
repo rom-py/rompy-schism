@@ -74,8 +74,14 @@ class SCHISMConfig(BaseConfig):
         hotstart = getattr(conditions, "hotstart_config", None)
         if hotstart is None or not hotstart.enabled:
             return self
-        opt = self.nml.param.opt if self.nml and self.nml.param else None
-        if opt is None or opt.ihot != 0:
+        if self.nml is None:
+            self.nml = NML(param=Param())
+        elif self.nml.param is None:
+            self.nml.param = Param()
+        elif self.nml.param.opt is None:
+            self.nml.param.opt = Param().opt
+        opt = self.nml.param.opt
+        if opt.ihot != 0:
             return self
         if "ihot" in opt.model_fields_set:
             raise ValueError(
