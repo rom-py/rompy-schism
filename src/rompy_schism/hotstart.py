@@ -167,11 +167,25 @@ class SCHISMDataHotstart(DataGrid):
         lyi = gd.y
         lzi0 = np.abs(vd.compute_zcor(gd.dp)).T  # Depth of each level, positive down
 
-        # Source coordinates, in increasing order for the interpolation indices
-        ds = ds.sortby([self.coords.x, self.coords.y, self.coords.z])
-        sx = np.array(ds[self.coords.x].values) % 360
+        # Normalize coordinates before sorting so data and coordinates stay aligned.
+        # Positive-down depth is the interpolation convention regardless of whether
+        # the source stores depth as positive-down or negative-up.
+        ds = ds.assign_coords(
+            {
+                self.coords.x: ds[self.coords.x] % 360,
+                self.coords.z: np.abs(ds[self.coords.z]),
+            }
+        ).sortby([self.coords.x, self.coords.y, self.coords.z])
+        sx = np.array(ds[self.coords.x].values)
         sy = np.array(ds[self.coords.y].values)
-        sz = np.abs(np.array(ds[self.coords.z].values))
+        sz = np.array(ds[self.coords.z].values)
+
+        # A global source may contain both -180 and +180, which normalize to the
+        # same meridian. Keep one copy to avoid zero-width interpolation intervals.
+        sx_unique, unique_indices = np.unique(sx, return_index=True)
+        if len(sx_unique) != len(sx):
+            ds = ds.isel({self.coords.x: unique_indices})
+            sx = sx_unique
 
         # Levels above or below the source's depths take its nearest depth
         lzi0 = np.clip(lzi0, sz.min(), sz.max())

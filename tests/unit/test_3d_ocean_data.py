@@ -23,8 +23,8 @@ DEPTH = np.array([0.5, 10, 50, 100, 300, 600, 1000, 2000, 3000])
 
 
 def temperature(depth):
-    """A profile that linear interpolation reproduces between the source depths."""
-    return np.interp(depth, DEPTH, 25 - DEPTH / 150)
+    """A nonlinear profile that exposes incorrect depth-axis ordering."""
+    return np.interp(depth, DEPTH, 25 - 5 * np.log1p(DEPTH))
 
 
 @pytest.fixture(scope="module")
@@ -36,18 +36,20 @@ def grid():
     )
 
 
-def ocean(path, seabed=None):
+def ocean(path, seabed=None, depth_sign=1, lon=None, longitude_gradient=False):
     """An ocean dataset file over the test grid, missing below `seabed` if given.
 
     The second day is 1 degree warmer than the first.
     """
-    lon = np.arange(144.5, 155.5, 0.5)
+    lon = np.arange(144.5, 155.5, 0.5) if lon is None else np.asarray(lon)
     lat = np.arange(-25.5, -15.5, 0.5)
     profile = temperature(DEPTH)
     values = np.broadcast_to(
         profile[None, :, None, None], (2, len(DEPTH), len(lat), len(lon))
     ).copy()
     values[1] += 1
+    if longitude_gradient:
+        values += (lon % 360)[None, None, None, :] / 100
     if seabed is not None:
         values[:, DEPTH > seabed, :, ::2] = np.nan
     ds = xr.Dataset(
@@ -57,7 +59,7 @@ def ocean(path, seabed=None):
         },
         coords={
             "time": pd.date_range("2023-01-01", periods=2, freq="1D"),
-            "depth": DEPTH,
+            "depth": depth_sign * DEPTH,
             "lat": lat,
             "lon": lon,
         },
@@ -124,9 +126,15 @@ class TestBoundary:
 
 
 class TestHotstart:
-    def get(self, grid, tmp_path, seabed=None):
+    def get(self, grid, tmp_path, seabed=None, depth_sign=1, lon=None, longitude_gradient=False):
         hotstart = SCHISMDataHotstart(
-            source=ocean(tmp_path, seabed),
+            source=ocean(
+                tmp_path,
+                seabed,
+                depth_sign=depth_sign,
+                lon=lon,
+                longitude_gradient=longitude_gradient,
+            ),
             coords=COORDS,
             temp_var="temp",
             salt_var="salt",
@@ -145,3 +153,19 @@ class TestHotstart:
         assert not np.isnan(values).any()
         assert (np.diff(values, axis=1) >= -1e-9).all()
         assert values.min() > temperature(3000)
+
+    def test_negative_depth_coordinates_are_interpolated_in_positive_down_order(
+        self, grid, tmp_path
+    ):
+        ds = self.get(grid, tmp_path, depth_sign=-1)
+        gd, vd = grid.pylibs_hgrid, grid.pylibs_vgrid
+        depth = np.clip(np.abs(vd.compute_zcor(gd.dp)), DEPTH[0], None)
+        np.testing.assert_allclose(ds.tr_nd[:, :, 0], temperature(depth) + 1, atol=1e-6)
+
+    def test_global_longitudes_are_sorted_after_normalization(self, grid, tmp_path):
+        lon = np.array([-179.0, -1.0, 0.0, 144.0, 146.0, 150.0, 152.0, 155.0, 179.0])
+        ds = self.get(grid, tmp_path, lon=lon, longitude_gradient=True)
+        gd, vd = grid.pylibs_hgrid, grid.pylibs_vgrid
+        depth = np.clip(np.abs(vd.compute_zcor(gd.dp)), DEPTH[0], None)
+        expected = temperature(depth) + 1 + (gd.x % 360)[:, None] / 100
+        np.testing.assert_allclose(ds.tr_nd[:, :, 0], expected, atol=1e-6)
