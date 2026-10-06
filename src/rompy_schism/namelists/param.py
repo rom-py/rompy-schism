@@ -1604,7 +1604,11 @@ class Param(NamelistBaseModel):
                 f"schout.nhot_write ({schout.nhot_write}) must be a multiple of "
                 f"core.ihfskip ({self.core.ihfskip}) when schout.nhot=1"
             )
-        if schout.iout_sta != 0 and schout.nhot_write % schout.nspool_sta != 0:
+        if (
+            schout.nhot == 1
+            and schout.iout_sta != 0
+            and schout.nhot_write % schout.nspool_sta != 0
+        ):
             raise ValueError(
                 f"schout.nhot_write ({schout.nhot_write}) must be a multiple of "
                 f"schout.nspool_sta ({schout.nspool_sta}) when schout.iout_sta=1"

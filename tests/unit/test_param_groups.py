@@ -56,4 +56,11 @@ def test_hotstart_output_interval_is_checked_across_groups():
     with pytest.raises(ValidationError, match="multiple of core.ihfskip"):
         Param(core={"ihfskip": 720}, schout={"nhot": 1, "nhot_write": 1000})
     with pytest.raises(ValidationError, match="multiple of schout.nspool_sta"):
-        Param(schout={"iout_sta": 1, "nspool_sta": 7, "nhot_write": 1000})
+        Param(
+            core={"ihfskip": 1},
+            schout={"nhot": 1, "iout_sta": 1, "nspool_sta": 7, "nhot_write": 1000},
+        )
+
+
+def test_station_output_without_hotstart_does_not_constrain_nhot_write():
+    Param(schout={"nhot": 0, "iout_sta": 1, "nspool_sta": 7, "nhot_write": 1000})
