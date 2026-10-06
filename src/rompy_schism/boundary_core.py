@@ -1066,7 +1066,12 @@ def create_river_boundary_config(
                 elev_type=ElevationType.HARMONIC, vel_type=VelocityType.HARMONIC
             )
             if other_boundaries == "tidal"
-            else None
+            else BoundarySetupWithSource(
+                elev_type=ElevationType.NONE,
+                vel_type=VelocityType.NONE,
+                temp_type=TracerType.NONE,
+                salt_type=TracerType.NONE,
+            )
         ),
         hotstart_config=None,
     )

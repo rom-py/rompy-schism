@@ -1728,7 +1728,7 @@ class SCHISMDataBoundaryConditions(RompyBaseModel):
             sources = [getattr(setups[i], attr) for i in indices]
             distinct = []
             for source in sources:
-                if all(source is not other for other in distinct):
+                if source not in distinct:
                     distinct.append(source)
             if not distinct or distinct == [None]:
                 continue  # the file is provided some other way

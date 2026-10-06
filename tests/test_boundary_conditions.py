@@ -333,13 +333,14 @@ def test_hybrid_factory(
     assert os.path.exists(result["bctides"])
 
 
-def test_river_factory(tidal_data_files):
-    """Test the river factory function."""
+@pytest.mark.parametrize("other_boundaries", ["none", "hybrid"])
+def test_river_factory_sets_other_boundaries(other_boundaries, tidal_data_files):
+    """Factories provide a valid default for every open boundary."""
     # Create configuration with river boundary
     bc = create_river_boundary_config(
         river_boundary_index=1,
         river_flow=-100.0,
-        other_boundaries="tidal",
+        other_boundaries=other_boundaries,
         tidal_database=tidal_data_files,
         tidal_model="OCEANUM-atlas",
         constituents=["M2", "S2", "N2"],
@@ -351,6 +352,9 @@ def test_river_factory(tidal_data_files):
     assert 1 in bc.boundaries
     assert bc.boundaries[1].vel_type == VelocityType.CONSTANT
     assert bc.boundaries[1].const_flow == -100.0
+    setups = bc.boundary_setups(2)
+    assert setups[0].elev_type == ElevationType.NONE
+    assert setups[0].vel_type == VelocityType.NONE
 
 
 def test_nested_factory(

@@ -188,7 +188,7 @@ def test_boundary_file_holds_the_boundaries_that_use_it(
     assert elev2d.sizes["nOpenBndNodes"] == 3  # only the nodes of boundary 2
 
 
-def test_one_source_per_boundary_file(
+def test_equivalent_sources_can_share_boundary_file(
     grid_two_open_boundaries, test_files_dir, tmp_path
 ):
     conditions = SCHISMDataBoundaryConditions(
@@ -197,6 +197,25 @@ def test_one_source_per_boundary_file(
                 elev_type=4, vel_type=0, elev_source=elevation_source(test_files_dir)
             )
             for i in (0, 1)
+        }
+    )
+    conditions.get(tmp_path, grid_two_open_boundaries, PERIOD)
+    assert xr.open_dataset(tmp_path / "elev2D.th.nc").sizes["nOpenBndNodes"] == 6
+
+
+def test_distinct_sources_cannot_share_boundary_file(
+    grid_two_open_boundaries, test_files_dir, tmp_path
+):
+    first = elevation_source(test_files_dir)
+    second = SCHISMDataBoundary(
+        source=SourceFile(uri=str(test_files_dir / "different.nc")),
+        variables=["surf_el"],
+        coords=DatasetCoords(t="time", x="xlon", y="ylat"),
+    )
+    conditions = SCHISMDataBoundaryConditions(
+        boundaries={
+            0: BoundarySetupWithSource(elev_type=4, vel_type=0, elev_source=first),
+            1: BoundarySetupWithSource(elev_type=4, vel_type=0, elev_source=second),
         }
     )
     with pytest.raises(ValueError, match="need the same elev_source"):
