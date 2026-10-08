@@ -42,6 +42,9 @@ New Features
 
 Bug Fixes
 ---------
+* 3D models work with a vertical grid generated from ``VGrid`` or ``VgridGenerator``, not only with a ``vgrid.in`` file. ``SCHISMGrid.is_3d`` was False and ``pylibs_vgrid`` failed for them, so boundary data and hotstart files were written as 2D.
+* ``SCHISMGrid.is_3d`` and ``nvrt`` come from the vertical grid: a 2D ``vgrid.in`` file is no longer taken as 3D, and a 2D grid has ``nvrt=2`` instead of ``None``.
+* LSC2 vertical grids, which cannot be generated here (they need SCHISM's ``gen_vqs``), are rejected when configured with a message to give ``vgrid.in`` as a file. ``VGrid()`` defaulted to LSC2 and always failed; it now defaults to SZ. ``VgridGenerator.vgrid_type`` accepts only ``2d``, ``sz`` and ``lsc2`` instead of falling back to LSC2 for other values.
 * 3D boundary files (``TEM_3D.th.nc``, ``SAL_3D.th.nc``, ``uv3D.th.nc``) are interpolated to the vertical grid's own levels. They held the value extrapolated from the top of the source profile at every level.
 * Source profiles are extended below the ocean model's seabed before they are interpolated to the boundary nodes and the hotstart, so profiles near the seabed are not cut short or mixed with values from elsewhere.
 * The hotstart takes the source time closest to the start of the run; it always took the first time in the source.
