@@ -63,7 +63,6 @@ This object implements a set of models for each namelist and assembles a config 
 ::: rompy_schism.namelists.param.Core
 ::: rompy_schism.namelists.param.Opt
 ::: rompy_schism.namelists.param.Schout
-::: rompy_schism.namelists.param.Vertical
 ::: rompy_schism.namelists.param.Param
 
 ### ICE

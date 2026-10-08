@@ -42,12 +42,19 @@ New Features
 
 Bug Fixes
 ---------
+* About 40 ``param.nml`` parameters had no effect: they were written to ``&VERTICAL`` and ``&VEGETATION`` groups, but SCHISM only reads ``&CORE``, ``&OPT`` and ``&SCHOUT``. They include the backtracking limits (``s1_mxnbt``, ``s2_mxnbt``), ``rho0``, ``slr_rate``, ``iflux``, ``iharind`` and the vegetation model. They are now fields of ``opt`` and are written to ``&OPT``.
+* ``veg_lai`` and ``veg_cw`` are integers, as SCHISM v5.13 and v5.14 declare them. Written as reals, now that SCHISM reads them, they stop the run with a namelist read error.
+* ``schout.nhot=1`` no longer fails validation. The check of ``nhot_write`` read ``ihfskip`` and ``dt`` from ``schout`` instead of ``core``; it now follows SCHISM: ``nhot_write`` is a multiple of ``core.ihfskip`` with hotstart output, and of ``nspool_sta`` with station output.
 * ``bctides.in`` has exactly one entry per open boundary of the mesh. It had one per key of ``boundaries`` up to the largest key, and a single ``5 5 0 0`` boundary when ``boundaries`` was empty. A missing or unknown open boundary is now an error that says which.
 * ``bctides.in`` follows SCHISM's reader for every boundary type. Types read from files (elevation 1 and 4, discharge 1, tracers 1 and 4, relaxed velocity) no longer have comment lines inside the data; constant elevation and discharge (type 2) are one value, as SCHISM reads them, instead of none or one per node; Flather boundaries have a mean normal velocity per vertical level. The unread ``ncbn``/``nfluxf`` lines at the end are gone.
 * Tidal constituents keep the order they are given in, so ``bctides.in`` is the same from one run to the next, and a single constituent works.
 * ``TidalDataset.tide_interpolation_method`` is used; it was always bilinear.
 * Boundary conditions without tidal data, and a ``TidalDataset`` without mean dynamic topography, no longer fail.
 * Boundary files (``elev2D.th.nc``, ``uv3D.th.nc``, ``TEM_3D.th.nc``, ``SAL_3D.th.nc``) hold the nodes of the open boundaries that use them, as SCHISM reads them. They held all open boundary nodes, which SCHISM cannot read when only some boundaries use the file, for example an ocean boundary with a river. Each file is written once, from one source, set with ``SCHISMDataBoundary.open_boundaries``.
+
+Deprecations
+------------
+* ``Param.vertical`` and ``Param.vegetation`` are replaced by ``Param.opt``. Configurations that still use them are accepted with a ``DeprecationWarning`` and their values are moved to ``opt``.
 
 0.5.0 (2025-07-13)
 ___________________
