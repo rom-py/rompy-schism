@@ -42,6 +42,7 @@ New Features
 
 Bug Fixes
 ---------
+* Boundary data missing from the source (open boundary nodes outside its wet cells, or levels below its bottom) are filled from the nearest valid data: up the water column, then from the nearest boundary node, then in time. Values at the ends of the boundary were filled with one constant, the median of all boundary values, which is often the case where an open boundary meets the coast. A warning gives the number of values filled, and a boundary without any valid data is an error.
 * sflux air variables missing from the source are filled with a standard atmosphere (101325 Pa, 288.15 K, 0.01 kg/kg) instead of -999. With heat exchange (``ihconsv=1``) or the inverse barometer at the boundary (``inv_atm_bnd=1``), SCHISM uses these values.
 * The sflux forcing period is padded by one day on each side once. It grew by another day on each side for every active sflux file, and lost its interval.
 * The relative weights of ``rad`` and ``prc`` sflux sources are checked, not only ``air``.

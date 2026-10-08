@@ -1057,34 +1057,30 @@ class SCHISMDataBoundary(DataBoundary):
         schism_ds.time.encoding["units"] = unit
         schism_ds.time.encoding["calendar"] = "proleptic_gregorian"
 
-        # Handle missing values more robustly
-        null_count = schism_ds.time_series.isnull().sum().item()
-        if null_count > 0:
-            logger.debug(
-                f"Found {null_count} null values, applying interpolation and filling"
+        # Missing values: boundary nodes outside the source's wet cells, or levels
+        # below its bottom. Fill them from the nearest valid data: up the water
+        # column first, then from the nearest boundary node, then in time.
+        missing = int(schism_ds.time_series.isnull().sum())
+        if missing:
+            series = schism_ds.time_series
+            for dim in ["nLevels", "nOpenBndNodes", "time"]:
+                if dim not in series.dims or series.sizes[dim] <= 1:
+                    continue
+                if dim == "nOpenBndNodes":
+                    series = _fill_nearest_by_boundary(series, grid, self)
+                else:
+                    series = _fill_nearest_dim(series, dim)
+            if series.isnull().any():
+                raise ValueError(
+                    f"No valid {', '.join(self.variables)} data at the open boundary "
+                    f"in {getattr(self.source, 'uri', self.source)}: check that the "
+                    "source covers the boundary and the run period"
+                )
+            schism_ds["time_series"] = series
+            logger.warning(
+                f"{missing} of {series.size} {self.id} boundary values were missing "
+                "in the source and are filled from the nearest valid data"
             )
-
-            # Try interpolating along different dimensions
-            for dim in ["nOpenBndNodes", "time", "nLevels"]:
-                if dim in schism_ds.dims and len(schism_ds[dim]) > 1:
-                    schism_ds["time_series"] = schism_ds.time_series.interpolate_na(
-                        dim=dim
-                    )
-                    if not schism_ds.time_series.isnull().any():
-                        logger.debug(
-                            f"Interpolated missing values along {dim} dimension"
-                        )
-                        break
-
-            # If still have NaNs, use more aggressive filling methods
-            if schism_ds.time_series.isnull().any():
-                # Find a reasonable fill value (median of non-NaN values)
-                valid_values = schism_ds.time_series.values[
-                    ~np.isnan(schism_ds.time_series.values)
-                ]
-                fill_value = np.median(valid_values) if len(valid_values) > 0 else 0.0
-                schism_ds["time_series"] = schism_ds.time_series.fillna(fill_value)
-                logger.debug(f"Filled remaining nulls with constant value {fill_value}")
 
         # Clean up encoding
         for var in schism_ds.data_vars:
@@ -1862,6 +1858,50 @@ class SCHISMDataBoundaryConditions(RompyBaseModel):
     #     # SHould possibly move this these flags out of SCHISMDataTides class as they cover more than
     #     # just tides
     #     return cls
+
+
+def _fill_nearest(values: np.ndarray) -> np.ndarray:
+    """Fill the NaNs of a 1D array with the nearest valid value."""
+    valid = ~np.isnan(values)
+    if valid.all() or not valid.any():
+        return values
+    index = np.arange(values.size)
+    nearest = index[valid][np.abs(index[:, None] - index[valid]).argmin(axis=1)]
+    return values[nearest]
+
+
+def _fill_nearest_dim(series: xr.DataArray, dim: str) -> xr.DataArray:
+    """Fill a DataArray along one dimension without interpolating between values."""
+    return xr.apply_ufunc(
+        _fill_nearest,
+        series,
+        input_core_dims=[[dim]],
+        output_core_dims=[[dim]],
+        vectorize=True,
+    ).transpose(*series.dims)
+
+
+def _fill_nearest_by_boundary(
+    series: xr.DataArray, grid: SCHISMGrid, source: SCHISMDataBoundary
+) -> xr.DataArray:
+    """Fill boundary nodes independently, never borrowing values across boundaries."""
+    hgrid = grid.pylibs_hgrid
+    boundaries = getattr(source, "open_boundaries", None)
+    if boundaries is None:
+        boundaries = range(hgrid.nob)
+    lengths = [len(hgrid.iobn[index]) for index in boundaries]
+    if sum(lengths) != series.sizes["nOpenBndNodes"]:
+        # A custom boundary spacing may not map 1:1 to hgrid nodes. Avoid silently
+        # treating the flattened sites as spatially adjacent in that case.
+        return series
+
+    chunks = []
+    start = 0
+    for length in lengths:
+        chunk = series.isel(nOpenBndNodes=slice(start, start + length))
+        chunks.append(_fill_nearest_dim(chunk, "nOpenBndNodes"))
+        start += length
+    return xr.concat(chunks, dim="nOpenBndNodes").transpose(*series.dims)
 
 
 def get_valid_rename_dict(ds, rename_dict):
