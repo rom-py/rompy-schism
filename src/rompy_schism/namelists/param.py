@@ -1,6 +1,7 @@
 # Originally generated from a SCHISM namelist file on 2025-01-24.
 # This file is now maintained manually.
 
+import warnings
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -495,56 +496,7 @@ class Opt(NamelistBaseModel):
         1, description="1: final relax is sum of horizontal"
     )
 
-    @field_validator("ipre2")
-    @classmethod
-    def validate_ipre2(cls, v):
-        if v not in [0, 1]:
-            raise ValueError("ipre2 must be 0 or 1")
-        return v
-
-    @field_validator("itransport_only")
-    @classmethod
-    def validate_itransport_only(cls, v):
-        if v not in [0, 1, 2]:
-            raise ValueError("itransport_only must be 0, 1, or 2")
-        return v
-
-    @field_validator("iloadtide")
-    @classmethod
-    def validate_iloadtide(cls, v):
-        if v not in [0, 1, 2, 3]:
-            raise ValueError("iloadtide must be 0, 1, 2, or 3")
-        return v
-
-    @field_validator("loadtide_coef")
-    @classmethod
-    def validate_loadtide_coef(cls, v):
-        if v < 0 or v > 1:
-            raise ValueError("loadtide_coef must be between 0 and 1")
-        return v
-
-    @field_validator("start_year")
-    @classmethod
-    def validate_start_year(cls, v):
-        if v < 1900 or v > 2100:
-            raise ValueError("start_year must be between 1900 and 2100")
-        return v
-
-    @field_validator("start_month")
-    @classmethod
-    def validate_start_month(cls, v):
-        if v < 1 or v > 12:
-            raise ValueError("start_month must be between 1 and 12")
-        return v
-
-    @model_validator(mode="after")
-    def check_loadtide_coef(self):
-        if self.iloadtide in [2, 3] and self.loadtide_coef == 0:
-            raise ValueError("loadtide_coef must be set when iloadtide is 2 or 3")
-        return self
-
-
-class Vegetation(NamelistBaseModel):
+    # Vegetation model
     # isav: Optional[int] = Field(
     #     0,
     #     description="Flag for vegetation model. 0: off, 1: on. Requires additional input files if enabled.",
@@ -583,69 +535,18 @@ class Vegetation(NamelistBaseModel):
         [1.0, 1.0, 1.0],
         description="Vertical scaling for stem diameter. Only used if iveg=1.",
     )
-    veg_lai: Optional[float] = Field(
-        1.0,
+    # SCHISM v5.13 and v5.14 declare veg_lai and veg_cw as integers: a value such as
+    # 1.5 is a fatal namelist read error, and SCHISM's own default of 1.5 becomes 1.
+    veg_lai: Optional[int] = Field(
+        1,
         description="Leaf Area Index [-]; used if iveg=2. Ganthy suggests 0-10?",
     )
-    veg_cw: Optional[float] = Field(
-        1.5,
+    veg_cw: Optional[int] = Field(
+        1,
         description="calibration coefficient in diameter of bent leaf [-]; used if iveg=2. Ganthy suggests 0-25?",
     )
 
-    @field_validator("iveg")
-    @classmethod
-    def validate_iveg(cls, v):
-        if v not in [0, 1, 2]:
-            raise ValueError("iveg must be 0, 1, or 2")
-        return v
-
-    @field_validator("veg_vert_z")
-    @classmethod
-    def validate_veg_vert_z(cls, v):
-        # Check if the list is in ascending order and contains floats
-        if not all(isinstance(i, float) for i in v):
-            raise ValueError("All elements in veg_vert_z must be floats")
-        if not all(v[i] < v[i + 1] for i in range(len(v) - 1)):
-            raise ValueError("veg_vert_z must be in ascending order")
-        return v
-
-    @field_validator("veg_vert_scale_cd")
-    @classmethod
-    def validate_veg_vert_scale_cd(cls, v, values):
-        if not all(isinstance(i, float) for i in v):
-            raise ValueError("All elements in veg_vert_scale_cd must be floats")
-        return v
-
-    @field_validator("veg_vert_scale_n")
-    @classmethod
-    def validate_veg_vert_scale_n(cls, v, values):
-        if not all(isinstance(i, float) for i in v):
-            raise ValueError("All elements in veg_vert_scale_n must be floats")
-        return v
-
-    @field_validator("veg_vert_scale_d")
-    @classmethod
-    def validate_veg_vert_scale_d(cls, v, values):
-        if not all(isinstance(i, float) for i in v):
-            raise ValueError("All elements in veg_vert_scale_d must be floats")
-        return v
-
-    @field_validator("veg_lai")
-    @classmethod
-    def validate_veg_lai(cls, v):
-        if v < 0:
-            raise ValueError("veg_lai must be non-negative")
-        return v
-
-    @field_validator("veg_cw")
-    @classmethod
-    def validate_veg_cw(cls, v):
-        if v < 0:
-            raise ValueError("veg_cw must be non-negative")
-        return v
-
-
-class Vertical(NamelistBaseModel):
+    # Vertical, backtracking and miscellaneous parameters
     vnh1: Optional[int] = Field(
         400,
         description="Vertical nudging depth 1 in meters. Used in vertical relaxation scheme.",
@@ -746,6 +647,106 @@ class Vertical(NamelistBaseModel):
         0.001,
         description="Maximum ratio between H^{n+1} and H^n allowed for ICM mass conservation.",
     )
+
+    @field_validator("ipre2")
+    @classmethod
+    def validate_ipre2(cls, v):
+        if v not in [0, 1]:
+            raise ValueError("ipre2 must be 0 or 1")
+        return v
+
+    @field_validator("itransport_only")
+    @classmethod
+    def validate_itransport_only(cls, v):
+        if v not in [0, 1, 2]:
+            raise ValueError("itransport_only must be 0, 1, or 2")
+        return v
+
+    @field_validator("iloadtide")
+    @classmethod
+    def validate_iloadtide(cls, v):
+        if v not in [0, 1, 2, 3]:
+            raise ValueError("iloadtide must be 0, 1, 2, or 3")
+        return v
+
+    @field_validator("loadtide_coef")
+    @classmethod
+    def validate_loadtide_coef(cls, v):
+        if v < 0 or v > 1:
+            raise ValueError("loadtide_coef must be between 0 and 1")
+        return v
+
+    @field_validator("start_year")
+    @classmethod
+    def validate_start_year(cls, v):
+        if v < 1900 or v > 2100:
+            raise ValueError("start_year must be between 1900 and 2100")
+        return v
+
+    @field_validator("start_month")
+    @classmethod
+    def validate_start_month(cls, v):
+        if v < 1 or v > 12:
+            raise ValueError("start_month must be between 1 and 12")
+        return v
+
+    @model_validator(mode="after")
+    def check_loadtide_coef(self):
+        if self.iloadtide in [2, 3] and self.loadtide_coef == 0:
+            raise ValueError("loadtide_coef must be set when iloadtide is 2 or 3")
+        return self
+
+    @field_validator("iveg")
+    @classmethod
+    def validate_iveg(cls, v):
+        if v not in [0, 1, 2]:
+            raise ValueError("iveg must be 0, 1, or 2")
+        return v
+
+    @field_validator("veg_vert_z")
+    @classmethod
+    def validate_veg_vert_z(cls, v):
+        # Check if the list is in ascending order and contains floats
+        if not all(isinstance(i, float) for i in v):
+            raise ValueError("All elements in veg_vert_z must be floats")
+        if not all(v[i] < v[i + 1] for i in range(len(v) - 1)):
+            raise ValueError("veg_vert_z must be in ascending order")
+        return v
+
+    @field_validator("veg_vert_scale_cd")
+    @classmethod
+    def validate_veg_vert_scale_cd(cls, v, values):
+        if not all(isinstance(i, float) for i in v):
+            raise ValueError("All elements in veg_vert_scale_cd must be floats")
+        return v
+
+    @field_validator("veg_vert_scale_n")
+    @classmethod
+    def validate_veg_vert_scale_n(cls, v, values):
+        if not all(isinstance(i, float) for i in v):
+            raise ValueError("All elements in veg_vert_scale_n must be floats")
+        return v
+
+    @field_validator("veg_vert_scale_d")
+    @classmethod
+    def validate_veg_vert_scale_d(cls, v, values):
+        if not all(isinstance(i, float) for i in v):
+            raise ValueError("All elements in veg_vert_scale_d must be floats")
+        return v
+
+    @field_validator("veg_lai")
+    @classmethod
+    def validate_veg_lai(cls, v):
+        if v < 0:
+            raise ValueError("veg_lai must be non-negative")
+        return v
+
+    @field_validator("veg_cw")
+    @classmethod
+    def validate_veg_cw(cls, v):
+        if v < 0:
+            raise ValueError("veg_cw must be non-negative")
+        return v
 
     @field_validator("vnh1")
     @classmethod
@@ -1533,27 +1534,86 @@ class Schout(NamelistBaseModel):
         return v
 
     @model_validator(mode="after")
-    def validate_nhot_write_multiple(self):
-        if self.nhot == 1:
-            if self.nhot_write % self.ihfskip != 0:
-                raise ValueError("nhot_write must be a multiple of ihfskip when nhot=1")
-            if self.ihfskip % self.dt != 0:
-                raise ValueError("ihfskip must be a multiple of dt")
-        return self
-
-    @model_validator(mode="after")
     def validate_nspool_sta_requirement(self):
         if self.iout_sta != 0 and self.nspool_sta <= 0:
             raise ValueError("nspool_sta must be positive when iout_sta is non-zero")
         return self
 
 
+# Sections of earlier rompy-schism versions whose parameters SCHISM reads from &OPT
+DEPRECATED_OPT_SECTIONS = ("vertical", "vegetation")
+
+
 class Param(NamelistBaseModel):
+    """SCHISM ``param.nml``, with the three groups SCHISM reads: CORE, OPT, SCHOUT."""
+
     core: Optional[Core] = Field(default_factory=Core)
     opt: Optional[Opt] = Field(default_factory=Opt)
-    vertical: Optional[Vertical] = Field(default_factory=Vertical)
-    vegetation: Optional[Vegetation] = Field(default_factory=Vegetation)
     schout: Optional[Schout] = Field(default_factory=Schout)
+
+    @model_validator(mode="before")
+    @classmethod
+    def move_deprecated_sections_to_opt(cls, data: Any) -> Any:
+        """Move parameters given in the former ``vertical``/``vegetation`` sections.
+
+        Earlier versions wrote these parameters to ``&VERTICAL`` and ``&VEGETATION``
+        groups, which SCHISM does not read, so they had no effect. SCHISM reads them
+        from ``&OPT``.
+        """
+        if not isinstance(data, dict):
+            return data
+        sections = {
+            key: data.pop(key)
+            for key in list(data)
+            if key.lower() in DEPRECATED_OPT_SECTIONS
+        }
+        sections = {key: value for key, value in sections.items() if value}
+        if not sections:
+            return data
+        warnings.warn(
+            f"The param sections {sorted(sections)} are deprecated: set their "
+            "parameters in opt, where SCHISM reads them.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        opt_key = next((key for key in data if key.lower() == "opt"), "opt")
+        opt = data.get(opt_key) or {}
+        if isinstance(opt, Opt):
+            opt = {name: getattr(opt, name) for name in opt.model_fields_set}
+        merged = {key.lower(): value for key, value in opt.items()}
+        for section in sections.values():
+            for key, value in section.items():
+                if key.lower() in merged:
+                    raise ValueError(
+                        f"{key} is set both in opt and in a deprecated section"
+                    )
+                merged[key.lower()] = value
+        data[opt_key] = merged
+        return data
+
+    @model_validator(mode="after")
+    def hotstart_output_interval(self) -> "Param":
+        """Check nhot_write as SCHISM does: a multiple of the output file length
+        (core.ihfskip) with hotstart output, and of the station output interval
+        with station output."""
+        if self.core is None or self.schout is None:
+            return self
+        schout = self.schout
+        if schout.nhot == 1 and schout.nhot_write % self.core.ihfskip != 0:
+            raise ValueError(
+                f"schout.nhot_write ({schout.nhot_write}) must be a multiple of "
+                f"core.ihfskip ({self.core.ihfskip}) when schout.nhot=1"
+            )
+        if (
+            schout.nhot == 1
+            and schout.iout_sta != 0
+            and schout.nhot_write % schout.nspool_sta != 0
+        ):
+            raise ValueError(
+                f"schout.nhot_write ({schout.nhot_write}) must be a multiple of "
+                f"schout.nspool_sta ({schout.nspool_sta}) when schout.iout_sta=1"
+            )
+        return self
 
     def validate_schema(self, schema_version: SchismSchemaVersion) -> None:
         """Validate fields whose meaning depends on the full SCHISM schema."""

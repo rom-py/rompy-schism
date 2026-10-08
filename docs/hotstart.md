@@ -29,6 +29,8 @@ The `HotstartConfig` class defines all parameters needed for hotstart file gener
 
 ::: rompy_schism.data.HotstartConfig
 
+SCHISM reads `hotstart.nc` only when `param.nml` has `ihot` 1 (start from the hotstart state with the clock at zero) or 2 (continue from the time in the file). When `hotstart_config` is enabled and `nml.param.opt.ihot` is not set, it is set to 1; setting `ihot=0` explicitly is an error.
+
 ### Configuration Parameters
 
 | Parameter | Default | Description |
