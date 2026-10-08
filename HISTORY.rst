@@ -42,6 +42,11 @@ New Features
 
 Bug Fixes
 ---------
+* sflux air variables missing from the source are filled with a standard atmosphere (101325 Pa, 288.15 K, 0.01 kg/kg) instead of -999. With heat exchange (``ihconsv=1``) or the inverse barometer at the boundary (``inv_atm_bnd=1``), SCHISM uses these values.
+* The sflux forcing period is padded by one day on each side once. It grew by another day on each side for every active sflux file, and lost its interval.
+* The relative weights of ``rad`` and ``prc`` sflux sources are checked, not only ``air``.
+* ``SfluxPrc`` has ``data_type`` ``sflux_prc`` (it was ``sflux_rad``).
+* An ``SfluxAir`` source without a ``uri`` is an error; it silently used a test-data path.
 * SCHISM now starts from the ``hotstart.nc`` written by ``boundary_conditions.hotstart_config``. ``opt.ihot`` stayed 0, so SCHISM cold-started and ignored the file: the check looked for a ``data.hotstart`` field that no longer exists. ``ihot`` is set to 1 when not set, and ``ihot=0`` with a hotstart is an error.
 * About 40 ``param.nml`` parameters had no effect: they were written to ``&VERTICAL`` and ``&VEGETATION`` groups, but SCHISM only reads ``&CORE``, ``&OPT`` and ``&SCHOUT``. They include the backtracking limits (``s1_mxnbt``, ``s2_mxnbt``), ``rho0``, ``slr_rate``, ``iflux``, ``iharind`` and the vegetation model. They are now fields of ``opt`` and are written to ``&OPT``.
 * ``veg_lai`` and ``veg_cw`` are integers, as SCHISM v5.13 and v5.14 declare them. Written as reals, now that SCHISM reads them, they stop the run with a namelist read error.
