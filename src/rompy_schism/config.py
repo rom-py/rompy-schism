@@ -62,18 +62,61 @@ class SCHISMConfig(BaseConfig):
         default=SCHISM_TEMPLATE,
     )
 
-    # add a validator that checks that nml.param.ihot is 1 if data.hotstart is not none
     @model_validator(mode="after")
     def check_hotstart(self):
-        if (
-            self.data is not None
-            and hasattr(self.data, "hotstart")
-            and getattr(self.data, "hotstart", None) is not None
-            and self.nml is not None
-            and self.nml.param is not None
-            and self.nml.param.opt is not None
-        ):
-            self.nml.param.opt.ihot = 1
+        """Start from the hotstart.nc written by the boundary conditions.
+
+        SCHISM only reads hotstart.nc with ``opt.ihot`` 1 or 2. When
+        ``hotstart_config`` writes the file and ``ihot`` is not set, it is set to 1
+        (start from the hotstart state, with the clock at zero).
+        """
+        conditions = getattr(self.data, "boundary_conditions", None)
+        hotstart = getattr(conditions, "hotstart_config", None)
+        if hotstart is None or not hotstart.enabled:
+            return self
+        if self.nml is None:
+            self.nml = NML(param=Param())
+        elif self.nml.param is None:
+            self.nml.param = Param()
+        elif self.nml.param.opt is None:
+            self.nml.param.opt = Param().opt
+        opt = self.nml.param.opt
+        if opt.ihot != 0:
+            return self
+        if "ihot" in opt.model_fields_set:
+            raise ValueError(
+                "nml.param.opt.ihot=0 makes SCHISM ignore the hotstart.nc written by "
+                "data.boundary_conditions.hotstart_config: set ihot to 1 or 2, or "
+                "disable hotstart_config"
+            )
+        opt.ihot = 1
+        return self
+
+    @model_validator(mode="after")
+    def check_friction(self):
+        """Tell SCHISM which friction file the grid writes.
+
+        ``opt.nchi`` selects it: 0 for drag.gr3, -1 for manning.gr3, 1 for rough.gr3.
+        When not set, it follows the grid's friction field; a value that does not
+        match is an error.
+        """
+        if self.nml is None or self.nml.param is None or self.nml.param.opt is None:
+            return self
+        nchi = {"drag": 0, "manning": -1, "rough": 1}
+        friction = next(
+            (name for name in nchi if getattr(self.grid, name, None) is not None), None
+        )
+        if friction is None:
+            return self
+        opt = self.nml.param.opt
+        if "nchi" not in opt.model_fields_set:
+            opt.nchi = nchi[friction]
+        elif opt.nchi != nchi[friction]:
+            raise ValueError(
+                f"nml.param.opt.nchi={opt.nchi} makes SCHISM read a different friction "
+                f"file from the grid's {friction}.gr3: set nchi to {nchi[friction]} or "
+                "leave it unset"
+            )
         return self
 
     @model_validator(mode="after")
