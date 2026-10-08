@@ -4,7 +4,6 @@ from typing import Any, Dict, Literal, Optional, Union
 
 import numpy as np
 import pandas as pd
-import scipy as sp
 import xarray as xr
 from pydantic import ConfigDict, Field, model_validator
 
@@ -21,6 +20,7 @@ from rompy_schism.boundary_core import (
     TracerType,
     VelocityType,
 )
+from rompy_schism.fill import fill_below_seabed
 from rompy_schism.grid import SCHISMGrid
 from rompy_schism.tides_enhanced import BoundarySetup
 from rompy.utils import total_seconds
@@ -676,6 +676,25 @@ class SCHISMDataBoundary(DataBoundary):
         nodes = self._boundary_nodes(grid)
         return grid.pylibs_hgrid.x[nodes], grid.pylibs_hgrid.y[nodes]
 
+    @property
+    def ds(self) -> xr.Dataset:
+        """The source data, with 3D profiles extended below the ocean model's seabed.
+
+        SCHISM's levels at a boundary node can be deeper than the source data around
+        it; extending each profile down from its deepest value keeps the horizontal
+        interpolation to the node from losing the lower part of the profile.
+        """
+        ds = super().ds
+        z = self.coords.z
+        if z is None or z not in ds.dims:
+            return ds
+        ds = ds.isel({z: np.argsort(np.abs(ds[z].values))})
+        for var in self.variables:
+            if z in ds[var].dims:
+                values = fill_below_seabed(ds[var].values, ds[var].get_axis_num(z))
+                ds[var] = ds[var].copy(data=values)
+        return ds
+
     def get(
         self,
         destdir: str | Path,
@@ -833,153 +852,40 @@ class SCHISMDataBoundary(DataBoundary):
             # Get bathymetry for boundary nodes
             boundary_depths = gd.dp[boundary_indices]
 
-            # Get sigma levels from vgrid
-            # Note: This assumes a simple sigma or SZ grid format
-            # For more complex vgrids, more sophisticated extraction would be needed
-            if vgd is not None:
-                if hasattr(vgd, "sigma"):
-                    sigma_levels = vgd.sigma.copy()
-                    num_sigma_levels = len(sigma_levels)
-                else:
-                    # Default sigma levels if not available
-                    sigma_levels = np.array([-1.0, 0.0])
-                    num_sigma_levels = 2
+            # Heights of SCHISM's levels at the boundary nodes, from bottom to surface,
+            # computed by the vertical grid (SZ stretching, or LSC2 per-node sigma).
+            # Levels below the seabed take the bottom height.
+            if vgd.ivcor == 1:
+                zcor = vgd.compute_zcor(
+                    boundary_depths, method=1,
+                    sigma=vgd.sigma[boundary_indices], kbp=vgd.kbp[boundary_indices],
+                )  # fmt: skip
+            else:
+                zcor = vgd.compute_zcor(boundary_depths)
+            max_nvrt = zcor.shape[1]
 
-                # Get fixed z levels if available
-                if hasattr(vgd, "ztot"):
-                    z_levels = vgd.ztot
-                else:
-                    z_levels = np.array([])
-
-            # For each boundary point, determine the total number of vertical levels
-            # and create appropriate zcor arrays
-            all_zcors = []
-            all_nvrt = []
-
-            for i, (node_idx, depth) in enumerate(
-                zip(boundary_indices, boundary_depths)
-            ):
-                # Check if we're in deep water (depth > first z level)
-                if z_levels.size > 0 and depth > z_levels[0]:
-                    # In deep water, find applicable z levels (between first z level and actual depth)
-                    first_z_level = z_levels[0]
-                    z_mask = (z_levels > first_z_level) & (z_levels < depth)
-                    applicable_z = z_levels[z_mask] if np.any(z_mask) else []
-
-                    # Total levels = sigma levels + applicable z levels
-                    total_levels = num_sigma_levels + len(applicable_z)
-
-                    # Create zcor for this boundary point
-                    node_zcor = np.zeros(total_levels)
-
-                    # First, calculate sigma levels using the first z level as the "floor"
-                    for j in range(num_sigma_levels):
-                        node_zcor[j] = first_z_level * sigma_levels[j]
-
-                    # Then, add the fixed z levels below the sigma levels
-                    for j, z_val in enumerate(applicable_z):
-                        node_zcor[num_sigma_levels + j] = z_val
-
-                else:
-                    # In shallow water, just use sigma levels scaled to the actual depth
-                    total_levels = num_sigma_levels
-
-                    # Create zcor for this boundary point
-                    node_zcor = np.zeros(total_levels)
-
-                    for j in range(total_levels):
-                        node_zcor[j] = depth * sigma_levels[j]
-
-                # Store this boundary point's zcor and number of levels
-                all_zcors.append(node_zcor)
-                all_nvrt.append(total_levels)
-
-            # Now we have a list of zcor arrays with potentially different lengths
-            # Find the maximum number of levels across all boundary points
-            max_nvrt = max(all_nvrt) if all_nvrt else num_sigma_levels
-
-            # Create a uniform zcor array with the maximum number of levels
-            zcor = np.zeros((len(boundary_indices), max_nvrt))
-
-            # Fill in the values, leaving zeros for levels beyond a particular boundary point's total
-            for i, (node_zcor, nvrt_i) in enumerate(zip(all_zcors, all_nvrt)):
-                zcor[i, :nvrt_i] = node_zcor
-
-            # Get source z-levels and prepare for interpolation
-            sigma_values = (
-                ds[self.coords.z].values
-                if self.coords and self.coords.z
-                else np.array([0])
+            # Interpolate each source profile to the levels, both as depths positive
+            # down. Only the profile's valid values are used (the source has none
+            # below its seabed), and the nearest value is kept beyond them.
+            source_depth = np.abs(ds[self.coords.z].values)
+            order = np.argsort(source_depth)
+            source_depth = source_depth[order]
+            profiles = time_series[:, :, order, :]
+            interpolated = np.full(
+                (profiles.shape[0], profiles.shape[1], max_nvrt, num_components), np.nan
             )
-            data_shape = time_series.shape
-
-            # Initialize interpolated data array with the maximum number of vertical levels
-            if num_components == 1:
-                interpolated_data = np.zeros((data_shape[0], data_shape[1], max_nvrt))
-            else:
-                interpolated_data = np.zeros(
-                    (data_shape[0], data_shape[1], max_nvrt, data_shape[3])
-                )
-
-            # For each time step and boundary point
-            for t in range(data_shape[0]):  # time
-                for n in range(data_shape[1]):  # boundary points
-                    # Get z-coordinates for this point
-                    z_dest = zcor[n, :]
-                    nvrt_n = all_nvrt[
-                        n
-                    ]  # Get the number of vertical levels for this point
-
-                    if num_components == 1:
-                        # Extract vertical profile for single component
-                        profile = time_series[t, n, :, 0]
-
-                        # Create interpolator for this profile
-                        interp = sp.interpolate.interp1d(
-                            sigma_values,
-                            profile,
-                            kind="linear",
-                            bounds_error=False,
-                            fill_value="extrapolate",
-                        )
-
-                        # Interpolate to SCHISM levels for this boundary point
-                        # Only interpolate up to the actual number of levels for this point
-                        interpolated_data[t, n, :nvrt_n] = interp(z_dest[:nvrt_n])
-                    else:
-                        # Handle multiple components (e.g., u,v for velocity)
-                        for c in range(num_components):
-                            # Extract vertical profile for this component
-                            profile = time_series[t, n, :, c]
-
-                            # Create interpolator for this profile
-                            interp = sp.interpolate.interp1d(
-                                sigma_values,
-                                profile,
-                                kind="linear",
-                                bounds_error=False,
-                                fill_value="extrapolate",
+            for n in range(profiles.shape[1]):  # boundary nodes
+                target = -zcor[n]
+                for t in range(profiles.shape[0]):
+                    for c in range(num_components):
+                        profile = profiles[t, n, :, c]
+                        valid = ~np.isnan(profile)
+                        if valid.any():
+                            interpolated[t, n, :, c] = np.interp(
+                                target, source_depth[valid], profile[valid]
                             )
-
-                            # Interpolate to SCHISM levels for this boundary point
-                            # Only interpolate up to the actual number of levels for this point
-                            interpolated_data[t, n, :nvrt_n, c] = interp(
-                                z_dest[:nvrt_n]
-                            )
-
-            # Replace data with interpolated values
-            data = interpolated_data
-            if num_components == 1:
-                time_series = np.expand_dims(data, axis=3)
-            else:
-                time_series = data
-
-            # Store the variable vertical levels in the output dataset
-            # Create a 2D array where each row contains the vertical levels for a boundary node
-            # For nodes with fewer levels, pad with NaN
-            vert_levels = np.full((len(boundary_indices), max_nvrt), np.nan)
-            for i, (node_zcor, nvrt_i) in enumerate(zip(all_zcors, all_nvrt)):
-                vert_levels[i, :nvrt_i] = node_zcor
+            time_series = interpolated
+            vert_levels = zcor
 
             # Create output dataset
             schism_ds = xr.Dataset(
@@ -1002,7 +908,7 @@ class SCHISMDataBoundary(DataBoundary):
                     ),
                     "num_levels": (
                         ("nOpenBndNodes"),
-                        np.array(all_nvrt),
+                        np.full(time_series.shape[1], max_nvrt),
                     ),
                 },
             )
