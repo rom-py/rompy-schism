@@ -42,6 +42,7 @@ New Features
 
 Bug Fixes
 ---------
+* A grid with ``manning`` or ``rough`` friction now runs: ``opt.nchi``, which tells SCHISM which friction file to read, stayed 0 (``drag.gr3``), so SCHISM stopped with "Cannot open file drag.gr3". ``nchi`` now follows the grid's friction field when not set, and a value that does not match is an error.
 * ``wwminput.nml`` is written only when ``nml.wwminput`` is set; it was written for every run.
 * Generating a workspace a second time in the same directory no longer fails on the ``hgrid.ll`` and ``hgrid_WWM.gr3`` links ("File exists").
 * 3D models work with a vertical grid generated from ``VGrid`` or ``VgridGenerator``, not only with a ``vgrid.in`` file. ``SCHISMGrid.is_3d`` was False and ``pylibs_vgrid`` failed for them, so boundary data and hotstart files were written as 2D.
