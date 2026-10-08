@@ -1,3 +1,4 @@
+import tempfile
 from pathlib import Path
 from typing import Literal, Optional
 
@@ -204,9 +205,12 @@ class VgridGenerator(GeneratorBase):
     model_type: Literal["vgridgenerator"] = Field(
         "vgridgenerator", description="Model discriminator"
     )
-    vgrid_type: str = Field(
+    vgrid_type: Literal["2d", "sz", "lsc2"] = Field(
         default="2d",
-        description="Type of vertical grid to generate (2d, lsc2, or sz)",
+        description=(
+            "Type of vertical grid to generate: 2d or sz. An lsc2 vgrid.in cannot be "
+            "generated; give it as a file"
+        ),
     )
 
     # Parameters for 3D grids
@@ -225,6 +229,16 @@ class VgridGenerator(GeneratorBase):
     theta_f: float = Field(
         default=1.0, description="Surface theta parameter for SZ vertical grid"
     )
+
+    @model_validator(mode="after")
+    def vgrid_can_be_generated(self) -> "VgridGenerator":
+        """Fail when configured, not when generating, for an LSC2 grid."""
+        self._create_vgrid_instance()
+        return self
+
+    @property
+    def is_3d(self) -> bool:
+        return self._create_vgrid_instance().is_3d
 
     def generate(self, destdir: str | Path) -> Path:
         dest_path = Path(destdir) / "vgrid.in"
@@ -247,9 +261,6 @@ class VgridGenerator(GeneratorBase):
             return VGrid.create_sz(
                 nvrt=self.nvrt, h_c=self.h_c, theta_b=self.theta_b, theta_f=self.theta_f
             )
-        else:
-            logger.warning(f"Unknown vgrid_type '{self.vgrid_type}', defaulting to 2D")
-            return VGrid.create_lsc2(nvrt=2, h_s=-1.0e6)
 
     def _create_2d_vgrid(self, destdir: str | Path) -> Path:
         """Create a 2D vgrid.in file using the refactored VGrid class."""
@@ -594,8 +605,12 @@ class SCHISMGrid(BaseGrid):
         if self.vgrid is None:
             return None
         if self._pylibs_vgrid is None:
-            vgrid_path = self.vgrid._copied or self.vgrid.source
-            self._pylibs_vgrid = read_schism_vgrid(vgrid_path)
+            if isinstance(self.vgrid, DataBlob):
+                vgrid_path = self.vgrid._copied or self.vgrid.source
+            else:
+                # A generated grid (VGrid, VgridGenerator): write it once to read it
+                vgrid_path = self.vgrid.generate(tempfile.mkdtemp(prefix="vgrid-"))
+            self._pylibs_vgrid = read_schism_vgrid(str(vgrid_path))
         return self._pylibs_vgrid
 
     # Legacy properties for backward compatibility
@@ -611,18 +626,12 @@ class SCHISMGrid(BaseGrid):
 
     @property
     def is_3d(self):
+        """True when the vertical grid has more than one layer (2D is 2 levels)."""
         if self.vgrid is None:
             return False
-        elif isinstance(self.vgrid, DataBlob):
-            return True
-        elif isinstance(self.vgrid, VgridGenerator):
-            # Check the vgrid_type attribute of the VgridGenerator
-            if self.vgrid.vgrid_type.lower() == VGRID_TYPE_2D:
-                return False
-            else:
-                return True
-        # Fallback for any other case (including when accessing the property before initialization)
-        return False
+        if isinstance(self.vgrid, DataBlob):
+            return self.pylibs_vgrid.nvrt > 2
+        return self.vgrid.is_3d
 
     @property
     def nob(self):
@@ -638,10 +647,10 @@ class SCHISMGrid(BaseGrid):
 
     @property
     def nvrt(self):
-        if self.is_3d:
-            return self.pylibs_vgrid.nvrt
-        else:
+        """Number of vertical levels (2 for a 2D model), or None without a vgrid."""
+        if self.vgrid is None:
             return None
+        return self.pylibs_vgrid.nvrt
 
     def copy_to(self, destdir: Path) -> "SCHISMGrid":
         """Copy the grid to a destination directory.
