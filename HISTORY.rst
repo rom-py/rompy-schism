@@ -36,11 +36,38 @@ Releases
 Unreleased
 __________
 
+New Features
+------------
+* ``SCHISMDataBoundaryConditions.default_boundary`` sets up the open boundaries not listed in ``boundaries``. The factory functions use it, so ``create_tidal_only_boundary_config`` applies tidal elevation and currents to every open boundary, as documented.
+
 Bug Fixes
 ---------
 * 3D models work with a vertical grid generated from ``VGrid`` or ``VgridGenerator``, not only with a ``vgrid.in`` file. ``SCHISMGrid.is_3d`` was False and ``pylibs_vgrid`` failed for them, so boundary data and hotstart files were written as 2D.
 * ``SCHISMGrid.is_3d`` and ``nvrt`` come from the vertical grid: a 2D ``vgrid.in`` file is no longer taken as 3D, and a 2D grid has ``nvrt=2`` instead of ``None``.
 * LSC2 vertical grids, which cannot be generated here (they need SCHISM's ``gen_vqs``), are rejected when configured with a message to give ``vgrid.in`` as a file. ``VGrid()`` defaulted to LSC2 and always failed; it now defaults to SZ. ``VgridGenerator.vgrid_type`` accepts only ``2d``, ``sz`` and ``lsc2`` instead of falling back to LSC2 for other values.
+* 3D boundary files (``TEM_3D.th.nc``, ``SAL_3D.th.nc``, ``uv3D.th.nc``) are interpolated to the vertical grid's own levels. They held the value extrapolated from the top of the source profile at every level.
+* Source profiles are extended below the ocean model's seabed before they are interpolated to the boundary nodes and the hotstart, so profiles near the seabed are not cut short or mixed with values from elsewhere.
+* The hotstart takes the source time closest to the start of the run; it always took the first time in the source.
+* Boundary data missing from the source (open boundary nodes outside its wet cells, or levels below its bottom) are filled from the nearest valid data: up the water column, then from the nearest boundary node, then in time. Values at the ends of the boundary were filled with one constant, the median of all boundary values, which is often the case where an open boundary meets the coast. A warning gives the number of values filled, and a boundary without any valid data is an error.
+* sflux air variables missing from the source are filled with a standard atmosphere (101325 Pa, 288.15 K, 0.01 kg/kg) instead of -999. With heat exchange (``ihconsv=1``) or the inverse barometer at the boundary (``inv_atm_bnd=1``), SCHISM uses these values.
+* The sflux forcing period is padded by one day on each side once. It grew by another day on each side for every active sflux file, and lost its interval.
+* The relative weights of ``rad`` and ``prc`` sflux sources are checked, not only ``air``.
+* ``SfluxPrc`` has ``data_type`` ``sflux_prc`` (it was ``sflux_rad``).
+* An ``SfluxAir`` source without a ``uri`` is an error; it silently used a test-data path.
+* SCHISM now starts from the ``hotstart.nc`` written by ``boundary_conditions.hotstart_config``. ``opt.ihot`` stayed 0, so SCHISM cold-started and ignored the file: the check looked for a ``data.hotstart`` field that no longer exists. ``ihot`` is set to 1 when not set, and ``ihot=0`` with a hotstart is an error.
+* About 40 ``param.nml`` parameters had no effect: they were written to ``&VERTICAL`` and ``&VEGETATION`` groups, but SCHISM only reads ``&CORE``, ``&OPT`` and ``&SCHOUT``. They include the backtracking limits (``s1_mxnbt``, ``s2_mxnbt``), ``rho0``, ``slr_rate``, ``iflux``, ``iharind`` and the vegetation model. They are now fields of ``opt`` and are written to ``&OPT``.
+* ``veg_lai`` and ``veg_cw`` are integers, as SCHISM v5.13 and v5.14 declare them. Written as reals, now that SCHISM reads them, they stop the run with a namelist read error.
+* ``schout.nhot=1`` no longer fails validation. The check of ``nhot_write`` read ``ihfskip`` and ``dt`` from ``schout`` instead of ``core``; it now follows SCHISM: ``nhot_write`` is a multiple of ``core.ihfskip`` with hotstart output, and of ``nspool_sta`` with station output.
+* ``bctides.in`` has exactly one entry per open boundary of the mesh. It had one per key of ``boundaries`` up to the largest key, and a single ``5 5 0 0`` boundary when ``boundaries`` was empty. A missing or unknown open boundary is now an error that says which.
+* ``bctides.in`` follows SCHISM's reader for every boundary type. Types read from files (elevation 1 and 4, discharge 1, tracers 1 and 4, relaxed velocity) no longer have comment lines inside the data; constant elevation and discharge (type 2) are one value, as SCHISM reads them, instead of none or one per node; Flather boundaries have a mean normal velocity per vertical level. The unread ``ncbn``/``nfluxf`` lines at the end are gone.
+* Tidal constituents keep the order they are given in, so ``bctides.in`` is the same from one run to the next, and a single constituent works.
+* ``TidalDataset.tide_interpolation_method`` is used; it was always bilinear.
+* Boundary conditions without tidal data, and a ``TidalDataset`` without mean dynamic topography, no longer fail.
+* Boundary files (``elev2D.th.nc``, ``uv3D.th.nc``, ``TEM_3D.th.nc``, ``SAL_3D.th.nc``) hold the nodes of the open boundaries that use them, as SCHISM reads them. They held all open boundary nodes, which SCHISM cannot read when only some boundaries use the file, for example an ocean boundary with a river. Each file is written once, from one source, set with ``SCHISMDataBoundary.open_boundaries``.
+
+Deprecations
+------------
+* ``Param.vertical`` and ``Param.vegetation`` are replaced by ``Param.opt``. Configurations that still use them are accepted with a ``DeprecationWarning`` and their values are moved to ``opt``.
 
 0.5.0 (2025-07-13)
 ___________________
