@@ -38,6 +38,7 @@ __________
 
 New Features
 ------------
+* A Docker image to run SCHISM on rompy-schism workspaces, published as ``ghcr.io/rom-py/schism`` (``docker/Dockerfile``). It has SCHISM v5.13.0 with MPI and NetCDF, as ``schism`` and ``schism_wwm`` (with WWM waves), plus ``combine_hotstart7``. Each image is tested with rompy-schism workspaces before it is published.
 * ``SCHISMDataBoundaryConditions.default_boundary`` sets up the open boundaries not listed in ``boundaries``. The factory functions use it, so ``create_tidal_only_boundary_config`` applies tidal elevation and currents to every open boundary, as documented.
 
 Bug Fixes
