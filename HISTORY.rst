@@ -42,6 +42,7 @@ New Features
 
 Bug Fixes
 ---------
+* SCHISM now starts from the ``hotstart.nc`` written by ``boundary_conditions.hotstart_config``. ``opt.ihot`` stayed 0, so SCHISM cold-started and ignored the file: the check looked for a ``data.hotstart`` field that no longer exists. ``ihot`` is set to 1 when not set, and ``ihot=0`` with a hotstart is an error.
 * About 40 ``param.nml`` parameters had no effect: they were written to ``&VERTICAL`` and ``&VEGETATION`` groups, but SCHISM only reads ``&CORE``, ``&OPT`` and ``&SCHOUT``. They include the backtracking limits (``s1_mxnbt``, ``s2_mxnbt``), ``rho0``, ``slr_rate``, ``iflux``, ``iharind`` and the vegetation model. They are now fields of ``opt`` and are written to ``&OPT``.
 * ``veg_lai`` and ``veg_cw`` are integers, as SCHISM v5.13 and v5.14 declare them. Written as reals, now that SCHISM reads them, they stop the run with a namelist read error.
 * ``schout.nhot=1`` no longer fails validation. The check of ``nhot_write`` read ``ihfskip`` and ``dt`` from ``schout`` instead of ``core``; it now follows SCHISM: ``nhot_write`` is a multiple of ``core.ihfskip`` with hotstart output, and of ``nspool_sta`` with station output.
