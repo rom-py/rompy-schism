@@ -397,6 +397,7 @@ class GridLinker(GeneratorBase):
             filename = "hgrid_WWM.gr3"
         dest = Path(destdir) / f"{filename}"
         logger.info(f"Linking {ref} to {dest}")
+        dest.unlink(missing_ok=True)  # e.g. when generating into the same workspace
         dest.symlink_to(ref)
         return dest
 

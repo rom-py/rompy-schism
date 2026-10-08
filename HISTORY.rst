@@ -42,6 +42,8 @@ New Features
 
 Bug Fixes
 ---------
+* ``wwminput.nml`` is written only when ``nml.wwminput`` is set; it was written for every run.
+* Generating a workspace a second time in the same directory no longer fails on the ``hgrid.ll`` and ``hgrid_WWM.gr3`` links ("File exists").
 * 3D models work with a vertical grid generated from ``VGrid`` or ``VgridGenerator``, not only with a ``vgrid.in`` file. ``SCHISMGrid.is_3d`` was False and ``pylibs_vgrid`` failed for them, so boundary data and hotstart files were written as 2D.
 * ``SCHISMGrid.is_3d`` and ``nvrt`` come from the vertical grid: a 2D ``vgrid.in`` file is no longer taken as 3D, and a 2D grid has ``nvrt=2`` instead of ``None``.
 * LSC2 vertical grids, which cannot be generated here (they need SCHISM's ``gen_vqs``), are rejected when configured with a message to give ``vgrid.in`` as a file. ``VGrid()`` defaulted to LSC2 and always failed; it now defaults to SZ. ``VgridGenerator.vgrid_type`` accepts only ``2d``, ``sz`` and ``lsc2`` instead of falling back to LSC2 for other values.
