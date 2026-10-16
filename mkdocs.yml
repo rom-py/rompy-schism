@@ -7,6 +7,9 @@ edit_uri: edit/main/docs/
 
 nav:
   - Home: index.md
+  - Getting started:
+      - Installation: getting-started/installation.md
+      - Your first model: getting-started/first-model.md
   - Reference:
       - reference/index.md
       - Config: reference/config.md
