@@ -6,6 +6,7 @@ from pydantic import Field, model_validator
 
 from rompy.core.config import BaseConfig
 from rompy.core.data import DataBlob
+from rompy.core.responses import Artifact, ArtifactType
 from rompy.core.types import RompyBaseModel
 
 from .data import SCHISMData
@@ -39,6 +40,20 @@ class Inputs(RompyBaseModel):
 
 
 class SchismCSIROConfig(BaseConfig):
+    def expected_artifacts(self) -> list[Artifact]:
+        """Declare the run log; legacy template outputs are discovery-only.
+
+        The CSIRO template does not expose a complete SCHOUT configuration.
+        Use SCHISMConfig for config-driven global output declarations.
+        """
+        return [Artifact(path="outputs/mirror.out", artifact_type=ArtifactType.TEXT)]
+
+    def validate_outputs(self, output_dir: Path | str) -> list[Artifact]:
+        """Return existing files using the canonical core artifact schema."""
+        from rompy_schism.artifacts import discover_artifacts
+
+        return discover_artifacts(output_dir, self.expected_artifacts())
+
     model_type: Literal["schismcsiro"] = Field(
         "schismcsiro", description="The model type for SCHISM."
     )
