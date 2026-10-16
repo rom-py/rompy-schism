@@ -1,106 +1,107 @@
 site_name: rompy-schism
+site_description: Configure and run the SCHISM ocean model from Python and YAML
 site_url: https://rom-py.github.io/rompy-schism/
 repo_url: https://github.com/rom-py/rompy-schism
 repo_name: rom-py/rompy-schism
 edit_uri: edit/main/docs/
 
 nav:
-    - Home: index.md
-    - Installation: installation.md
-    - Usage: usage.md
-    - Configuration Schema Versions: schema_versions.md
-    - Contributing: contributing.md
-    - Boundary Conditions: boundary_conditions.md
-    - Hotstart Configuration: hotstart.md
-    - Backend Framework:
-          - Overview: backend_framework.md
-          - Tutorial: backend_tutorial.md
-    # - Notebooks:
-    #       - Overview: notebooks/schism_demo.ipynb
-    - API Reference:
-          - Config: reference/config.md
+  - Home: index.md
+  - Reference:
+      - Config: reference/config.md
 
 theme:
-    name: material
-    palette:
-        - media: "(prefers-color-scheme: light)"
-          scheme: default
-          primary: indigo
-          accent: indigo
-          toggle:
-              icon: material/lightbulb
-              name: Switch to dark mode
-        - media: "(prefers-color-scheme: dark)"
-          scheme: slate
-          primary: indigo
-          accent: indigo
-          toggle:
-              icon: material/lightbulb-outline
-              name: Switch to light mode
-    features:
-        - navigation.tabs
-        - navigation.sections
-        - toc.integrate
-        - navigation.top
-        - search.suggest
-        - search.highlight
-        - content.tabs.link
-        - content.code.annotation
-        - content.code.copy
+  name: material
+  custom_dir: docs/overrides
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.indexes
+    - navigation.top
+    - navigation.footer
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+
+extra_css:
+  - stylesheets/rompy.css
+
+extra:
+  rompy:
+    site: schism
 
 plugins:
-    - search
-    - mkdocstrings:
-          handlers:
-              python:
-                  options:
-                      show_root_heading: true
-                      show_root_full_path: false
-                      show_object_full_path: false
-                      show_category_heading: true
-                      show_if_no_docstring: true
-                      show_signature_annotations: true
-                      signature_crossrefs: true
-                      separate_signature: true
-                      docstring_section_style: table
-                      members_order: source
-                      group_by_category: true
-                      show_submodules: false
-                      filters:
-                          - "!^_" # Hide private members by default
-    # - mkdocs-jupyter:
-    #       execute: true # Execute notebooks during build
-    #       include_source: true # Add download link for source notebooks
-    #       theme: dark # Use dark theme for code cells
-    #       include: ["*.ipynb", "*.nb.py"] # File patterns to include
-    #       execute_ignore: ["notebooks/drafts/*.ipynb"] # Skip certain files
-    #       allow_errors: false # Fail build on notebook errors
-    #       kernel_name: python3 # Specify kernel to use
-    #       ignore_h1_titles: false # Include H1 from notebooks
-    #       show_input: true # Show input cells by default
-    #       no_input: false # Don't hide all inputs
-    #       remove_tag_config:
-    #           remove_cell_tags:
-    #               - "hide" # Hide cells with these tags
-    #               - "hide-cell"
-    #           remove_all_outputs_tags:
-    #               - "hide-output" # Hide outputs for tagged cells
-    #           remove_input_tags:
-    #               - "hide-input" # Hide input for tagged cells
+  - search
+  - markdown-exec
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [src]
+          inventories:
+            - https://docs.python.org/3/objects.inv
+            - https://docs.pydantic.dev/latest/objects.inv
+            - https://docs.xarray.dev/en/stable/objects.inv
+            # ROMPY_INVENTORY points local builds at an unpublished rompy site.
+            - url: !ENV [ROMPY_INVENTORY, "https://rom-py.github.io/rompy/objects.inv"]
+              base_url: https://rom-py.github.io/rompy/
+          options:
+            docstring_style: auto
+            docstring_section_style: table
+            preload_modules: [rompy]
+            inherited_members: true
+            show_bases: true
+            show_root_heading: true
+            show_root_full_path: false
+            show_symbol_type_heading: true
+            show_symbol_type_toc: true
+            show_if_no_docstring: true
+            show_source: false
+            separate_signature: true
+            show_signature_annotations: true
+            signature_crossrefs: true
+            merge_init_into_class: true
+            members_order: source
+            group_by_category: true
+            summary: false
+            filters: ["!^_", "!^model_(?!type$)"]
+            extensions:
+              - griffe_pydantic: {schema: false}
+              - rompy_docs.griffe:PydanticFieldRules
 
 markdown_extensions:
-    - pymdownx.highlight:
-          anchor_linenums: true
-          line_spans: __span
-          pygments_lang_class: true
-    - pymdownx.inlinehilite
-    - pymdownx.snippets
-    - pymdownx.superfences
-    - pymdownx.details
-    - pymdownx.critic
-    - pymdownx.caret
-    - pymdownx.keys
-    - pymdownx.mark
-    - pymdownx.tilde
-    - attr_list
-    - md_in_html
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
