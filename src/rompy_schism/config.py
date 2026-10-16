@@ -4,6 +4,7 @@ from typing import Literal, Optional
 
 from pydantic import ConfigDict, Field, model_serializer, model_validator
 from rompy.core.config import BaseConfig
+from rompy.core.responses import Artifact, ArtifactType
 from rompy.logging import get_logger
 
 from .config_legacy import SchismCSIROConfig as _LegacySchismCSIROConfig
@@ -61,6 +62,61 @@ class SCHISMConfig(BaseConfig):
         description="The path to the model template",
         default=SCHISM_TEMPLATE,
     )
+
+    def expected_artifacts(self) -> list[Artifact]:
+        """Declare cold/reset-clock outputs for the default scribed-I/O build.
+
+        Predict stacks from actual output steps, not just run duration. MPI
+        rank zero is a guaranteed hotstart partition; other ranks are found
+        at validation time. A continued-clock restart (ihot=2) needs the clock
+        from hotstart.nc, so its time-dependent outputs are discovery-only.
+        """
+        outputs = [Artifact(path="outputs/mirror.out", artifact_type=ArtifactType.TEXT)]
+        param = self.nml.param if self.nml is not None else None
+        if param is None or param.core is None or param.schout is None:
+            return outputs
+        core, schout = param.core, param.schout
+        if core.ipre == 1 or (param.opt is not None and param.opt.ihot == 2):
+            return outputs
+        if core.rnday is None or core.dt is None:
+            return outputs
+        # SCHISM uses nint(rnday*86400/dt).
+        nsteps = int(core.rnday * 86400 / core.dt + 0.5)
+        if schout.nc_out == 1 and core.nspool and core.ihfskip:
+            # The solver default iof_hydro(25)=1 writes zCoordinates. That
+            # switch is not exposed by this plugin's param schema.
+            variables = ["out2d", "zCoordinates"]
+            hydro_3d = {
+                17: ("verticalVelocity",), 18: ("temperature",),
+                19: ("salinity",), 20: ("waterDensity",),
+                21: ("diffusivity",), 22: ("viscosity",),
+                23: ("turbulentKineticEner",), 24: ("mixingLength",),
+                26: ("horizontalVelX", "horizontalVelY"),
+                27: ("horizontalSideVelX", "horizontalSideVelY"),
+                28: ("verticalVelAtElement",), 29: ("temperatureAtElement",),
+                30: ("salinityAtElement",),
+            }
+            for index, names in hydro_3d.items():
+                if getattr(schout, f"iof_hydro__{index}") == 1:
+                    variables.extend(names)
+            stacks = range(1, max(0, (nsteps - core.nspool) // core.ihfskip + 1) + 1)
+            for stack in stacks:
+                outputs.extend(
+                    Artifact(path=f"outputs/{name}_{stack}.nc", artifact_type=ArtifactType.NETCDF)
+                    for name in variables
+                )
+        if schout.nhot == 1 and schout.nhot_write:
+            outputs.extend(
+                Artifact(path=f"outputs/hotstart_000000_{step}.nc", artifact_type=ArtifactType.RESTART)
+                for step in range(schout.nhot_write, nsteps + 1, schout.nhot_write)
+            )
+        return outputs
+
+    def validate_outputs(self, output_dir: Path | str) -> list[Artifact]:
+        """Collect real files, including station, OLDIO and MPI outputs."""
+        from rompy_schism.artifacts import discover_artifacts
+
+        return discover_artifacts(output_dir, self.expected_artifacts())
 
     @model_validator(mode="after")
     def check_hotstart(self):
