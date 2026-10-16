@@ -10,6 +10,18 @@ nav:
   - Getting started:
       - Installation: getting-started/installation.md
       - Your first model: getting-started/first-model.md
+  - User guide:
+      - How rompy-schism works: user-guide/how-it-works.md
+      - Configuration: user-guide/configuration.md
+      - Mesh and vertical grid: user-guide/mesh.md
+      - Open boundaries and tides: user-guide/boundaries.md
+      - Initial conditions and hotstart: user-guide/initial-conditions.md
+      - Atmospheric forcing: user-guide/atmosphere.md
+      - Waves with WWM: user-guide/waves.md
+      - Model settings: user-guide/model-settings.md
+      - Output: user-guide/output.md
+      - Running SCHISM: user-guide/running.md
+      - Troubleshooting: user-guide/troubleshooting.md
   - Reference:
       - reference/index.md
       - Config: reference/config.md
