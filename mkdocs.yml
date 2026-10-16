@@ -8,7 +8,20 @@ edit_uri: edit/main/docs/
 nav:
   - Home: index.md
   - Reference:
+      - reference/index.md
       - Config: reference/config.md
+      - Grid: reference/grid.md
+      - Vertical grid: reference/vgrid.md
+      - Data: reference/data.md
+      - Boundary and initial conditions: reference/boundary.md
+      - Atmosphere: reference/atmosphere.md
+      - Waves: reference/waves.md
+      - param.nml: reference/param.md
+      - Namelists: reference/namelists.md
+      - WWM: reference/wwminput.md
+      - Modules: reference/modules.md
+      - Internals: reference/internals.md
+      - Namelist index: reference/namelist-index.md
 
 theme:
   name: material
