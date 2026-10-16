@@ -12,6 +12,11 @@ from rompy_schism.schema import DEFAULT_SCHISM_SCHEMA, SchismSchemaVersion
 
 
 class Core(NamelistBaseModel):
+    """The &CORE group of param.nml: settings without defaults in SCHISM, which every run needs.
+
+    ``rnday`` is set from the run period.
+    """
+
     ipre: Optional[int] = Field(
         0,
         description="Pre-processor flag (1: on; 0: off). Useful for checking grid errors etc. Use 1 core only for compute (plus necessary scribe cores) when enabled. Under scribe I/O, the code (scribe part) will hang but outputs will be available. Job should be manually terminated.",
@@ -172,6 +177,12 @@ class Core(NamelistBaseModel):
 
 
 class Opt(NamelistBaseModel):
+    """The &OPT group of param.nml: optional settings, with SCHISM's defaults.
+
+    The start date (``start_year`` to ``start_hour``) is set from the run period.
+    ``nws``, ``nchi`` and ``ihot`` are set from the rest of the configuration.
+    """
+
     ipre2: Optional[int] = Field(
         0,
         description="Pre-processing flag for diagnostic outputs. If non-zero, the code will output drag coefficients (Cdp) and stop.",
@@ -198,8 +209,14 @@ class Opt(NamelistBaseModel):
     start_hour: Optional[int] = Field(0, description="double")
     utc_start: Optional[int] = Field(0, description="double")
     ics: Optional[int] = Field(2, description="Coordinate option")
-    ihot: Optional[int] = Field(0, description="")
-    ieos_type: Optional[int] = Field(0, description="")
+    ihot: Optional[int] = Field(
+        0,
+        description="Hotstart option. 0: cold start; 1: start from hotstart.nc with the time reset to 0; 2: continue from the time step in hotstart.nc. Set to 1 by SCHISMConfig when the boundary conditions write hotstart.nc and ihot is not set.",
+    )
+    ieos_type: Optional[int] = Field(
+        0,
+        description="Equation of state. 0: UNESCO 1980 (nonlinear); 1: linear function of temperature only, rho = eos_b + eos_a*T.",
+    )
     ieos_pres: Optional[int] = Field(
         0, description="used only if ieos_type=0. 0: without pressure effects"
     )
@@ -213,9 +230,18 @@ class Opt(NamelistBaseModel):
     drampbc: Optional[float] = Field(
         0.0, description="ramp-up period in days for baroclinic force"
     )
-    iupwind_mom: Optional[int] = Field(0, description="")
-    indvel: Optional[int] = Field(0, description="")
-    ihorcon: Optional[int] = Field(0, description="")
+    iupwind_mom: Optional[int] = Field(
+        0,
+        description="Method for momentum advection. 0: ELM; 1: upwind (not quite working yet).",
+    )
+    indvel: Optional[int] = Field(
+        0,
+        description="Method for computing the velocity at nodes. 0: conformal linear shape function, which needs a stabilization method (ihorcon or ishapiro); 1: averaging.",
+    )
+    ihorcon: Optional[int] = Field(
+        0,
+        description="Horizontal viscosity option, to stabilize the momentum equation. 0: none; 1: Laplacian; 2: bi-harmonic.",
+    )
     hvis_coef0: Optional[float] = Field(
         0.025,
         description="const. diffusion # if ihorcon/=0; <=0.025 for ihorcon=2, <=0.125 for ihorcon=1",
@@ -225,8 +251,13 @@ class Opt(NamelistBaseModel):
         1, description="needed if ishapiro/=0: # of iterations with Shapiro filter"
     )
     shapiro0: Optional[float] = Field(0.5, description="needed only if ishapiro=1")
-    thetai: Optional[float] = Field(0.6, description="")
-    icou_elfe_wwm: Optional[int] = Field(0, description="")
+    thetai: Optional[float] = Field(
+        0.6, description="Implicitness factor, 0.5 < thetai <= 1."
+    )
+    icou_elfe_wwm: Optional[int] = Field(
+        0,
+        description="Coupling with WWM. 0: no water level or currents in WWM, no wave force in SCHISM; 1: fully coupled (water level, currents and wind passed to WWM, wave force in SCHISM); 2: water level and currents in WWM, no wave force in SCHISM; 3: no water level or currents in WWM, wave force in SCHISM; 4: water level but no currents in WWM, wave force in SCHISM; 5: water level but no currents in WWM, no wave force in SCHISM; 6: currents but no water level in WWM, wave force in SCHISM; 7: currents but no water level in WWM, no wave force in SCHISM. No effect unless SCHISM is built with WWM.",
+    )
     nstep_wwm: Optional[int] = Field(
         1, description="call WWM every this many time steps"
     )
@@ -275,19 +306,31 @@ class Opt(NamelistBaseModel):
     wafo_obcramp: Optional[int] = Field(
         0, description="Ramp on wave forces at open boundary (1: on / 0: off)"
     )
-    imm: Optional[int] = Field(0, description="")
+    imm: Optional[int] = Field(
+        0,
+        description="Bed deformation option. 0: off; 1: vertical deformation only, from bdef.gr3; 2: 3D bed deformation.",
+    )
     ibdef: Optional[int] = Field(
         10, description="needed if imm=1; # of steps used in deformation"
     )
     slam0: Optional[int] = Field(-124, description="lon - not really used")
     sfea0: Optional[int] = Field(45, description="lat")
-    iunder_deep: Optional[int] = Field(0, description="")
+    iunder_deep: Optional[int] = Field(
+        0,
+        description="Option for under-resolution near steep slopes in deep water. 0: use h1_bcc/h2_bcc; otherwise use hw_depth/hw_ratio.",
+    )
     h1_bcc: Optional[float] = Field(50.0, description="[m]")
     h2_bcc: Optional[float] = Field(100.0, description="[m]; >h1_bcc")
     hw_depth: Optional[float] = Field(1000000.0, description="threshold depth in [m]")
     hw_ratio: Optional[float] = Field(0.5, description="ratio")
-    ihydraulics: Optional[int] = Field(0, description="")
-    if_source: Optional[int] = Field(0, description="")
+    ihydraulics: Optional[int] = Field(
+        0,
+        description="Hydraulic structures. If not 0, hydraulics.in is needed. Cannot be used with the non-hydrostatic model.",
+    )
+    if_source: Optional[int] = Field(
+        0,
+        description="Point sources and sinks. 0: none; 1: ASCII inputs (source_sink.in, vsource.th, vsink.th, msource.th); -1: NetCDF input, source.nc.",
+    )
     dramp_ss: Optional[int] = Field(
         2,
         description="needed if if_source/=0; ramp-up period in days for source/sinks (no ramp-up if <=0)",
@@ -311,8 +354,14 @@ class Opt(NamelistBaseModel):
     level_age: Optional[list] = Field(
         [9, -999], description="default: -999 (all levels)"
     )
-    ihdif: Optional[int] = Field(0, description="")
-    nchi: Optional[int] = Field(0, description="")
+    ihdif: Optional[int] = Field(
+        0,
+        description="Horizontal diffusivity. 1: a filter given in hdif.gr3, applied niter_hdif times.",
+    )
+    nchi: Optional[int] = Field(
+        0,
+        description="Bottom friction. 0: drag coefficients from drag.gr3; -1: Manning's n from manning.gr3; 1: bottom roughness (m) from rough.gr3, with the drag coefficient from the log law. Set by SCHISMConfig from the friction field of the grid when not set.",
+    )
     dzb_min: Optional[float] = Field(
         0.5, description="needed if nchi=1; min. bottom boundary layer thickness [m]."
     )
@@ -322,8 +371,14 @@ class Opt(NamelistBaseModel):
     ncor: Optional[int] = Field(1, description="should usually be 1 if ics=2")
     rlatitude: Optional[int] = Field(46, description="if ncor=-1")
     coricoef: Optional[int] = Field(0, description="if ncor=0")
-    ic_elev: Optional[int] = Field(0, description="")
-    nramp_elev: Optional[int] = Field(0, description="")
+    ic_elev: Optional[int] = Field(
+        0,
+        description="Initial elevation, for a cold start only. 1: from elev.ic; 0: zero everywhere. Set to 0 for a hotstart, which reads the elevation from hotstart.nc.",
+    )
+    nramp_elev: Optional[int] = Field(
+        0,
+        description="Ramp of the elevation boundary condition. 0: ramp up from 0; 1: ramp up from the elevation in elev.ic or hotstart.nc. The ramp period is dramp.",
+    )
     inv_atm_bnd: Optional[int] = Field(0, description="0: off; 1: on")
     prmsl_ref: Optional[float] = Field(
         101325.0, description="reference atmos. pressure on bnd [Pa]"
@@ -342,8 +397,14 @@ class Opt(NamelistBaseModel):
     gen_wsett: Optional[float] = Field(
         0.0, description="Settling vel [m/s] for GEN module"
     )
-    ibcc_mean: Optional[int] = Field(0, description="")
-    rmaxvel: Optional[float] = Field(5.0, description="")
+    ibcc_mean: Optional[int] = Field(
+        0,
+        description="Mean temperature and salinity profile. 1: read the mean profile from ts.ic and remove it when computing the baroclinic force.",
+    )
+    rmaxvel: Optional[float] = Field(
+        5.0,
+        description="Maximum horizontal velocity magnitude (m/s), mainly to prevent problems in the bulk aerodynamic module.",
+    )
     velmin_btrack: Optional[float] = Field(
         1e-4,
         description="min. vel for invoking btrack and for abnormal exit in quicksearch",
@@ -351,8 +412,14 @@ class Opt(NamelistBaseModel):
     btrack_nudge: Optional[float] = Field(
         9.013e-3, description="Nudging factors for starting side/node"
     )
-    ihhat: Optional[int] = Field(1, description="")
-    inunfl: Optional[int] = Field(0, description="")
+    ihhat: Optional[int] = Field(
+        1,
+        description="Wetting and drying. 1: make the total depth H-hat non-negative, for robustness near wetting and drying; 0: no restriction.",
+    )
+    inunfl: Optional[int] = Field(
+        0,
+        description="Wetting and drying. 0: for normal cases; 1: more accurate wetting and drying, if the mesh is fine enough.",
+    )
     h0: Optional[float] = Field(
         0.01, description="min. water depth for wetting/drying [m]"
     )
@@ -362,18 +429,32 @@ class Opt(NamelistBaseModel):
     )
     mxitn0: Optional[int] = Field(1500, description="max. iteration allowed")
     rtol0: Optional[float] = Field(1e-12, description="error tolerance")
-    nadv: Optional[int] = Field(1, description="")
+    nadv: Optional[int] = Field(
+        1,
+        description="Advection (ELM) option. 1: backtracking with the Euler method; 2: with 2nd order Runge-Kutta; 0: advection set per node in adv.gr3.",
+    )
     dtb_max: Optional[float] = Field(30.0, description="in sec")
-    dtb_min: Optional[float] = Field(10.0, description="")
-    inter_mom: Optional[int] = Field(0, description="")
+    dtb_min: Optional[float] = Field(
+        10.0,
+        description="Minimum backtracking step (s). The step is computed adaptively between dtb_min and dtb_max.",
+    )
+    inter_mom: Optional[int] = Field(
+        0,
+        description="Interpolation of the velocity at the foot of the characteristic line. 0: linear; 1: Kriging in the whole domain; -1: Kriging where krvel.gr3 is 1.",
+    )
     kr_co: Optional[int] = Field(1, description="not used if inter_mom=0")
-    itr_met: Optional[int] = Field(3, description="")
+    itr_met: Optional[int] = Field(
+        3,
+        description="Transport method for tracers. 1: implicit upwind; 2: explicit TVD; 3: TVD in the horizontal, implicit TVD in the vertical; 4: WENO in the horizontal, implicit TVD in the vertical.",
+    )
     h_tvd: Optional[float] = Field(5.0, description="cut-off depth (m)")
     eps1_tvd_imp: Optional[float] = Field(
         1e-4,
         description="suggested value is 1.e-4, but for large suspended load, need to use a smaller value (e.g. 1.e-9)",
     )
-    eps2_tvd_imp: Optional[float] = Field(1e-14, description="")
+    eps2_tvd_imp: Optional[float] = Field(
+        1e-14, description="Absolute convergence tolerance for itr_met=3 or 4."
+    )
     ielm_transport: Optional[int] = Field(0, description="1: turn on")
     max_subcyc: Optional[int] = Field(
         10,
@@ -478,8 +559,14 @@ class Opt(NamelistBaseModel):
         0.1,
         description="needed if itur=3 or 5. Scale for surface & bottom mixing length (>0)",
     )
-    inu_elev: Optional[int] = Field(0, description="")
-    inu_uv: Optional[int] = Field(0, description="")
+    inu_elev: Optional[int] = Field(
+        0,
+        description="Sponge layer for the elevation. 0: none; 1: relax to zero with the constants (1/s) in elev_nudge.gr3.",
+    )
+    inu_uv: Optional[int] = Field(
+        0,
+        description="Sponge layer for the velocity. 0: none; 1: relax with the constants (1/s) in uv_nudge.gr3.",
+    )
     inu_tr__1: Optional[int] = Field(0, description="T")
     inu_tr__2: Optional[int] = Field(0, description="S")
     inu_tr__3: Optional[int] = Field(0, description="GEN")
@@ -503,21 +590,15 @@ class Opt(NamelistBaseModel):
     # )
     iveg: Optional[int] = Field(
         0,
-        description="""
-        !----------------------------------------------------------------------
-        ! Vegetation model
-        ! If iveg/=0, need 4 extra inputs: (1) veg_D.gr3 (depth is stem diameter in meters);
-        ! (2) veg_N.gr3 (depth is # of stems per m^2);
-        ! (3) veg_h.gr3 (height of canopy in meters);
-        ! (4) veg_cd.gr3 (drag coefficient).
-        ! With iveg=1, the vertical scaling is given by veg_vert_scale_[cd,N,D](1:nbins_veg_vert+1) below.
-        ! veg_vert_z(:) specify the distance from bed for each bin (ascending order starting from 0).
-        ! iveg=2: flex vegeation using Ganthy (2011) fomulation
-
-        ! If one of these depths=0 at a node, the code will set all to 0. 
-        ! If USE_MARSH is on and isav=1, all .gr3 must have constant depths!
-        !----------------------------------------------------------------------
-        """,
+        description=(
+            "Vegetation model. 0: off; 1: on, with the vertical scaling given by "
+            "veg_vert_scale_cd, veg_vert_scale_N and veg_vert_scale_D at the heights "
+            "veg_vert_z above the bed; 2: flexible vegetation (Ganthy, 2011). Needs "
+            "veg_D.gr3 (stem diameter, m), veg_N.gr3 (stems per m^2), veg_h.gr3 "
+            "(canopy height, m) and veg_cd.gr3 (drag coefficient); where one is 0 at "
+            "a node, all are set to 0 there. With USE_MARSH and isav=1, all must be "
+            "constant."
+        ),
     )
     veg_vert_z: Optional[List[float]] = Field(
         [0.0, 0.5, 1.0],
@@ -919,6 +1000,11 @@ class Opt(NamelistBaseModel):
 
 
 class Schout(NamelistBaseModel):
+    """The &SCHOUT group of param.nml: output variables and intervals, hotstart output and stations.
+
+    Array entries such as ``iof_hydro(1)`` are fields named ``iof_hydro__1``.
+    """
+
     nc_out: Optional[int] = Field(
         1,
         description="Main switch to control netcdf output. If 0, SCHISM won't output nc files at all.",
@@ -1547,9 +1633,15 @@ DEPRECATED_OPT_SECTIONS = ("vertical", "vegetation")
 class Param(NamelistBaseModel):
     """SCHISM ``param.nml``, with the three groups SCHISM reads: CORE, OPT, SCHOUT."""
 
-    core: Optional[Core] = Field(default_factory=Core)
-    opt: Optional[Opt] = Field(default_factory=Opt)
-    schout: Optional[Schout] = Field(default_factory=Schout)
+    core: Optional[Core] = Field(
+        default_factory=Core, description="&CORE: settings every run needs"
+    )
+    opt: Optional[Opt] = Field(
+        default_factory=Opt, description="&OPT: optional settings"
+    )
+    schout: Optional[Schout] = Field(
+        default_factory=Schout, description="&SCHOUT: output"
+    )
 
     @model_validator(mode="before")
     @classmethod

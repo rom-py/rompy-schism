@@ -1,66 +1,37 @@
----
-title: "Relocatable Ocean Modelling in PYthon (rompy)"
----
+# rompy-schism
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15093426.svg)](https://doi.org/10.5281/zenodo.15093426)
-[![GitHub Pages](https://github.com/rom-py/rompy/actions/workflows/sphinx_docs_to_gh_pages.yaml/badge.svg)](https://rom-py.github.io/rompy/)
-[![PyPI version](https://img.shields.io/pypi/v/rompy.svg)](https://pypi.org/project/rompy/)
-[![GitHub Workflow Status (with event)](https://img.shields.io/github/actions/workflow/status/rom-py/rompy/python-publish.yml)](https://github.com/rom-py/rompy/actions)
-[![PyPI - Downloads](https://img.shields.io/pypi/dm/rompy)](https://pypistats.org/packages/rompy)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/python/black)
-[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/rompy)](https://pypi.org/project/rompy/)
+[![PyPI version](https://img.shields.io/pypi/v/rompy-schism.svg)](https://pypi.org/project/rompy-schism/)
+[![Tests](https://github.com/rom-py/rompy-schism/actions/workflows/testing.yml/badge.svg)](https://github.com/rom-py/rompy-schism/actions/workflows/testing.yml)
+[![Documentation](https://github.com/rom-py/rompy-schism/actions/workflows/build-docs.yml/badge.svg)](https://rom-py.github.io/rompy-schism/)
+[![Python versions](https://img.shields.io/pypi/pyversions/rompy-schism)](https://pypi.org/project/rompy-schism/)
 
-# Introduction
+rompy-schism sets up and runs the [SCHISM](https://schism-dev.github.io/schism/master/) ocean model from Python or YAML. It is the SCHISM plugin of [rompy](https://rom-py.github.io/rompy/), which provides the run period, data sources, model runs and backends shared by all models.
 
-Relocatable Ocean Modelling in PYthon (rompy) is a modular Python library that aims to streamline the setup, configuration, execution, and analysis of coastal ocean models. Rompy combines templated model configuration with powerful xarray-based data handling and pydantic validation, enabling users to efficiently generate model control files and input datasets for a variety of ocean and wave models. The architecture centers on high-level execution control (`ModelRun`) and flexible configuration objects, supporting both persistent scientific model state and runtime backend selection. Rompy provides unified interfaces for grids, data sources, boundary conditions, and spectra, with extensible plugin support for new models and execution environments. Comprehensive documentation, example Jupyter notebooks, and a robust logging/formatting framework make rompy accessible for both research and operational workflows. Current model support includes SWAN and SCHISM, with ongoing development for additional models and cloud/HPC backends.
+SCHISM computes water levels, currents and, in 3D, temperature and salinity on an unstructured mesh. rompy-schism describes its input files as validated Python objects and writes them:
 
-Key Features:
-- Modular architecture with clear separation of configuration and execution logic
-- Templated, reproducible model configuration using pydantic and xarray
-- Unified interfaces for grids, data, boundaries, and spectra
-- Extensible plugin system for models, data sources, backends, and postprocessors
-- Robust logging and formatting for consistent output and diagnostics
-- Example notebooks and comprehensive documentation for rapid onboarding
-- Support for local, Docker, and HPC execution backends
+- **The mesh and the files that go with it**: `hgrid.gr3`, the vertical grid, bottom friction and the other property files.
+- **Open boundaries from tides and ocean models**: tidal constituents from a tidal database, and boundary files interpolated from ocean model output.
+- **Forcing and initial conditions from data**: atmospheric forcing (sflux), wave spectra for WWM, and `hotstart.nc` from an ocean model.
+- **Model settings with SCHISM's names**: `param.nml` and the module namelists, for a chosen SCHISM version.
 
-rompy is under active development—features, model support, and documentation are continually evolving. Contributions and feedback are welcome!
+## Documentation
 
-# Documentation
+- Documentation: https://rom-py.github.io/rompy-schism/
+- Tutorial and examples (notebooks): https://rom-py.github.io/rompy-notebooks/schism-tutorial/
+- Changelog: [HISTORY.rst](https://github.com/rom-py/rompy-schism/blob/main/HISTORY.rst)
 
-See https://rom-py.github.io/rompy/
+## Installation
 
-# Code Formatting and Pre-commit Hooks
+```bash
+pip install rompy-schism
+```
 
-This repository enforces Python code formatting using [black](https://github.com/psf/black) via the pre-commit framework.
+SCHISM itself is not included. The public Docker image `ghcr.io/rom-py/schism` runs the generated workspaces; see [Running SCHISM](https://rom-py.github.io/rompy-schism/user-guide/running/).
 
-To set up pre-commit hooks locally (required for all contributors)::
+## Contributing
 
-    pip install pre-commit
-    pre-commit install
+See the [contributing guide](https://rom-py.github.io/rompy-schism/development/contributing/).
 
-This will automatically check code formatting before each commit. To format your code manually, run::
+## License
 
-    pre-commit run --all-files
-
-All code must pass black formatting before it can be committed or merged.
-
-# Versioning and Release
-
-This project uses [tbump](https://github.com/dmerejkowsky/tbump) for version management.
-
-To bump the version, run::
-
-    tbump <new_version>
-
-This will update the version in `src/rompy/__init__.py`, commit the change, and optionally create a git tag.
-
-tbump is included in the development requirements (`requirements_dev.txt`).
-
-For more advanced configuration, see `tbump.toml` in the project root.
-
-# Relevant packages
-
-> - [rompy](https://github.com/rom-py/rompy)
-> - [rompy-swan](https://github.com/rom-py/rompy-swan)
-> - [rompy-schism](https://github.com/rom-py/rompy-schism)
-> - [rompy-notebooks](https://github.com/rom-py/rompy-notebooks)
+Apache Software License 2.0. See [LICENSE](https://github.com/rom-py/rompy-schism/blob/main/LICENSE).

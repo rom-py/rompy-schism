@@ -69,7 +69,11 @@ def to_python_type(value):
 
 
 class SfluxSource(DataGrid):
-    """This is a single variable source for and sflux input"""
+    """A source of atmospheric data for sflux, the base of the air, rad and prc sources.
+
+    The data is cropped to the mesh and the run period and written as one sflux
+    NetCDF file; ``sflux_inputs.txt`` gets its weight and window settings.
+    """
 
     data_type: Literal["sflux"] = Field(
         default="sflux",
@@ -92,7 +96,7 @@ class SfluxSource(DataGrid):
         description="Number of source data timesteps to buffer the time range if `filter_time` is True",
     )
     # The source field needs special handling
-    source: Any = None
+    source: Any = Field(None, description="Source reader, e.g. a SourceFile")
     _variable_names = []
 
     model_config = ConfigDict(arbitrary_types_allowed=True, extra="ignore")
@@ -200,7 +204,12 @@ class SfluxSource(DataGrid):
 
 
 class SfluxAir(SfluxSource):
-    """This is a single variable source for and sflux input"""
+    """Air data for sflux: wind, sea-level pressure, air temperature and humidity.
+
+    The ``*_name`` fields give the name of each variable in the source. SCHISM needs
+    all five; those not given are filled with a standard atmosphere: no wind,
+    101325 Pa, 288.15 K and 0.01 kg/kg.
+    """
 
     data_type: Literal["sflux_air"] = Field(
         default="sflux_air",
@@ -345,7 +354,10 @@ class SfluxAir(SfluxSource):
 
 
 class SfluxRad(SfluxSource):
-    """This is a single variable source for and sflux input"""
+    """Radiation data for sflux: downward long- and short-wave radiation.
+
+    Needed for the heat exchange with the atmosphere (``opt.ihconsv=1``).
+    """
 
     data_type: Literal["sflux_rad"] = Field(
         default="sflux_rad",
@@ -363,7 +375,7 @@ class SfluxRad(SfluxSource):
 
 
 class SfluxPrc(SfluxSource):
-    """This is a single variable source for and sflux input"""
+    """Precipitation data for sflux: the precipitation rate."""
 
     data_type: Literal["sflux_prc"] = Field(
         default="sflux_prc",
@@ -377,6 +389,15 @@ class SfluxPrc(SfluxSource):
 
 
 class SCHISMDataSflux(RompyBaseModel):
+    """Atmospheric forcing, written to ``sflux/`` with ``sflux_inputs.txt``.
+
+    SCHISM reads three kinds of atmospheric data, each from a primary source
+    (``_1``) and an optional second one (``_2``), blended by their relative weights:
+    ``air`` (wind, pressure, air temperature and humidity), ``rad`` (radiation) and
+    ``prc`` (precipitation). The files cover the run period plus a day on each side.
+    With sflux data, ``opt.nws`` is set to 2.
+    """
+
     data_type: Literal["sflux"] = Field(
         default="sflux",
         description="Model type discriminator",
@@ -523,14 +544,10 @@ class SCHISMDataSflux(RompyBaseModel):
 
     @model_validator(mode="after")
     def check_weights(v):
-        """Check that relative weights for each pair add to 1.
-
-        Args:
-            cls: The class.
-            v: The variable.
+        """Check that the relative weights of the two sources of each kind add to 1.
 
         Raises:
-            ValueError: If the relative weights for any variable do not add up to 1.0.
+            ValueError: If the relative weights of air, rad or prc do not add up to 1.0.
 
         """
         for variable in ["air", "rad", "prc"]:

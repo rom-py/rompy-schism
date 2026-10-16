@@ -94,10 +94,6 @@ class Bctides:
             Temperature OBC values
         sobc : list, optional
             Salinity OBC values
-        tidal_elevations : str or Path, optional
-            Path to tidal elevations file
-        tidal_velocities : str or Path, optional
-            Path to tidal velocities file
         eta_mean, vn_mean : list, optional
             For Flather boundaries (velocity type -1), per open boundary: the mean
             elevation at each node, and the mean normal velocity at each node and

@@ -43,6 +43,13 @@ class GeneratorBase(RompyBaseModel):
 
 
 class GR3Generator(GeneratorBase):
+    """Write a property file (``*.gr3``) with the same value at every node.
+
+    SCHISMGrid creates one for each property field given as a number, such as
+    ``drag=0.0025``: the file has the nodes and elements of ``hgrid.gr3``, with the
+    value in place of the depth.
+    """
+
     model_type: Literal["gr3_generator"] = Field(
         "gr3_generator", description="Model discriminator"
     )
@@ -275,6 +282,12 @@ class VgridGenerator(GeneratorBase):
 
 
 class WWMBNDGR3Generator(GeneratorBase):
+    """Write ``wwmbnd.gr3``, the open boundary flags of the WWM wave model.
+
+    The nodes of each open boundary of ``hgrid.gr3`` get its flag in ``bcflags``,
+    and all other nodes 0, as SCHISM's ``gen_wwmbnd`` tool does.
+    """
+
     model_type: Literal["wwmbnd_generator"] = Field(
         "wwmbnd_generator", description="Model discriminator"
     )
@@ -372,6 +385,13 @@ class WWMBNDGR3Generator(GeneratorBase):
 
 
 class GridLinker(GeneratorBase):
+    """Link ``hgrid.ll`` or ``hgrid_WWM.gr3`` to ``hgrid.gr3`` in the workspace.
+
+    SCHISM reads the mesh in longitude and latitude from ``hgrid.ll``, and WWM from
+    ``hgrid_WWM.gr3``. For a mesh in geographic coordinates, both are the same file
+    as ``hgrid.gr3``.
+    """
+
     hgrid: DataBlob | Path = Field(..., description="Path to hgrid.gr3 file")
     gridtype: str = Field(..., description="Type of grid to link")
 
@@ -404,7 +424,17 @@ class GridLinker(GeneratorBase):
 
 # TODO - check datatypes for gr3 files (int vs float)
 class SCHISMGrid(BaseGrid):
-    """SCHISM grid in geographic space."""
+    """The SCHISM mesh, ``hgrid.gr3``, and the grid files SCHISM reads with it.
+
+    ``hgrid`` is the mesh: nodes with their depths, elements, and open and land
+    boundaries. ``vgrid`` is the vertical grid, ``vgrid.in``, 2D unless given. The
+    property files (``drag``, ``diffmin``, ``albedo`` and others) are each a file,
+    or a number written to every node. One of ``drag``, ``rough`` and ``manning``
+    is required: SCHISM always reads a bottom friction.
+
+    The grid files are written to the workspace by ``get``. The mesh is read with
+    pylib, as ``pylibs_hgrid``.
+    """
 
     grid_type: Literal["schism"] = Field("schism", description="Model descriminator")
     hgrid: DataBlob = Field(..., description="Path to hgrid.gr3 file")
@@ -894,25 +924,11 @@ class SCHISMGrid(BaseGrid):
             - 'bnd': Plot just the boundaries
         add_coastlines : bool, optional
             Whether to add coastlines to the plot (requires cartopy).
-        fmt : int, optional
-            Plotting format. Options are:
-            - 0: Plot grid only (default)
-            - 1: Plot filled contours of depth/bathymetry
-            - 2: Plot contour lines of depth/bathymetry
-            - 3: Plot boundaries only
-        value : numpy.ndarray, optional
-            Color values for plotting. If None, grid depth is used.
-        levels : int or array-like, optional
-            If int, number of contour levels to use (default 51).
-            If array-like, specific levels to plot.
-        clim : [min, max], optional
-            Value range for plot/colorbar. If None, determined from data.
-        cmap : str, optional
-            Colormap to use for depth visualization (default 'jet').
-        cb : bool, optional
-            Whether to add a colorbar to the plot (default True).
         **kwargs : dict
-            Additional keyword arguments to pass to the pylibs plot functions.
+            Passed to pylib's ``schism_grid.plot``, for example ``fmt`` (0: the
+            grid, the default; 1: filled depth contours; 2: depth contour lines;
+            3: the boundaries), ``value`` (values to colour by, the depth by
+            default), ``levels``, ``clim``, ``cmap`` and ``cb`` (a colour bar).
 
         Returns
         -------
