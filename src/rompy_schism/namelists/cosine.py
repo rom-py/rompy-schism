@@ -787,6 +787,8 @@ class Misc(NamelistBaseModel):
 
 
 class Cosine(NamelistBaseModel):
-    marco: Optional[Marco] = Field(default_factory=Marco)
-    core: Optional[Core] = Field(default_factory=Core)
-    misc: Optional[Misc] = Field(default_factory=Misc)
+    """``cosine.nml``, the settings of the CoSiNE ecosystem module."""
+
+    marco: Optional[Marco] = Field(default_factory=Marco, description="&MARCO")
+    core: Optional[Core] = Field(default_factory=Core, description="&CORE")
+    misc: Optional[Misc] = Field(default_factory=Misc, description="&MISC")

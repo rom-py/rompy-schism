@@ -2983,15 +2983,17 @@ class Poc(NamelistBaseModel):
 
 
 class Icm(NamelistBaseModel):
-    marco: Optional[Marco] = Field(default_factory=Marco)
-    core: Optional[Core] = Field(default_factory=Core)
-    sfm: Optional[Sfm] = Field(default_factory=Sfm)
-    silica: Optional[Silica] = Field(default_factory=Silica)
-    zb: Optional[Zb] = Field(default_factory=Zb)
-    ph_icm: Optional[Ph_icm] = Field(default_factory=Ph_icm)
-    sav: Optional[Sav] = Field(default_factory=Sav)
-    stem: Optional[Stem] = Field(default_factory=Stem)
-    veg: Optional[Veg] = Field(default_factory=Veg)
-    bag: Optional[Bag] = Field(default_factory=Bag)
-    ero: Optional[Ero] = Field(default_factory=Ero)
-    poc: Optional[Poc] = Field(default_factory=Poc)
+    """``icm.nml``, the settings of the ICM water quality module."""
+
+    marco: Optional[Marco] = Field(default_factory=Marco, description="&MARCO")
+    core: Optional[Core] = Field(default_factory=Core, description="&CORE")
+    sfm: Optional[Sfm] = Field(default_factory=Sfm, description="&SFM")
+    silica: Optional[Silica] = Field(default_factory=Silica, description="&SILICA")
+    zb: Optional[Zb] = Field(default_factory=Zb, description="&ZB")
+    ph_icm: Optional[Ph_icm] = Field(default_factory=Ph_icm, description="&PH_ICM")
+    sav: Optional[Sav] = Field(default_factory=Sav, description="&SAV")
+    stem: Optional[Stem] = Field(default_factory=Stem, description="&STEM")
+    veg: Optional[Veg] = Field(default_factory=Veg, description="&VEG")
+    bag: Optional[Bag] = Field(default_factory=Bag, description="&BAG")
+    ero: Optional[Ero] = Field(default_factory=Ero, description="&ERO")
+    poc: Optional[Poc] = Field(default_factory=Poc, description="&POC")

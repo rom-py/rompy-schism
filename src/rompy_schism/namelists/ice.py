@@ -400,4 +400,8 @@ class Ice_in(NamelistBaseModel):
 
 
 class Ice(NamelistBaseModel):
-    ice_in: Optional[Ice_in] = Field(default_factory=Ice_in)
+    """``ice.nml``, the settings of the ice module."""
+
+    ice_in: Optional[Ice_in] = Field(
+        default_factory=Ice_in, description="&ICE_IN: ice settings"
+    )

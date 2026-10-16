@@ -11,6 +11,8 @@ from rompy_schism.namelists.basemodel import NamelistBaseModel
 
 
 class Proc(NamelistBaseModel):
+    """The &PROC group of wwminput.nml: times, time step and mode of the run."""
+
     procname: Optional[str] = Field(
         "ACS", description="Project name for the simulation"
     )
@@ -136,6 +138,8 @@ class Proc(NamelistBaseModel):
 
 
 class Coupl(NamelistBaseModel):
+    """The &COUPL group of wwminput.nml: coupling with SCHISM."""
+
     lcpl: Optional[bool] = Field(
         True,
         description="Main switch to enable coupling with the current model. Should be kept on for SCHISM-WWM coupling.",
@@ -189,6 +193,8 @@ class Coupl(NamelistBaseModel):
 
 
 class Grid(NamelistBaseModel):
+    """The &GRID group of wwminput.nml: the spectral grid: frequencies and directions."""
+
     lcird: Optional[bool] = Field(
         True,
         description="Flag to indicate if a full circle in directional space is used. If True, MINDIR and MAXDIR are ignored.",
@@ -317,6 +323,8 @@ class Grid(NamelistBaseModel):
 
 
 class Init(NamelistBaseModel):
+    """The &INIT group of wwminput.nml: the initial wave field."""
+
     lhotr: Optional[bool] = Field(
         False,
         description="Flag to indicate whether to use a hotstart file for initial conditions. If True, the model will read initial conditions from a file specified in the HOTFILE section.",
@@ -346,6 +354,8 @@ class Init(NamelistBaseModel):
 
 
 class Bouc(NamelistBaseModel):
+    """The &BOUC group of wwminput.nml: the wave boundary conditions."""
+
     lbcse: Optional[bool] = Field(
         True, description="Determines if wave boundary data is time-dependent."
     )
@@ -593,6 +603,8 @@ class Bouc(NamelistBaseModel):
 
 
 class Engs(NamelistBaseModel):
+    """The &ENGS group of wwminput.nml: the source terms: wind input, dissipation, nonlinear interactions."""
+
     mesnl: Optional[int] = Field(
         1,
         description="Controls the nonlinear wave-wave interactions (NL4) using the Discrete Interaction Approximation. 1 enables the interactions, 0 disables them.",
@@ -832,6 +844,8 @@ class Engs(NamelistBaseModel):
 
 
 class Nums(NamelistBaseModel):
+    """The &NUMS group of wwminput.nml: the numerical schemes."""
+
     icomp: Optional[int] = Field(
         3,
         description="Controls the integration scheme for splitting and advection. 0: All explicit. 1: Implicit geographical advection. 2: Implicit advection and semi-implicit source terms. 3: Fully implicit, no splitting.",
@@ -1368,6 +1382,8 @@ class Nums(NamelistBaseModel):
 
 
 class History(NamelistBaseModel):
+    """The &HISTORY group of wwminput.nml: output of fields."""
+
     begtc: Optional[str] = Field(
         "20200101.000000",
         description="Start output time in 'yyyymmdd.hhmmss' format. Must fit within the simulation time, otherwise no output. Defaults to PROC%BEGTC if not specified.",
@@ -1817,6 +1833,8 @@ class History(NamelistBaseModel):
 
 
 class Station(NamelistBaseModel):
+    """The &STATION group of wwminput.nml: output at points."""
+
     begtc: Optional[str] = Field(
         "20200101.000000",
         description="Start simulation time in 'yyyymmdd.hhmmss' format. Must fit the simulation time, otherwise no output is generated. Defaults to PROC%BEGTC if not specified.",
@@ -2078,6 +2096,8 @@ class Station(NamelistBaseModel):
 
 
 class Hotfile(NamelistBaseModel):
+    """The &HOTFILE group of wwminput.nml: hotstart files."""
+
     lhotf: Optional[bool] = Field(True, description="Write hotfile")
     filehot_out: Optional[str] = Field("wwm_hot_out.nc", description="name of output")
     begtc: Optional[str] = Field(
@@ -2113,6 +2133,8 @@ class Hotfile(NamelistBaseModel):
 
 
 class Petscoptions(NamelistBaseModel):
+    """The &PETSCOPTIONS group of wwminput.nml: the PETSc solver."""
+
     ksptype: Optional[str] = Field(
         "LGMRES",
         description="Controls the linear solver type used by PETSc. Options include GMRES, LGMRES (augmented GMRES), DGMRES (deflated GMRES), PGMRES (pipelined GMRES), and KSPBCGSL (variant of Enhanced BiCGStab(L)).",
@@ -2285,37 +2307,77 @@ class Petscoptions(NamelistBaseModel):
 
 
 class Wind(NamelistBaseModel):
-    "Empty class to fill empty wind namelist"
+    """The &WIND group of wwminput.nml, empty: WWM takes the wind from SCHISM."""
 
 
 class Curr(NamelistBaseModel):
-    "Empty class to fill empty curr namelist"
+    """The &CURR group of wwminput.nml, empty: WWM takes the currents from SCHISM."""
 
 
 class Walv(NamelistBaseModel):
-    "Empty class to fill empty wavl namelist"
+    """The &WALV group of wwminput.nml, empty: WWM takes the water level from SCHISM."""
 
 
 class Nesting(NamelistBaseModel):
-    "Empty class to fill empty nesting namelist"
+    """The &NESTING group of wwminput.nml, empty."""
 
 
 class Wwminput(NamelistBaseModel):
-    proc: Optional[Proc] = Field(default_factory=Proc)
-    coupl: Optional[Coupl] = Field(default_factory=Coupl)
-    grid: Optional[Grid] = Field(default_factory=Grid)
-    init: Optional[Init] = Field(default_factory=Init)
-    bouc: Optional[Bouc] = Field(default_factory=Bouc)
-    wind: Optional[Wind] = Field(default_factory=Wind)
-    curr: Optional[Curr] = Field(default_factory=Curr)
-    walv: Optional[Walv] = Field(default_factory=Walv)
-    engs: Optional[Engs] = Field(default_factory=Engs)
-    nums: Optional[Nums] = Field(default_factory=Nums)
-    history: Optional[History] = Field(default_factory=History)
-    station: Optional[Station] = Field(default_factory=Station)
-    hotfile: Optional[Hotfile] = Field(default_factory=Hotfile)
-    petscoptions: Optional[Petscoptions] = Field(default_factory=Petscoptions)
-    nesting: Optional[Nesting] = Field(default_factory=Nesting)
+    """``wwminput.nml``, the settings of the WWM wave model.
+
+    WWM runs inside SCHISM on the same mesh, when SCHISM is built with it. The
+    times of every group are set from the run period, and ``bouc.filewave`` from
+    the wave boundary file written by SCHISMDataWave. WWM's time step,
+    ``proc.deltc``, must equal ``param.core.dt * param.opt.nstep_wwm``.
+    """
+
+    proc: Optional[Proc] = Field(
+        default_factory=Proc, description="&PROC: times, time step and mode of the run"
+    )
+    coupl: Optional[Coupl] = Field(
+        default_factory=Coupl, description="&COUPL: coupling with SCHISM"
+    )
+    grid: Optional[Grid] = Field(
+        default_factory=Grid,
+        description="&GRID: the spectral grid: frequencies and directions",
+    )
+    init: Optional[Init] = Field(
+        default_factory=Init, description="&INIT: the initial wave field"
+    )
+    bouc: Optional[Bouc] = Field(
+        default_factory=Bouc, description="&BOUC: the wave boundary conditions"
+    )
+    wind: Optional[Wind] = Field(
+        default_factory=Wind, description="&WIND: wind input, from SCHISM"
+    )
+    curr: Optional[Curr] = Field(
+        default_factory=Curr, description="&CURR: current input, from SCHISM"
+    )
+    walv: Optional[Walv] = Field(
+        default_factory=Walv, description="&WALV: water level input, from SCHISM"
+    )
+    engs: Optional[Engs] = Field(
+        default_factory=Engs,
+        description="&ENGS: the source terms: wind input, dissipation, nonlinear interactions",
+    )
+    nums: Optional[Nums] = Field(
+        default_factory=Nums, description="&NUMS: the numerical schemes"
+    )
+    history: Optional[History] = Field(
+        default_factory=History, description="&HISTORY: output of fields"
+    )
+    station: Optional[Station] = Field(
+        default_factory=Station, description="&STATION: output at points"
+    )
+    hotfile: Optional[Hotfile] = Field(
+        default_factory=Hotfile, description="&HOTFILE: hotstart files"
+    )
+    petscoptions: Optional[Petscoptions] = Field(
+        default_factory=Petscoptions, description="&PETSCOPTIONS: the PETSc solver"
+    )
+    nesting: Optional[Nesting] = Field(
+        default_factory=Nesting, description="&NESTING: nesting"
+    )
 
     def render(self) -> str:
         # Needs an additional backslash due to to uknown issue with schism

@@ -6,6 +6,11 @@ from rompy_schism.namelists.basemodel import NamelistBaseModel
 
 
 class Sflux_Inputs(NamelistBaseModel):
+    """``sflux/sflux_inputs.txt``: the sflux files and variable names SCHISM reads.
+
+    Written by SCHISMDataSflux from its sources; not set in a configuration.
+    """
+
     air_1_relative_weight: float = Field(
         1.0,
         description="air_[12]_relative_weight set the relative ratio between datasets '1' and '2'",
@@ -33,24 +38,56 @@ class Sflux_Inputs(NamelistBaseModel):
     )
     stmp_name: str = Field("stmp", description="name of surface air T")
     spfh_name: str = Field("spfh", description="name of specific humidity")
-    rad_1_relative_weight: float = Field(1.0)
-    rad_2_relative_weight: float = Field(99.0)
-    rad_1_max_window_hours: float = Field(24.0)
-    rad_2_max_window_hours: float = Field(24.0)
-    rad_1_fail_if_missing: bool = Field(False)
-    rad_2_fail_if_missing: bool = Field(False)
-    rad_1_file: str = Field("rad_1")
-    rad_2_file: str = Field("rad_2")
-    dlwrf_name: str = Field("dlwrf")
-    dswrf_name: str = Field("dswrf")
-    prc_1_relative_weight: float = Field(1.0)
-    prc_2_relative_weight: float = Field(99.0)
-    prc_1_max_window_hours: float = Field(24.0)
-    prc_2_max_window_hours: float = Field(24.0)
-    prc_1_fail_if_missing: bool = Field(False)
-    prc_2_fail_if_missing: bool = Field(False)
-    prc_1_file: str = Field("prc_1")
-    prc_2_file: str = Field("prc_2")
+    rad_1_relative_weight: float = Field(
+        1.0, description="relative weight of set '1' of rad when two sets are given"
+    )
+    rad_2_relative_weight: float = Field(
+        99.0, description="relative weight of set '2' of rad when two sets are given"
+    )
+    rad_1_max_window_hours: float = Field(
+        24.0,
+        description="max. # of hours (offset from start time in each file) in each file of set '1'",
+    )
+    rad_2_max_window_hours: float = Field(
+        24.0,
+        description="max. # of hours (offset from start time in each file) in each file of set '2'",
+    )
+    rad_1_fail_if_missing: bool = Field(
+        False, description="stop if set '1' of rad is missing"
+    )
+    rad_2_fail_if_missing: bool = Field(
+        False, description="stop if set '2' of rad is missing"
+    )
+    rad_1_file: str = Field("rad_1", description="file name of set '1' of rad")
+    rad_2_file: str = Field("rad_2", description="file name of set '2' of rad")
+    dlwrf_name: str = Field(
+        "dlwrf", description="name of downward long wave radiation variable"
+    )
+    dswrf_name: str = Field(
+        "dswrf", description="name of downward short wave radiation variable"
+    )
+    prc_1_relative_weight: float = Field(
+        1.0, description="relative weight of set '1' of prc when two sets are given"
+    )
+    prc_2_relative_weight: float = Field(
+        99.0, description="relative weight of set '2' of prc when two sets are given"
+    )
+    prc_1_max_window_hours: float = Field(
+        24.0,
+        description="max. # of hours (offset from start time in each file) in each file of set '1'",
+    )
+    prc_2_max_window_hours: float = Field(
+        24.0,
+        description="max. # of hours (offset from start time in each file) in each file of set '2'",
+    )
+    prc_1_fail_if_missing: bool = Field(
+        False, description="stop if set '1' of prc is missing"
+    )
+    prc_2_fail_if_missing: bool = Field(
+        False, description="stop if set '2' of prc is missing"
+    )
+    prc_1_file: str = Field("prc_1", description="file name of set '1' of prc")
+    prc_2_file: str = Field("prc_2", description="file name of set '2' of prc")
     prate_name: str = Field("prate", description="name of precipitation rate variable")
     priority: int = Field(1, description="priority of the data")
 

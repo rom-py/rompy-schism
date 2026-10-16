@@ -213,4 +213,8 @@ class Mice_in(NamelistBaseModel):
 
 
 class Mice(NamelistBaseModel):
-    mice_in: Optional[Mice_in] = Field(default_factory=Mice_in)
+    """``mice.nml``, the settings of the multi-class ice module."""
+
+    mice_in: Optional[Mice_in] = Field(
+        default_factory=Mice_in, description="&MICE_IN: ice settings"
+    )

@@ -20,7 +20,16 @@ logger = logging.getLogger(__name__)
 
 
 class NML(NamelistBaseModel):
-    param: Optional[Param] = Field(description="Model paramaters", default=None)
+    """The namelists of a SCHISM workspace: ``param.nml`` and those of the modules.
+
+    Each namelist given is written to the workspace; ``param`` is always needed.
+    The run times are set from the run period, and ``param.opt.nws`` and
+    ``wwminput.bouc.filewave`` from the data written for the run.
+    """
+
+    param: Optional[Param] = Field(
+        description="param.nml: the model settings", default=None
+    )
     ice: Optional[Ice] = Field(description="Ice model parameters", default=None)
     icm: Optional[Icm] = Field(description="Icm model parameters", default=None)
     mice: Optional[Mice] = Field(description="Mice model parameters", default=None)

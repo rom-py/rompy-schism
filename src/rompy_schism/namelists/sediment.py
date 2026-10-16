@@ -246,5 +246,11 @@ class Sed_opt(NamelistBaseModel):
 
 
 class Sediment(NamelistBaseModel):
-    sed_core: Optional[Sed_core] = Field(default_factory=Sed_core)
-    sed_opt: Optional[Sed_opt] = Field(default_factory=Sed_opt)
+    """``sediment.nml``, the settings of the SED3D sediment transport module."""
+
+    sed_core: Optional[Sed_core] = Field(
+        default_factory=Sed_core, description="&SED_CORE: sediment classes"
+    )
+    sed_opt: Optional[Sed_opt] = Field(
+        default_factory=Sed_opt, description="&SED_OPT: options"
+    )
