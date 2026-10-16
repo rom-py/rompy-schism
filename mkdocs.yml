@@ -22,6 +22,8 @@ nav:
       - Output: user-guide/output.md
       - Running SCHISM: user-guide/running.md
       - Troubleshooting: user-guide/troubleshooting.md
+  - Tutorial: tutorial.md
+  - Examples: examples.md
   - Reference:
       - reference/index.md
       - Config: reference/config.md
