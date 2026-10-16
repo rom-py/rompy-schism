@@ -39,6 +39,9 @@ nav:
       - Modules: reference/modules.md
       - Internals: reference/internals.md
       - Namelist index: reference/namelist-index.md
+  - Development:
+      - Contributing: development/contributing.md
+      - Changelog: https://github.com/rom-py/rompy-schism/blob/main/HISTORY.rst
 
 theme:
   name: material
