@@ -308,6 +308,10 @@ boundary.write_boundary_file("path/to/bctides.in")
 
 ### Custom Boundary Configuration
 
+SCHISM needs a setup for every open boundary of the mesh, in the order of `hgrid.gr3`. `boundaries` sets them by index (0 is the first open boundary) and `default_boundary` sets the others. A missing or unknown open boundary is an error.
+
+Boundary files (`elev2D.th.nc`, `uv3D.th.nc`, `TEM_3D.th.nc`, `SAL_3D.th.nc`) hold the nodes of the open boundaries that use them, so all boundaries that use one file take it from the same source.
+
 For complex scenarios with mixed boundary types:
 
 ```python

@@ -26,9 +26,9 @@ def test_vgridgenerator2d(tmp_path):
 
 def test_vgridgenerator3dLSC2(tmp_path, hgrid):
     # Using the LSC2 vertical grid type with parameters
-    vgrid = VgridGenerator(vgrid_type="lsc2", nvrt=10, hsm=10.0)
-    with pytest.raises(ValueError):
-        vgrid.generate(tmp_path)
+    # LSC2 cannot be generated (it needs gen_vqs): rejected when configured
+    with pytest.raises(ValueError, match="Only SZ vertical grids"):
+        VgridGenerator(vgrid_type="lsc2", nvrt=10, hsm=10.0)
 
 
 def test_vgridgenerator3dSZ(tmp_path, hgrid):

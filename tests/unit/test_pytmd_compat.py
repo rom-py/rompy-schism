@@ -153,8 +153,101 @@ def test_interp_group_converts_currents_with_pytmd_units():
 
     cropped.tmd.to_units.assert_called_once_with("m/s")
     converted.tmd.interp.assert_called_once()
+    cropped.tmd.inpaint.assert_not_called()
     np.testing.assert_array_equal(amp, np.ones((2, 1)))
     np.testing.assert_array_equal(pha, np.zeros((2, 1)))
+
+
+@pytest.mark.parametrize("n_iter", [0, 4])
+def test_bilinear_fills_masked_cells_before_linear(n_iter):
+    """Legacy bilinear inpaints masked cells, then uses xarray linear."""
+    from rompy_schism.bctides import Bctides
+
+    bc = Bctides.__new__(Bctides)
+    bc.tide_interpolation_method = "bilinear"
+    bc.tide_inpaint_iterations = n_iter
+    bc.extrapolate_tides = False
+    bc.extrapolation_distance = 50.0
+
+    cons = ["m2"]
+    lons = np.array([152.2])
+    lats = np.array([-24.5])
+    bounds = [151.0, 153.0, -25.0, -24.0]
+
+    local = _LocalAmpPhase(cons, lons.size)
+    filled = MagicMock()
+    filled.tmd.coords_as.return_value = (lons, lats)
+    filled.tmd.interp.return_value = local
+
+    cropped = MagicMock()
+    cropped.chunks = {}
+    cropped.tmd.inpaint.return_value = filled
+
+    opened = MagicMock()
+    opened.tmd.crop.return_value = cropped
+
+    model = MagicMock()
+    model.open_dataset.return_value = opened
+
+    amp, pha = bc._interp_group(model, "z", lons, lats, cons, bounds)
+
+    cropped.tmd.inpaint.assert_called_once_with(
+        N=bc.tide_inpaint_iterations, is_geographic=True
+    )
+    filled.tmd.interp.assert_called_once()
+    assert filled.tmd.interp.call_args.kwargs["method"] == "linear"
+    assert filled.tmd.interp.call_args.kwargs["extrapolate"] is False
+    np.testing.assert_array_equal(amp, np.ones((1, 1)))
+    np.testing.assert_array_equal(pha, np.zeros((1, 1)))
+
+
+def test_tide_inpaint_iterations_defaults_to_nearest_neighbor():
+    """N=0 is the pyTMD inpaint default and the TidalDataset/Bctides default."""
+    from rompy_schism.bctides import Bctides
+    from rompy_schism.boundary_core import TidalDataset
+
+    dataset = TidalDataset(tide_interpolation_method="Bilinear")
+    assert dataset.tide_interpolation_method == "bilinear"
+    assert dataset.tide_inpaint_iterations == 0
+
+    bc = Bctides(hgrid=None, constituents=["m2"])
+    assert bc.tide_inpaint_iterations == 0
+
+
+def test_tide_interpolation_method_rejects_unknown_names():
+    """Supported set is bilinear, linear, and nearest."""
+    from pydantic import ValidationError
+
+    from rompy_schism.boundary_core import TidalDataset
+
+    with pytest.raises(ValidationError):
+        TidalDataset(tide_interpolation_method="cubic")
+
+
+def test_spline_is_deprecated_alias_of_bilinear():
+    """spline warns and is stored as the coastal bilinear path."""
+    from rompy_schism.bctides import Bctides
+    from rompy_schism.boundary_core import TidalDataset
+
+    with pytest.warns(DeprecationWarning, match="spline"):
+        dataset = TidalDataset(tide_interpolation_method="SPLINE")
+    assert dataset.tide_interpolation_method == "bilinear"
+
+    with pytest.warns(DeprecationWarning, match="spline"):
+        bc = Bctides(
+            hgrid=None,
+            constituents=["m2"],
+            tide_interpolation_method="spline",
+        )
+    assert bc.tide_interpolation_method == "bilinear"
+    assert bc._xarray_interp_method() == ("linear", True)
+
+
+def test_bctides_rejects_negative_inpaint_iterations():
+    from rompy_schism.bctides import Bctides
+
+    with pytest.raises(ValueError, match="tide_inpaint_iterations"):
+        Bctides(hgrid=None, constituents=["m2"], tide_inpaint_iterations=-1)
 
 
 @pytest.mark.parametrize("data_type", ["h", "uv"])
@@ -162,8 +255,9 @@ def test_oceanum_coastal_interpolation_is_finite(tidal_data_files, data_type):
     """Wet coastal nodes must not silently produce non-finite harmonics."""
     from rompy_schism.bctides import Bctides
 
-    # Grid node 2133 is finite with the pyTMD 2 bilinear path but becomes NaN
-    # when pyTMD 3 maps bilinear to xarray's masked-cell linear interpolation.
+    # Grid node 2133. xarray linear is NaN here: elevation has a masked
+    # corner, and the u stencil is entirely masked (nearest wet u ~52 km).
+    # bilinear nearest-fills those cells before linear interpolation.
     bc = Bctides(
         hgrid=None,
         constituents=["m2"],
@@ -253,3 +347,50 @@ def test_uv_from_database_zuv():
     # Conversion lives in _interp_group; the caller must not scale again.
     np.testing.assert_array_equal(out[:, :, 0], amp)
     np.testing.assert_array_equal(out[:, :, 2], amp)
+
+
+def test_oceanum_currents_divide_transport_after_interpolation(tidal_data_files):
+    """u/v follow OTPS/TMD/pyTMD 2: interp(transport) / interp(depth).
+
+    pyTMD 3 opens OTIS/ATLAS currents as transport / depth on the model
+    grid. Interpolating that ratio differs from interpolating transport
+    and depth separately by up to ~2.4x in amplitude on the test boundary
+    (node 9 for u, node 64 for v below). Reference values are built from
+    the raw transport (group ``U``/``V``) and u/v-node bathymetry with
+    plain xarray linear interpolation.
+    """
+    import xarray as xr
+    from pyTMD.io import ATLAS
+
+    from rompy_schism.bctides import Bctides
+
+    lons = np.array([153.158071151, 148.9044003348, 150.857426192])
+    lats = np.array([-23.6490629763, -18.7350010445, -19.6865789161])
+    atlas = tidal_data_files / "oceanum-atlas"
+    grid = atlas / "grid_tpxo9_atlas_30_v2.nc"
+    files = [atlas / "u_m2_tpxo9_atlas_30_v2.nc"]
+
+    bc = Bctides(
+        hgrid=None,
+        constituents=["m2"],
+        tidal_database=tidal_data_files,
+        tidal_model="OCEANUM-atlas",
+        tide_interpolation_method="linear",
+        extra_databases=[tidal_data_files / "database.json"],
+    )
+    result = bc._interpolate_tidal_data(lons, lats, ["m2"], "uv")
+
+    X = xr.DataArray(lons, dims="p")
+    Y = xr.DataArray(lats, dims="p")
+    for group, col in (("u", 0), ("v", 2)):
+        depth = ATLAS.open_atlas_grid(grid, group=group)["bathymetry"]
+        transport = ATLAS.open_mfdataset(files, group=group.upper())["m2"]
+        ref = (
+            transport.interp(x=X, y=Y, method="linear")
+            / depth.interp(x=X, y=Y, method="linear")
+        ).values
+        # fixture labels: transport cm^2/s, depth m -> 1e-4 to m/s
+        np.testing.assert_allclose(result[:, 0, col], np.abs(ref) * 1e-4, rtol=1e-5)
+        ref_phase = np.degrees(np.arctan2(-ref.imag, ref.real)) % 360.0
+        dphase = (result[:, 0, col + 1] - ref_phase + 180.0) % 360.0 - 180.0
+        np.testing.assert_allclose(dphase, 0.0, atol=1e-4)

@@ -19,7 +19,7 @@ HERE = Path(__file__).parent
 def test_boundary_dataset():
     """Create a sample boundary dataset for testing boundary plotting."""
     # Define time range
-    times = pd.date_range(start=datetime.now(), periods=10, freq="1H").to_pydatetime()
+    times = pd.date_range(start=datetime.now(), periods=10, freq="1h").to_pydatetime()
 
     # Create coordinates for 2 open boundaries with 3 nodes each
     node_ids = np.array([0, 1, 2, 3, 4, 5])  # Example node IDs

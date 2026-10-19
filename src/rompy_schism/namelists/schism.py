@@ -3,9 +3,10 @@ from pathlib import Path
 from typing import Optional
 
 from pydantic import Field, model_serializer
-
 from rompy.core.time import TimeRange
+
 from rompy_schism.namelists.basemodel import NamelistBaseModel
+from rompy_schism.schema import DEFAULT_SCHISM_SCHEMA, SchismSchemaVersion
 
 from .cosine import Cosine
 from .ice import Ice
@@ -73,7 +74,7 @@ class NML(NamelistBaseModel):
         }
 
         date_format = "%Y%m%d.%H%M%S"
-        if hasattr(self, "wwminput"):  # TODO change this check to the actual flag value
+        if self.wwminput is not None:  # WWM times only with a wwminput namelist
             # TODO these are currently all the same, but they could be different
             update.update(
                 {
@@ -149,19 +150,25 @@ class NML(NamelistBaseModel):
                 )
         self.update(update)
 
-    def write_nml(self, workdir: Path):
-        for nml in [
-            "param",
-            "ice",
-            "icm",
-            "mice",
-            "sediment",
-            "cosine",
-            "wwminput",
-        ]:
-            attr = getattr(self, nml)
-            if attr is not None:
-                attr.write_nml(workdir)
+    def resolved_dump(self, schema_version: SchismSchemaVersion) -> dict:
+        """Serialize all namelists using one complete schema contract."""
+        result = self.model_dump()
+        if self.param is not None:
+            result["param"] = self.param.resolved_dump(schema_version)
+        return result
+
+    def write_nml(
+        self,
+        workdir: Path,
+        schema_version: SchismSchemaVersion = DEFAULT_SCHISM_SCHEMA,
+    ) -> None:
+        if self.param is not None:
+            self.param.write_nml(workdir, schema_version=schema_version)
+
+        for name in ["ice", "icm", "mice", "sediment", "cosine", "wwminput"]:
+            namelist = getattr(self, name)
+            if namelist is not None:
+                namelist.write_nml(workdir)
 
     def _format_value(self, obj):
         """Custom formatter for NML values.

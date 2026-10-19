@@ -4,6 +4,7 @@ Tidal boundary conditions for SCHISM.
 A direct implementation based on PyLibs scripts/gen_bctides.py with no fallbacks.
 """
 
+import warnings
 from datetime import datetime
 
 import numpy as np
@@ -17,6 +18,35 @@ from rompy.formatting import ARROW
 from rompy.logging import get_logger
 
 logger = get_logger(__name__)
+
+# pyTMD 3 Dataset.tmd.interp on a regular grid accepts only these xarray methods.
+# "bilinear" is the historical default: xarray linear after a masked-cell inpaint.
+_TIDE_INTERP_METHODS = frozenset({"bilinear", "linear", "nearest"})
+_SPLINE_INTERP_DEPRECATION = (
+    "tide_interpolation_method 'spline' is deprecated and will be removed. "
+    "pyTMD 3 has no spline interpolator; 'spline' uses the same coastal-fill "
+    "linear path as 'bilinear'. Supported methods are 'bilinear' (default), "
+    "'linear', and 'nearest'."
+)
+
+
+def normalize_tide_interpolation_method(method, *, stacklevel=2):
+    """Lower-case a tide interpolation name and retire ``spline``.
+
+    ``spline`` warns and becomes ``bilinear``. ``None`` is returned unchanged
+    so callers can apply their own default.
+    """
+    if method is None:
+        return None
+    name = str(method).strip().lower()
+    if name == "spline":
+        warnings.warn(
+            _SPLINE_INTERP_DEPRECATION,
+            DeprecationWarning,
+            stacklevel=stacklevel,
+        )
+        return "bilinear"
+    return name
 
 try:
     import dask  # noqa: F401
@@ -43,8 +73,9 @@ class Bctides:
         cutoff_depth=50.0,
         nodal_corrections=True,
         tide_interpolation_method="bilinear",
+        tide_inpaint_iterations=0,
         extrapolate_tides=False,
-        extrapolation_distance=100.0,
+        extrapolation_distance=50.0,
         extra_databases=[],
         mdt=None,
         ethconst=None,
@@ -56,8 +87,9 @@ class Bctides:
         relax=None,  # For backward compatibility
         inflow_relax=None,
         outflow_relax=None,
-        ncbn=0,
-        nfluxf=0,
+        eta_mean=None,
+        vn_mean=None,
+        nvrt=2,
         elev_th_path=None,
         elev_st_path=None,
         flow_th_path=None,
@@ -88,7 +120,20 @@ class Bctides:
         nodal_corrections : bool, optional
             Whether to apply nodal corrections, by default True
         tide_interpolation_method : str, optional
-            Method for tidal interpolation, by default 'bilinear'
+            ``'bilinear'`` (default), ``'linear'``, or ``'nearest'``.
+            ``linear`` and ``nearest`` match pyTMD 3 ``Dataset.tmd.interp``.
+            ``bilinear`` is the historical name for xarray ``linear`` after
+            ``Dataset.tmd.inpaint``, so wet coastal nodes stay finite.
+            ``spline`` is deprecated and mapped to ``bilinear``.
+        tide_inpaint_iterations : int, optional
+            ``N`` passed to ``Dataset.tmd.inpaint`` on the bilinear path.
+            0 (default) is nearest-neighbor fill. ``N > 0`` is that many
+            DCT penalized least-squares iterations. Ignored for ``linear``
+            and ``nearest``. Must be >= 0.
+        extrapolation_distance : float, optional
+            Kilometres. Pads the tide-model crop (at least half a degree)
+            and, when ``extrapolate_tides`` is True, limits pyTMD's
+            out-of-domain fill. Default 50, matching ``TidalDataset``.
         ethconst : list, optional
             Constant elevation for each boundary
         vthconst : list, optional
@@ -105,10 +150,13 @@ class Bctides:
             Path to tidal elevations file
         tidal_velocities : str or Path, optional
             Path to tidal velocities file
-        ncbn : int, optional
-            Number of flow boundary segments, by default 0
-        nfluxf : int, optional
-            Number of flux boundary segments, by default 0
+        eta_mean, vn_mean : list, optional
+            For Flather boundaries (velocity type -1), per open boundary: the mean
+            elevation at each node, and the mean normal velocity at each node and
+            level. Zero when not given.
+        nvrt : int, optional
+            Number of vertical levels, for the Flather mean normal velocity, by
+            default 2 (a 2D model)
         """
         # Set default values for any None parameters
         flags = flags or [[5, 5, 4, 4]]
@@ -131,7 +179,12 @@ class Bctides:
         self.tidal_potential = tidal_potential
         self.cutoff_depth = cutoff_depth
         self.nodal_corrections = nodal_corrections
-        self.tide_interpolation_method = tide_interpolation_method
+        self.tide_interpolation_method = normalize_tide_interpolation_method(
+            tide_interpolation_method, stacklevel=3
+        )
+        if int(tide_inpaint_iterations) < 0:
+            raise ValueError("tide_inpaint_iterations must be >= 0")
+        self.tide_inpaint_iterations = int(tide_inpaint_iterations)
         self.extrapolate_tides = extrapolate_tides
         self.extrapolation_distance = extrapolation_distance
         self.extra_databases = extra_databases
@@ -148,8 +201,11 @@ class Bctides:
         self.relax = relax
         self.inflow_relax = inflow_relax
         self.outflow_relax = outflow_relax
-        self.ncbn = ncbn
-        self.nfluxf = nfluxf
+        # Flather boundaries: mean elevation per node and mean normal velocity per
+        # node and level, for each open boundary; nvrt is the number of levels
+        self.eta_mean = eta_mean
+        self.vn_mean = vn_mean
+        self.nvrt = nvrt
 
         # Store boundary condition file paths
         self.elev_th_path = elev_th_path  # Time history of elevation
@@ -187,8 +243,8 @@ class Bctides:
         else:
             # Default to major constituents
             self.tnames = self.major_constituents
-        # Ensure tnames are unique and lowercase (for pyTMD compatibility)
-        self.tnames = list(set(t.lower() for t in self.tnames))
+        # Unique and lowercase (for pyTMD), in the order given
+        self.tnames = list(dict.fromkeys(t.lower() for t in self.tnames))
 
         # For storing tidal factors
         self.amp = []
@@ -205,6 +261,11 @@ class Bctides:
     def _get_tidal_factors(self):
         """Get tidal amplitude, frequency, and species for constituents using pyTMD."""
         if hasattr(self, "amp") and len(self.amp) > 0:
+            return
+        if not self.tnames:
+            self.amp, self.freq, self.species = [], [], []
+            self.nodal_factor, self.nodal_phase_correction = [], []
+            self.earth_equil_arg = np.array([])
             return
         logger.info(
             f"{ARROW} Computing tidal factors for {len(self.tnames)} constituents"
@@ -228,9 +289,11 @@ class Bctides:
             )
             freq = _tmd_args.frequency(self.tnames, corrections="OTIS")
 
-        # Nodal corrections (u: phase, f: factor)
-        u = np.atleast_1d(np.squeeze(u))
-        f = np.atleast_1d(np.squeeze(f))
+        # Nodal corrections (u: phase, f: factor), one value per constituent.
+        # pyTMD 3 returns a 0-d array for a single constituent; reshape keeps
+        # indexing by constituent valid (same fix as upstream main).
+        u = np.asarray(u).reshape(-1)
+        f = np.asarray(f).reshape(-1)
         u_deg = np.rad2deg(u)
 
         # Earth equilibrium argument
@@ -298,16 +361,19 @@ class Bctides:
             amp, pha = self._interp_group(
                 model, "z", lons, lats, constituents, bounds
             )
-            return np.stack([amp, pha], axis=-1)
-        if data_type == "uv":
+            result = np.stack([amp, pha], axis=-1)
+        elif data_type == "uv":
             amp_u, pha_u = self._interp_group(
                 model, "u", lons, lats, constituents, bounds
             )
             amp_v, pha_v = self._interp_group(
                 model, "v", lons, lats, constituents, bounds
             )
-            return np.stack([amp_u, pha_u, amp_v, pha_v], axis=-1)
-        raise ValueError(f"Unknown data_type: {data_type}")
+            result = np.stack([amp_u, pha_u, amp_v, pha_v], axis=-1)
+        else:
+            raise ValueError(f"Unknown data_type: {data_type}")
+        self._require_finite_harmonics(result, data_type)
+        return result
 
     def _bounds_for_points(self, lons, lats):
         """Expand point envelope by ~extrapolation_distance (degrees, approx)."""
@@ -334,12 +400,133 @@ class Bctides:
             )
         return key
 
+    def _xarray_interp_method(self):
+        """Map the configured method onto pyTMD 3 / xarray.
+
+        Returns
+        -------
+        method : str
+            ``linear`` or ``nearest`` for ``Dataset.tmd.interp``.
+        coastal_fill : bool
+            When true, masked model cells are nearest-filled before interp.
+        """
+        method = normalize_tide_interpolation_method(
+            self.tide_interpolation_method or "linear",
+            stacklevel=3,
+        )
+        # pyTMD 3 grid_interp forwards `method` to xarray Dataset.interp.
+        # On a 2-D grid that is only "linear" and "nearest". "bilinear"
+        # is the legacy name for linear after a masked-cell inpaint:
+        # pyTMD 2 bilinear kept any finite corner instead of failing the cell.
+        if method == "bilinear":
+            return "linear", True
+        if method in {"linear", "nearest"}:
+            return method, False
+        logger.warning(
+            "Unknown tide_interpolation_method %r; supported values are "
+            "%s. Using linear without coastal fill.",
+            method,
+            ", ".join(sorted(_TIDE_INTERP_METHODS)),
+        )
+        return "linear", False
+
+    @staticmethod
+    def _compute_if_lazy(ds):
+        """Load a chunked dataset so in-memory inpaint can run."""
+        chunks = getattr(ds, "chunks", None)
+        try:
+            lazy = chunks is not None and len(chunks) > 0
+        except TypeError:
+            lazy = False
+        if lazy:
+            return ds.compute()
+        return ds
+
+    def _fill_masked_model_cells(self, ds):
+        """Nearest-fill masked tide-model cells inside the cropped window.
+
+        ``Dataset.tmd.inpaint`` (``pyTMD.interpolate.inpaint``) copies the
+        nearest finite model node into masked cells and leaves ocean cells
+        unchanged. ``tide_inpaint_iterations`` is that function's ``N``:
+        0 is nearest neighbors only; ``N > 0`` continues with DCT
+        penalized least squares. Interior ``linear`` results therefore
+        match a strict linear interpolate when ``N`` is 0. Coastal nodes
+        whose stencil crosses land, and staggered u/v nodes whose whole
+        2x2 cell is masked, still receive a finite value from the nearest
+        wet cell in the crop.
+        """
+        ds = self._compute_if_lazy(ds)
+        geographic = bool(ds.tmd.crs.is_geographic)
+        return ds.tmd.inpaint(
+            N=self.tide_inpaint_iterations,
+            is_geographic=geographic,
+        )
+
+    @staticmethod
+    def _require_finite_harmonics(result, data_type):
+        """Refuse to hand non-finite harmonics to ``bctides.in``."""
+        if np.isfinite(result).all():
+            return
+        node_bad = ~np.isfinite(result).reshape(result.shape[0], -1).all(axis=1)
+        n_bad = int(node_bad.sum())
+        raise ValueError(
+            f"{n_bad} boundary node(s) have non-finite {data_type} tidal "
+            "coefficients after interpolation. Refusing to write NaN into "
+            "bctides.in. Remaining nodes are outside the cropped tide model. "
+            "Set extrapolate_tides=True or increase extrapolation_distance."
+        )
+
+    @staticmethod
+    def _currents_to_transport(ds):
+        """Undo pyTMD 3's on-grid transport/depth division for OTIS/ATLAS.
+
+        pyTMD 3 opens OTIS/ATLAS ``u``/``v`` groups as transport divided by
+        the u/v-node ``bathymetry`` on the model grid. pyTMD 2, OTPS and
+        TMD interpolate transport and depth separately and divide at the
+        output point. Multiplying back by ``bathymetry`` recovers the
+        transport so :meth:`_transport_to_currents` can divide
+        after interpolation. Models without a ``bathymetry`` variable
+        (e.g. FES, which stores currents) are returned unchanged.
+
+        This works around pyTMD 3 behaviour and can be removed if pyTMD
+        changes. An upstream pyTMD issue is being drafted; no number yet.
+        """
+        if "bathymetry" not in ds.data_vars:
+            return ds, False
+        ds = ds.copy()
+        depth = ds["bathymetry"]
+        for c in ds.tmd.constituents:
+            attrs = dict(ds[c].attrs)
+            ds[c] = ds[c] * depth
+            # Units cancel in _transport_to_currents; label for clarity only.
+            attrs["units"] = f"m/s * {depth.attrs.get('units', 'm')}"
+            ds[c].attrs = attrs
+        return ds, True
+
+    @staticmethod
+    def _transport_to_currents(local):
+        """Divide interpolated transport by interpolated depth (m/s)."""
+        local = local.copy()
+        depth = local["bathymetry"]
+        for c in local.tmd.constituents:
+            attrs = dict(local[c].attrs)
+            local[c] = local[c] / depth
+            attrs["units"] = "m/s"
+            local[c].attrs = attrs
+        return local
+
     def _interp_group(self, model, group, lons, lats, constituents, bounds):
         """Open one tide-model group and interpolate amplitude and phase.
 
         ``open_dataset`` defaults currents to cm/s. SCHISM ``bctides.in``
         wants m/s, so u/v groups are converted with ``Dataset.tmd.to_units``
         (pyTMD pint). Elevation stays in the default meters.
+
+        ``bilinear`` (the historical default) is xarray ``linear`` after
+        :meth:`_fill_masked_model_cells`. Strict ``linear`` / ``nearest``
+        do not fill masked cells. ``extrapolate_tides`` still controls
+        pyTMD nearest/IDW fill of points that remain outside the model
+        grid, limited by ``extrapolation_distance`` kilometres.
         """
         # open_dataset's reduce_constituents defaults to group "z"; reduce
         # the requested group explicitly (needed for u/v).
@@ -352,24 +539,14 @@ class Bctides:
         )
         if bounds is not None:
             ds = ds.tmd.crop(bounds, buffer=0)
+        transport = False
         if group in ("u", "v"):
             ds = ds.tmd.to_units("m/s")
+            ds, transport = self._currents_to_transport(ds)
 
-        # xarray multi-dim interp only supports linear/nearest (not spline/bilinear)
-        method = (self.tide_interpolation_method or "linear").lower()
-        if method in {"bilinear", "spline"}:
-            logger.warning(
-                "tide_interpolation_method %r is not supported by pyTMD 3 "
-                "xarray interp; using linear",
-                method,
-            )
-            method = "linear"
-        elif method != "linear" and method != "nearest":
-            logger.warning(
-                "Unknown tide_interpolation_method %r for pyTMD 3; using linear",
-                method,
-            )
-            method = "linear"
+        method, coastal_fill = self._xarray_interp_method()
+        if coastal_fill:
+            ds = self._fill_masked_model_cells(ds)
         X, Y = ds.tmd.coords_as(lons, lats, type="drift", crs=4326)
         local = ds.tmd.interp(
             X,
@@ -382,6 +559,8 @@ class Bctides:
         ncons = len(constituents)
         amp = np.empty((npts, ncons), dtype=float)
         pha = np.empty((npts, ncons), dtype=float)
+        if transport:
+            local = self._transport_to_currents(local)
         for i, name in enumerate(constituents):
             key = self._resolve_constituent_key(local, name)
             amp[:, i] = np.asarray(local[key].tmd.amplitude).reshape(-1)
@@ -480,90 +659,31 @@ class Bctides:
                     f"{tname}\n  {self.freq[i]:<.9e} {self.nodal_factor[i]:7.5f} {self.earth_equil_arg[i]:.5f}\n"
                 )
 
-            # Write open boundary information
-            # Use the number of boundaries from self.flags or fallback to grid boundaries
-            if hasattr(self, "flags") and self.flags:
-                nope = len(self.flags)
-            elif hasattr(self.gd, "nob") and self.gd.nob > 0:
-                nope = self.gd.nob
-            else:
-                # No boundaries in grid and no user-defined flags
-                logger.warning(
-                    "Grid has no open boundaries and no user-defined boundary flags"
+            # Open boundaries: one entry per open boundary of the mesh, in mesh order,
+            # with only the values SCHISM reads for each flag (schism_init.F90).
+            # Types that read their data from a file (elev.th, elev2D.th.nc, flux.th,
+            # uv3D.th.nc, *_3D.th.nc) have nothing else in bctides.in.
+            nope = len(self.flags)
+            if nope != self.gd.nob:
+                raise ValueError(
+                    f"bctides.in needs one entry per open boundary: the mesh has "
+                    f"{self.gd.nob}, the boundary flags have {nope}"
                 )
-                nope = 0
-
             f.write(f"{nope} !nope\n")
 
-            # For each open boundary
-            for ibnd in range(nope):
-                # Get boundary nodes - prioritize grid boundaries if available
-                if hasattr(self.gd, "nob") and self.gd.nob > 0 and ibnd < self.gd.nob:
-                    # Use actual grid boundary
-                    nodes = self.gd.iobn[ibnd]
-                    num_nodes = self.gd.nobn[ibnd]
-                    logger.debug(f"Using grid boundary {ibnd} with {num_nodes} nodes")
-                elif (
-                    hasattr(self.gd, "nob") and self.gd.nob > 0 and ibnd >= self.gd.nob
-                ):
-                    # User has defined more boundaries than grid has - reuse last grid boundary
-                    last_bnd_idx = self.gd.nob - 1
-                    nodes = self.gd.iobn[last_bnd_idx]
-                    num_nodes = self.gd.nobn[last_bnd_idx]
-                    raise ValueError(
-                        f"Boundary {ibnd} exceeds grid boundaries, reusing boundary {last_bnd_idx}"
-                    )
-                else:
-                    # Grid has no boundaries, but user has defined flags
-                    # This is an inconsistent state - create a minimal dummy boundary
-                    raise ValueError(
-                        f"Grid has no open boundaries but user defined boundary {ibnd}, creating dummy boundary"
-                    )
-
-                # Write boundary flags (ensure we have enough flags defined)
-                bnd_flags = (
-                    self.flags[ibnd]
-                    if hasattr(self, "flags") and ibnd < len(self.flags)
-                    else [0, 0, 0, 0]
-                )
+            for ibnd, bnd_flags in enumerate(self.flags):
+                nodes = self.gd.iobn[ibnd]
+                num_nodes = self.gd.nobn[ibnd]
+                elev_type, vel_type, temp_type, salt_type = bnd_flags
                 flag_str = " ".join(map(str, bnd_flags))
-                f.write(f"{num_nodes} {flag_str} !ocean\n")
-
-                # Get boundary coordinates
+                f.write(f"{num_nodes} {flag_str} !open boundary {ibnd + 1}\n")
                 lons = self.gd.x[nodes]
                 lats = self.gd.y[nodes]
 
-                # Write elevation boundary conditions
-
-                # Handle elevation boundary conditions based on flags
-                elev_type = bnd_flags[0] if len(bnd_flags) > 0 else 0
-
-                # Type 1: Time history of elevation
-                if elev_type == 1:
-                    f.write("! Time history of elevation will be read from elev.th\n")
-                # Type 2: Constant elevation
-                elif elev_type == 2 and len(self.ethconst) > 0:
-                    if self.mdt is not None:
-                        logger.warning(
-                            "Using mdt value for constant elevation, ignoring ethconst"
-                        )
-                        pass
-                    else:
-                        f.write("Z0\n")
-                        eth_val = (
-                            self.ethconst[ibnd] if ibnd < len(self.ethconst) else 0.0
-                        )
-                        for n in range(num_nodes):
-                            f.write(f"{eth_val} 0.0\n")
-                # Type 4: Space-time varying elevation
-                elif elev_type == 4:
-                    f.write(
-                        "! Space-time varying elevation will be read from elev2D.th.nc\n"
-                    )
-
-                # Then write tidal constituents for elevation
-                # Only write tidal constituents for tidal elevation types (3 or 5)
-                if bnd_flags[0] == 3 or bnd_flags[0] == 5:
+                # Elevation
+                if elev_type == 2:
+                    f.write(f"{_value(self.ethconst, ibnd, 0.0)} !elevation\n")
+                elif elev_type in (3, 5):
                     # If mdt is provided, write the Z0
                     if self.mdt is not None:
                         f.write("z0\n")
@@ -639,59 +759,14 @@ class Bctides:
                             )
                             raise
 
-                # Write velocity boundary conditions
-
-                # Handle velocity boundary conditions based on flags
-                vel_type = bnd_flags[1] if len(bnd_flags) > 1 else 0
-
-                # Type -1: Flather type radiation boundary
-                if vel_type == -1:
-                    # Write mean elevation marker
-                    f.write("eta_mean\n")
-
-                    # Write mean elevation for each node (use 0 as default)
-                    for n in range(num_nodes):
-                        f.write("0.0\n")  # Default mean elevation
-
-                    # Write mean normal velocity marker
-                    f.write("vn_mean\n")
-
-                    # Write mean normal velocity for each node
-                    for n in range(num_nodes):
-                        f.write("0.0\n")  # Default mean normal velocity
-                # Type 1: Time history of discharge
-                elif vel_type == 1:
-                    f.write("! Time history of discharge will be read from flux.th\n")
-                # Type 2: Constant discharge
-                elif vel_type == 2 and len(self.vthconst) > 0:
-                    vth_val = self.vthconst[ibnd] if ibnd < len(self.vthconst) else 0.0
-                    for n in range(num_nodes):
-                        # Write as integer if it's a whole number, otherwise as float
-                        if vth_val == int(vth_val):
-                            f.write(f"{int(vth_val)}\n")
-                        else:
-                            f.write(f"{vth_val}\n")
-                # Type -4: Relaxed velocity with 3D input
-                elif vel_type == -4:
-                    f.write("! 3D velocity will be read from uv3D.th.nc\n")
-                    if len(self.inflow_relax) > 0 and len(self.outflow_relax) > 0:
-                        inflow = (
-                            self.inflow_relax[ibnd]
-                            if ibnd < len(self.inflow_relax)
-                            else 0.5
-                        )
-                        outflow = (
-                            self.outflow_relax[ibnd]
-                            if ibnd < len(self.outflow_relax)
-                            else 0.1
-                        )
-                        f.write(
-                            f"{inflow:.4f} {outflow:.4f} ! Relaxation constants for inflow and outflow\n"
-                        )
-
-                # Then write tidal constituents for velocity
-                # Only write tidal constituents for tidal velocity types (3 or 5)
-                if vel_type in {3, 5}:
+                # Velocity; relaxation factors come before any tidal constituents
+                if vel_type == 2:
+                    f.write(f"{_value(self.vthconst, ibnd, 0.0)} !discharge\n")
+                if vel_type in (-4, -5):
+                    inflow = _value(self.inflow_relax, ibnd, 0.5)
+                    outflow = _value(self.outflow_relax, ibnd, 0.1)
+                    f.write(f"{inflow} {outflow} !relaxation for inflow, outflow\n")
+                if vel_type in (3, 5, -5):
                     if self.mdt is not None:
                         f.write("z0\n")
                         for n in range(num_nodes):
@@ -704,10 +779,6 @@ class Bctides:
                         # Write header for constituent first
                         f.write(f"{tname}\n")
 
-                        # # Try to interpolate velocity data
-                        # if self.tidal_velocities and os.path.exists(
-                        #     self.tidal_velocities
-                        # ):
                         vel_data = all_vel_data[:, i, :].squeeze()
 
                         if self.nodal_corrections:
@@ -729,139 +800,35 @@ class Bctides:
                                 f"{vel_data[n,0]:8.6f} {vel_data[n,1]:.6f} "
                                 f"{vel_data[n,2]:8.6f} {vel_data[n,3]:.6f}\n"
                             )
-                        # else:
-                        #     # If no velocity file, use zeros to ensure file structure is complete
-                        #     logger.warning(
-                        #         f"No velocity data available for {tname}, using zeros"
-                        #     )
-                        #     for n in range(num_nodes):
-                        #         f.write("0.0 0.0 0.0 0.0\n")
+                if vel_type == -1:
+                    # Flather: mean elevation per node, mean normal velocity per level
+                    eta_mean = _value(self.eta_mean, ibnd, None) or [0.0] * num_nodes
+                    vn_mean = _value(self.vn_mean, ibnd, None) or [
+                        [0.0] * self.nvrt for _ in range(num_nodes)
+                    ]
+                    f.write("eta_mean\n")
+                    for value in eta_mean:
+                        f.write(f"{value}\n")
+                    f.write("vn_mean\n")
+                    for values in vn_mean:
+                        f.write(" ".join(str(v) for v in values) + "\n")
 
-                # Write temperature boundary conditions if specified
-                if len(bnd_flags) > 2 and bnd_flags[2] > 0:
-                    temp_type = bnd_flags[2]
-
-                    # Handle different temperature boundary types
-                    if temp_type == 1:  # Time history
-                        # Write nudging factor for inflow
-                        temp_nudge = (
-                            self.tobc[ibnd]
-                            if self.tobc and ibnd < len(self.tobc)
-                            else 1.0
-                        )
-                        f.write(f"{temp_nudge:.6f} !temperature nudging factor\n")
-                        if self.temp_th_path:
-                            f.write(
-                                f"! Temperature time history will be read from {self.temp_th_path}\n"
-                            )
-                    elif temp_type == 2:  # Constant value
-                        # Write constant temperature and nudging factor
-                        const_temp = (
-                            self.tthconst[ibnd]
-                            if self.tthconst and ibnd < len(self.tthconst)
-                            else 20.0
-                        )
-                        temp_nudge = (
-                            self.tobc[ibnd]
-                            if self.tobc and ibnd < len(self.tobc)
-                            else 1.0
-                        )
-                        f.write(f"{const_temp:.6f} !constant temperature\n")
-                        f.write(f"{temp_nudge:.6f} !temperature nudging factor\n")
-                    elif temp_type == 3:  # Initial profile
-                        # Write nudging factor only
-                        temp_nudge = (
-                            self.tobc[ibnd]
-                            if self.tobc and ibnd < len(self.tobc)
-                            else 1.0
-                        )
-                        f.write(f"{temp_nudge:.6f} !temperature nudging factor\n")
-                    elif temp_type == 4:  # 3D input
-                        # Write nudging factor only
-                        temp_nudge = (
-                            self.tobc[ibnd]
-                            if self.tobc and ibnd < len(self.tobc)
-                            else 1.0
-                        )
-                        f.write(f"{temp_nudge:.6f} !temperature nudging factor\n")
-                        if self.temp_3d_path:
-                            f.write(
-                                f"! 3D temperature will be read from {self.temp_3d_path}\n"
-                            )
-
-                # Write salinity boundary conditions if specified
-                if len(bnd_flags) > 3 and bnd_flags[3] > 0:
-                    salt_type = bnd_flags[3]
-
-                    # Handle different salinity boundary types
-                    if salt_type == 1:  # Time history
-                        # Write nudging factor for inflow
-                        salt_nudge = (
-                            self.sobc[ibnd]
-                            if self.sobc and ibnd < len(self.sobc)
-                            else 1.0
-                        )
-                        f.write(f"{salt_nudge:.6f} !salinity nudging factor\n")
-                        if self.salt_th_path:
-                            f.write(
-                                f"! Salinity time history will be read from {self.salt_th_path}\n"
-                            )
-                    elif salt_type == 2:  # Constant value
-                        # Write constant salinity and nudging factor
-                        const_salt = (
-                            self.sthconst[ibnd]
-                            if self.sthconst and ibnd < len(self.sthconst)
-                            else 35.0
-                        )
-                        salt_nudge = (
-                            self.sobc[ibnd]
-                            if self.sobc and ibnd < len(self.sobc)
-                            else 1.0
-                        )
-                        f.write(f"{const_salt:.6f} !constant salinity\n")
-                        f.write(f"{salt_nudge:.6f} !salinity nudging factor\n")
-                    elif salt_type == 3:  # Initial profile
-                        # Write nudging factor only
-                        salt_nudge = (
-                            self.sobc[ibnd]
-                            if self.sobc and ibnd < len(self.sobc)
-                            else 1.0
-                        )
-                        f.write(f"{salt_nudge:.6f} !salinity nudging factor\n")
-                    elif salt_type == 4:  # 3D input
-                        # Write nudging factor only
-                        salt_nudge = (
-                            self.sobc[ibnd]
-                            if self.sobc and ibnd < len(self.sobc)
-                            else 1.0
-                        )
-                        f.write(f"{salt_nudge:.6f} !salinity nudging factor\n")
-                        if self.salt_3d_path:
-                            f.write(
-                                f"! 3D salinity will be read from {self.salt_3d_path}\n"
-                            )
-
-            # Add flow and flux boundary information
-            # Use instance attributes if available, otherwise default to 0
-            ncbn = getattr(self, "ncbn", 0)
-            nfluxf = getattr(self, "nfluxf", 0)
-
-            f.write(f"{ncbn} !ncbn: total # of flow bnd segments with discharge\n")
-
-            # If ncbn > 0, we need to write flow boundary information
-            # For now, we're just writing placeholder values as this would require additional data
-            for i in range(ncbn):
-                f.write(f"1 1 !flow boundary {i+1}: number of nodes, boundary flag\n")
-                f.write("1 !node number on the boundary\n")
-                f.write("1 !number of vertical layers\n")
-                f.write("0.0 !flow rate for each layer\n")
-
-            f.write(f"{nfluxf} !nfluxf: total # of flux boundary segments\n")
-
-            # If nfluxf > 0, we need to write flux boundary information
-            # For now, we're just writing placeholder values
-            for i in range(nfluxf):
-                f.write(f"1 !flux boundary {i+1}: number of nodes\n")
-                f.write("1 !node number on the boundary\n")
+                # Temperature, then salinity: a constant value for type 2, then the
+                # nudging factor for types 1-4
+                for tracer_type, constants, nudging, default in (
+                    (temp_type, self.tthconst, self.tobc, 20.0),
+                    (salt_type, self.sthconst, self.sobc, 35.0),
+                ):
+                    if tracer_type == 2:
+                        f.write(f"{_value(constants, ibnd, default)}\n")
+                    if tracer_type in (1, 2, 3, 4):
+                        f.write(f"{_value(nudging, ibnd, 1.0)} !nudging factor\n")
 
         return output_file
+
+
+def _value(values, index, default):
+    """Return values[index], or default when values is missing or too short."""
+    if values is None or index >= len(values) or values[index] is None:
+        return default
+    return values[index]

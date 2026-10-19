@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import List, Literal, Optional, Union
 
 import numpy as np
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 # Try importing from pylibs or pylib depending on what's available
 try:
@@ -37,7 +37,13 @@ class VGrid(BaseModel):
     )
 
     # Type of vertical coordinate: 1=LSC2, 2=SZ
-    ivcor: int = Field(default=1, description="Vertical coordinate type (1=LSC2, 2=SZ)")
+    ivcor: int = Field(
+        default=2,
+        description=(
+            "Vertical coordinate type (1=LSC2, 2=SZ). Only SZ can be generated; "
+            "give an LSC2 vgrid.in as a file"
+        ),
+    )
 
     # Number of vertical layers
     nvrt: int = Field(default=2, description="Number of vertical layers")
@@ -51,6 +57,23 @@ class VGrid(BaseModel):
     h_c: float = Field(default=10.0, description="Critical depth for SZ coordinate")
     theta_b: float = Field(default=0.5, description="Bottom theta parameter for SZ")
     theta_f: float = Field(default=1.0, description="Surface theta parameter for SZ")
+
+    @field_validator("ivcor")
+    @classmethod
+    def only_sz_can_be_generated(cls, ivcor: int) -> int:
+        """LSC2 levels depend on the mesh depths and cannot be generated here."""
+        if ivcor != 2:
+            raise ValueError(
+                "Only SZ vertical grids (ivcor=2) can be generated. An LSC2 vgrid.in "
+                "is made from the mesh depths with SCHISM's gen_vqs tool; give it to "
+                "SCHISMGrid as a file (vgrid=DataBlob(source='vgrid.in'))"
+            )
+        return ivcor
+
+    @property
+    def is_3d(self) -> bool:
+        """True with more than one layer (2D is 2 levels)."""
+        return self.nvrt > 2
 
     def generate(self, destdir: Union[str, Path]) -> Path:
         """
@@ -87,10 +110,6 @@ class VGrid(BaseModel):
                 f"theta_f={self.theta_f}"
             )
 
-            # LSC2 (ivcor=1) is not yet supported by PyLibs' create_schism_vgrid
-            # Always use manual creation for LSC2
-            if self.ivcor == 1:
-                raise ValueError("LSC2 grid (ivcor=1) not supported in pylibs")
             # Call PyLibs function with our parameters
             create_schism_vgrid(
                 fname=str(vgrid_path),

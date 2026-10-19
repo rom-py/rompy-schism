@@ -3,7 +3,6 @@ from pathlib import Path
 from typing import Literal, Optional
 
 from pydantic import ConfigDict, Field, model_serializer, model_validator
-
 from rompy.core.config import BaseConfig
 from rompy.logging import get_logger
 
@@ -26,6 +25,7 @@ from .data import SCHISMData
 from .grid import SCHISMGrid
 from .namelists import NML
 from .namelists.param import Param
+from .schema import DEFAULT_SCHISM_SCHEMA, SchismSchemaVersion
 
 logger = get_logger(__name__)
 
@@ -35,8 +35,22 @@ SCHISM_TEMPLATE = str(Path(__file__).parent / "templates" / "schism")
 
 
 class SCHISMConfig(BaseConfig):
+    """Complete SCHISM configuration governed by one top-level schema version.
+
+    ``schema_version`` controls version-sensitive defaults, validation, and
+    rendering across the whole configuration. Its legacy default is a permanent
+    compatibility contract for serialized configs that predate this field.
+    """
+
     model_type: Literal["schism"] = Field(
         "schism", description="The model type for SCHISM."
+    )
+    schema_version: SchismSchemaVersion = Field(
+        DEFAULT_SCHISM_SCHEMA,
+        description=(
+            "Version of the complete SCHISM configuration contract. Configs "
+            "without this field retain schism-v5.13 semantics."
+        ),
     )
     grid: SCHISMGrid = Field(description="The model grid")
     data: Optional[SCHISMData] = Field(None, description="Model inputs")
@@ -48,18 +62,68 @@ class SCHISMConfig(BaseConfig):
         default=SCHISM_TEMPLATE,
     )
 
-    # add a validator that checks that nml.param.ihot is 1 if data.hotstart is not none
     @model_validator(mode="after")
     def check_hotstart(self):
-        if (
-            self.data is not None
-            and hasattr(self.data, "hotstart")
-            and getattr(self.data, "hotstart", None) is not None
-            and self.nml is not None
-            and self.nml.param is not None
-            and self.nml.param.opt is not None
-        ):
-            self.nml.param.opt.ihot = 1
+        """Start from the hotstart.nc written by the boundary conditions.
+
+        SCHISM only reads hotstart.nc with ``opt.ihot`` 1 or 2. When
+        ``hotstart_config`` writes the file and ``ihot`` is not set, it is set to 1
+        (start from the hotstart state, with the clock at zero).
+        """
+        conditions = getattr(self.data, "boundary_conditions", None)
+        hotstart = getattr(conditions, "hotstart_config", None)
+        if hotstart is None or not hotstart.enabled:
+            return self
+        if self.nml is None:
+            self.nml = NML(param=Param())
+        elif self.nml.param is None:
+            self.nml.param = Param()
+        elif self.nml.param.opt is None:
+            self.nml.param.opt = Param().opt
+        opt = self.nml.param.opt
+        if opt.ihot != 0:
+            return self
+        if "ihot" in opt.model_fields_set:
+            raise ValueError(
+                "nml.param.opt.ihot=0 makes SCHISM ignore the hotstart.nc written by "
+                "data.boundary_conditions.hotstart_config: set ihot to 1 or 2, or "
+                "disable hotstart_config"
+            )
+        opt.ihot = 1
+        return self
+
+    @model_validator(mode="after")
+    def check_friction(self):
+        """Tell SCHISM which friction file the grid writes.
+
+        ``opt.nchi`` selects it: 0 for drag.gr3, -1 for manning.gr3, 1 for rough.gr3.
+        When not set, it follows the grid's friction field; a value that does not
+        match is an error.
+        """
+        if self.nml is None or self.nml.param is None or self.nml.param.opt is None:
+            return self
+        nchi = {"drag": 0, "manning": -1, "rough": 1}
+        friction = next(
+            (name for name in nchi if getattr(self.grid, name, None) is not None), None
+        )
+        if friction is None:
+            return self
+        opt = self.nml.param.opt
+        if "nchi" not in opt.model_fields_set:
+            opt.nchi = nchi[friction]
+        elif opt.nchi != nchi[friction]:
+            raise ValueError(
+                f"nml.param.opt.nchi={opt.nchi} makes SCHISM read a different friction "
+                f"file from the grid's {friction}.gr3: set nchi to {nchi[friction]} or "
+                "leave it unset"
+            )
+        return self
+
+    @model_validator(mode="after")
+    def validate_schema_contract(self):
+        """Validate all version-sensitive values from one top-level contract."""
+        if self.nml is not None and self.nml.param is not None:
+            self.nml.param.validate_schema(self.schema_version)
         return self
 
     @model_serializer
@@ -71,6 +135,7 @@ class SCHISMConfig(BaseConfig):
 
         # Explicitly handle required fields
         result["model_type"] = self.model_type
+        result["schema_version"] = self.schema_version
 
         # Handle grid separately to process GR3Generator objects
         if self.grid is not None:
@@ -92,7 +157,7 @@ class SCHISMConfig(BaseConfig):
             result["data"] = self.data
 
         if self.nml is not None:
-            result["nml"] = self.nml
+            result["nml"] = self.nml.resolved_dump(self.schema_version)
 
         if self.template is not None:
             result["template"] = self.template
@@ -203,7 +268,7 @@ class SCHISMConfig(BaseConfig):
 
             # Update times and write namelists
             self.nml.update_times(period=runtime.period)
-            self.nml.write_nml(runtime.staging_dir)
+            self.nml.write_nml(runtime.staging_dir, schema_version=self.schema_version)
             logger.info(f"{ARROW} Namelists configured successfully")
 
         return str(runtime.staging_dir)
