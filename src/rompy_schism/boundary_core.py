@@ -212,11 +212,16 @@ class TidalDataset(BaseModel):
         """Get the tidal dataset as a dictionary."""
 
         # Ensure extra_databases is a list of paths to JSON files
+        # Copy so a caller's list is not appended to. The model field is
+        # the list create_bctides reads; database.json beside the tide
+        # files has to be on it or pyTMD will not see OCEANUM-atlas.
         extra_databases = list(self.extra_databases or [])
         if self.tidal_database:
             db_json = Path(self.tidal_database) / "database.json"
             if db_json.exists() and db_json not in extra_databases:
                 extra_databases.append(db_json)
+        self.extra_databases = extra_databases
+        extra_databases = list(extra_databases)
 
         # Setup MDT by extracting from the DataBoundary if provided or using a float value
         if isinstance(self.mean_dynamic_topography, DataBoundary):

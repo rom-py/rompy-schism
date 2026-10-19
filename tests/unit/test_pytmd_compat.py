@@ -503,20 +503,33 @@ def test_inpaint_keeps_wet_cells_for_nearest_and_dct():
         np.testing.assert_allclose(filled[wet], values[wet])
 
 
-def test_tidal_dataset_get_copies_databases_and_extrapolation():
+def test_tidal_dataset_get_copies_databases_and_extrapolation(tmp_path):
     from rompy_schism.boundary_core import TidalDataset
 
+    caller_list = []
     dataset = TidalDataset(
         constituents=["m2"],
-        extra_databases=[],
+        extra_databases=caller_list,
         extrapolate_tides=True,
         extrapolation_distance=80.0,
     )
     got = dataset.get(None)
     got["extra_databases"].append("mutated")
+    assert caller_list == []
     assert dataset.extra_databases == []
     assert got["extrapolate_tides"] is True
     assert got["extrapolation_distance"] == 80.0
+
+    overlay = tmp_path / "database.json"
+    overlay.write_text("{}\n")
+    dataset = TidalDataset(
+        constituents=["m2"],
+        tidal_database=tmp_path,
+        extra_databases=caller_list,
+    )
+    dataset.get(None)
+    assert caller_list == []
+    assert dataset.extra_databases == [overlay]
 
 
 def test_finite_check_names_the_method_for_strict_linear():
