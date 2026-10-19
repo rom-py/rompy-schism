@@ -476,6 +476,45 @@ class Bctides:
             "Set extrapolate_tides=True or increase extrapolation_distance."
         )
 
+    @staticmethod
+    def _currents_to_transport(ds):
+        """Undo pyTMD 3's on-grid transport/depth division for OTIS/ATLAS.
+
+        pyTMD 3 opens OTIS/ATLAS ``u``/``v`` groups as transport divided by
+        the u/v-node ``bathymetry`` on the model grid. pyTMD 2, OTPS and
+        TMD interpolate transport and depth separately and divide at the
+        output point. Multiplying back by ``bathymetry`` recovers the
+        transport so :meth:`_transport_to_currents` can divide
+        after interpolation. Models without a ``bathymetry`` variable
+        (e.g. FES, which stores currents) are returned unchanged.
+
+        This works around pyTMD 3 behaviour and can be removed if pyTMD
+        changes. An upstream pyTMD issue is being drafted; no number yet.
+        """
+        if "bathymetry" not in ds.data_vars:
+            return ds, False
+        ds = ds.copy()
+        depth = ds["bathymetry"]
+        for c in ds.tmd.constituents:
+            attrs = dict(ds[c].attrs)
+            ds[c] = ds[c] * depth
+            # Units cancel in _transport_to_currents; label for clarity only.
+            attrs["units"] = f"m/s * {depth.attrs.get('units', 'm')}"
+            ds[c].attrs = attrs
+        return ds, True
+
+    @staticmethod
+    def _transport_to_currents(local):
+        """Divide interpolated transport by interpolated depth (m/s)."""
+        local = local.copy()
+        depth = local["bathymetry"]
+        for c in local.tmd.constituents:
+            attrs = dict(local[c].attrs)
+            local[c] = local[c] / depth
+            attrs["units"] = "m/s"
+            local[c].attrs = attrs
+        return local
+
     def _interp_group(self, model, group, lons, lats, constituents, bounds):
         """Open one tide-model group and interpolate amplitude and phase.
 
@@ -500,8 +539,10 @@ class Bctides:
         )
         if bounds is not None:
             ds = ds.tmd.crop(bounds, buffer=0)
+        transport = False
         if group in ("u", "v"):
             ds = ds.tmd.to_units("m/s")
+            ds, transport = self._currents_to_transport(ds)
 
         method, coastal_fill = self._xarray_interp_method()
         if coastal_fill:
@@ -518,6 +559,8 @@ class Bctides:
         ncons = len(constituents)
         amp = np.empty((npts, ncons), dtype=float)
         pha = np.empty((npts, ncons), dtype=float)
+        if transport:
+            local = self._transport_to_currents(local)
         for i, name in enumerate(constituents):
             key = self._resolve_constituent_key(local, name)
             amp[:, i] = np.asarray(local[key].tmd.amplitude).reshape(-1)

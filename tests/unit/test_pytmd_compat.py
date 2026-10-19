@@ -347,3 +347,50 @@ def test_uv_from_database_zuv():
     # Conversion lives in _interp_group; the caller must not scale again.
     np.testing.assert_array_equal(out[:, :, 0], amp)
     np.testing.assert_array_equal(out[:, :, 2], amp)
+
+
+def test_oceanum_currents_divide_transport_after_interpolation(tidal_data_files):
+    """u/v follow OTPS/TMD/pyTMD 2: interp(transport) / interp(depth).
+
+    pyTMD 3 opens OTIS/ATLAS currents as transport / depth on the model
+    grid. Interpolating that ratio differs from interpolating transport
+    and depth separately by up to ~2.4x in amplitude on the test boundary
+    (node 9 for u, node 64 for v below). Reference values are built from
+    the raw transport (group ``U``/``V``) and u/v-node bathymetry with
+    plain xarray linear interpolation.
+    """
+    import xarray as xr
+    from pyTMD.io import ATLAS
+
+    from rompy_schism.bctides import Bctides
+
+    lons = np.array([153.158071151, 148.9044003348, 150.857426192])
+    lats = np.array([-23.6490629763, -18.7350010445, -19.6865789161])
+    atlas = tidal_data_files / "oceanum-atlas"
+    grid = atlas / "grid_tpxo9_atlas_30_v2.nc"
+    files = [atlas / "u_m2_tpxo9_atlas_30_v2.nc"]
+
+    bc = Bctides(
+        hgrid=None,
+        constituents=["m2"],
+        tidal_database=tidal_data_files,
+        tidal_model="OCEANUM-atlas",
+        tide_interpolation_method="linear",
+        extra_databases=[tidal_data_files / "database.json"],
+    )
+    result = bc._interpolate_tidal_data(lons, lats, ["m2"], "uv")
+
+    X = xr.DataArray(lons, dims="p")
+    Y = xr.DataArray(lats, dims="p")
+    for group, col in (("u", 0), ("v", 2)):
+        depth = ATLAS.open_atlas_grid(grid, group=group)["bathymetry"]
+        transport = ATLAS.open_mfdataset(files, group=group.upper())["m2"]
+        ref = (
+            transport.interp(x=X, y=Y, method="linear")
+            / depth.interp(x=X, y=Y, method="linear")
+        ).values
+        # fixture labels: transport cm^2/s, depth m -> 1e-4 to m/s
+        np.testing.assert_allclose(result[:, 0, col], np.abs(ref) * 1e-4, rtol=1e-5)
+        ref_phase = np.degrees(np.arctan2(-ref.imag, ref.real)) % 360.0
+        dphase = (result[:, 0, col + 1] - ref_phase + 180.0) % 360.0 - 180.0
+        np.testing.assert_allclose(dphase, 0.0, atol=1e-4)
