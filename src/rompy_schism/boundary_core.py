@@ -106,6 +106,21 @@ class TidalSpecies(IntEnum):
     SEMI_DIURNAL = 2  # Semi-diurnal
 
 
+def databases_for_pytmd(tidal_database, extra_databases) -> List[Path]:
+    """Authored extra databases plus ``database.json`` beside the tide files.
+
+    Does not mutate ``extra_databases``. pyTMD only sees a model such as
+    ``OCEANUM-atlas`` when that JSON is on the list passed to
+    ``model(..., extra_databases=...)``.
+    """
+    found = list(extra_databases or [])
+    if tidal_database:
+        db_json = Path(tidal_database) / "database.json"
+        if db_json.exists() and db_json not in found:
+            found.append(db_json)
+    return found
+
+
 class TidalDataset(BaseModel):
     """
     This class is used to define the tidal dataset to use from an available pyTMD tidal database.
@@ -203,25 +218,20 @@ class TidalDataset(BaseModel):
         ),
     )
 
-    extra_databases: Optional[List[Path]] = Field(
-        default=[],
+    extra_databases: List[Path] = Field(
+        default_factory=list,
         description="Extra tidal databases loaded from database.json if present",
     )
 
     def get(self, grid) -> Dict[str, Any]:
-        """Get the tidal dataset as a dictionary."""
+        """Get the tidal dataset as a dictionary.
 
-        # Ensure extra_databases is a list of paths to JSON files
-        # Copy so a caller's list is not appended to. The model field is
-        # the list create_bctides reads; database.json beside the tide
-        # files has to be on it or pyTMD will not see OCEANUM-atlas.
-        extra_databases = list(self.extra_databases or [])
-        if self.tidal_database:
-            db_json = Path(self.tidal_database) / "database.json"
-            if db_json.exists() and db_json not in extra_databases:
-                extra_databases.append(db_json)
-        self.extra_databases = extra_databases
-        extra_databases = list(extra_databases)
+        ``extra_databases`` on the model stays as authored. The returned
+        list also includes ``database.json`` beside ``tidal_database``
+        when that file exists. ``create_bctides`` resolves the same way,
+        so this return value does not have to be stored back on the model.
+        """
+        extra_databases = databases_for_pytmd(self.tidal_database, self.extra_databases)
 
         # Setup MDT by extracting from the DataBoundary if provided or using a float value
         if isinstance(self.mean_dynamic_topography, DataBoundary):
@@ -238,10 +248,6 @@ class TidalDataset(BaseModel):
         else:
             # No mean dynamic topography: no z0 constituent in bctides.in
             self._mdt = None
-
-        if len(extra_databases) > 0:
-            # Loading extra tidal databases
-            pass
 
         return {
             "constituents": self.constituents,
@@ -775,7 +781,10 @@ class BoundaryHandler(BoundaryData):
                 "tide_inpaint_iterations": self.tidal_data.tide_inpaint_iterations,
                 "extrapolate_tides": self.tidal_data.extrapolate_tides,
                 "extrapolation_distance": self.tidal_data.extrapolation_distance,
-                "extra_databases": self.tidal_data.extra_databases,
+                "extra_databases": databases_for_pytmd(
+                    self.tidal_data.tidal_database,
+                    self.tidal_data.extra_databases,
+                ),
                 "mdt": getattr(
                     self.tidal_data, "_mdt", self.tidal_data.mean_dynamic_topography
                 ),

@@ -87,7 +87,7 @@ class Bctides:
         tide_inpaint_iterations=0,
         extrapolate_tides=False,
         extrapolation_distance=50.0,
-        extra_databases=[],
+        extra_databases=None,
         mdt=None,
         ethconst=None,
         vthconst=None,
@@ -198,7 +198,7 @@ class Bctides:
         )
         self.extrapolate_tides = extrapolate_tides
         self.extrapolation_distance = extrapolation_distance
-        self.extra_databases = extra_databases
+        self.extra_databases = list(extra_databases or [])
         self.mdt = mdt
         self._h_coeffs = {}  # Placeholder for harmonic coefficients
         self._uv_coeffs = {}  # Placeholder for UV coefficients

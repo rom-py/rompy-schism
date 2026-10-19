@@ -527,9 +527,10 @@ def test_tidal_dataset_get_copies_databases_and_extrapolation(tmp_path):
         tidal_database=tmp_path,
         extra_databases=caller_list,
     )
-    dataset.get(None)
+    got = dataset.get(None)
     assert caller_list == []
-    assert dataset.extra_databases == [overlay]
+    assert dataset.extra_databases == []
+    assert got["extra_databases"] == [overlay]
 
 
 def test_finite_check_names_the_method_for_strict_linear():
