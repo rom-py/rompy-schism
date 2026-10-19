@@ -7,13 +7,14 @@ as well as the factory functions for common configurations.
 """
 
 import os
+import re
 from datetime import datetime
 from pathlib import Path
 
 import pytest
-
 from rompy.core.data import DataBlob
 from rompy.core.time import TimeRange
+
 from rompy_schism.boundary_conditions import (
     create_hybrid_boundary_config,
     create_nested_boundary_config,
@@ -248,6 +249,12 @@ class TestSCHISMDataBoundaryConditions:
             content = f.read()
             content_lower = content.lower()
             assert "m2" in content_lower or "s2" in content_lower
+
+        non_finite = re.findall(r"\b(?:nan|[+-]?inf)\b", content_lower)
+        assert not non_finite, (
+            "bctides.in contains non-finite tidal coefficients: "
+            f"{non_finite[:10]}"
+        )
 
 
 @pytest.mark.parametrize(

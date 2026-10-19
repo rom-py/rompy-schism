@@ -8,19 +8,19 @@ This module provides reusable pytest fixtures for testing SCHISM functionality.
 import logging
 import os
 import shutil
+import subprocess
 import sys
 import tempfile
 import zipfile
 from pathlib import Path
-import subprocess
 
 import pytest
 import requests
-
 from rompy.core.data import DataBlob, DataGrid
 from rompy.core.filters import Filter
 from rompy.core.source import SourceFile
 from rompy.core.types import DatasetCoords
+
 from rompy_schism.boundary_core import TidalDataset
 
 # Import directly from the new implementation
@@ -30,6 +30,7 @@ from rompy_schism.vgrid import VGrid as SchismVGrid
 DATA_REPO = "rom-py/rompy-test-data"
 DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 GITHUB_API_RELEASES = f"https://api.github.com/repos/{DATA_REPO}/releases/latest"
+_PYTMD3_TIDE_OVERLAY = Path(__file__).parent / "test_data" / "tides" / "database.json"
 
 # Add the tests directory to the Python path
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
@@ -163,7 +164,6 @@ if not os.path.exists(DATA_DIR) or not os.listdir(DATA_DIR):
     except Exception as e:
         print(f"Failed to download test data: {e}", file=sys.stderr)
         sys.exit(1)
-    # --- END: Automatic test data download ---
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -240,7 +240,11 @@ def grid3d(test_files_dir):
     else:
         # Create a basic vertical grid with default values
         vgrid = SchismVGrid(
-            ivcor=2, nvrt=20, h_s=20.0, theta_b=0.5, theta_f=5.0  # LSC2
+            ivcor=2,
+            nvrt=20,
+            h_s=20.0,
+            theta_b=0.5,
+            theta_f=5.0,  # LSC2
         )
 
     # Create the grid with both hgrid and vgrid
@@ -331,6 +335,9 @@ def tidal_data_files(test_files_dir):
             logger.info(f"Unpacking {tidal_database / 'oceanum-atlas.tar.gz'}")
             with tarfile.open(tidal_database / "oceanum-atlas.tar.gz") as tar:
                 tar.extractall(path=tidal_database)
+    overlay = _PYTMD3_TIDE_OVERLAY
+    tidal_database.mkdir(parents=True, exist_ok=True)
+    shutil.copy(overlay, tidal_database / "database.json")
     return tidal_database
 
 

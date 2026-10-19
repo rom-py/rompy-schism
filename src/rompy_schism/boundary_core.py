@@ -47,11 +47,16 @@ from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional, Union
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
-
 from rompy.core.boundary import DataBoundary
 from rompy.logging import get_logger
 
 from .bctides import Bctides
+from .bctides import (
+    normalize_tide_interpolation_method as _normalize_tide_method,
+)
+from .bctides import (
+    require_inpaint_iterations as _require_inpaint_iterations,
+)
 
 # Import from local modules
 from .boundary import BoundaryData
@@ -101,10 +106,28 @@ class TidalSpecies(IntEnum):
     SEMI_DIURNAL = 2  # Semi-diurnal
 
 
+def databases_for_pytmd(tidal_database, extra_databases) -> List[Path]:
+    """Authored extra databases plus ``database.json`` beside the tide files.
+
+    Does not mutate ``extra_databases``. pyTMD only sees a model such as
+    ``OCEANUM-atlas`` when that JSON is on the list passed to
+    ``model(..., extra_databases=...)``.
+    """
+    found = list(extra_databases or [])
+    if tidal_database:
+        db_json = Path(tidal_database) / "database.json"
+        if db_json.exists() and db_json not in found:
+            found.append(db_json)
+    return found
+
+
 class TidalDataset(BaseModel):
     """
     This class is used to define the tidal dataset to use from an available pyTMD tidal database.
-    Custom databases can be configured by providing a database.json file in the tidal database directory.
+    Custom databases can be configured by providing a database.json file in the
+    tidal database directory. The JSON must be pyTMD 3 layout: top-level model
+    names, each with ``z`` / ``u`` / ``v`` groups (not the pyTMD 2
+    ``elevation`` / ``current`` nesting).
     see https://pytmd.readthedocs.io/en/latest/getting_started/Getting-Started.html
     """
 
@@ -146,39 +169,69 @@ class TidalDataset(BaseModel):
         description="Apply nodal corrections to tidal constituents",
     )
 
-    tide_interpolation_method: str = Field(
+    tide_interpolation_method: Literal["bilinear", "linear", "nearest"] = Field(
         default="bilinear",
-        description="Method for tidal interpolation. see https://pytmd.readthedocs.io/en/latest/api_reference/interpolate.html.",
+        description=(
+            "How tidal harmonics are interpolated onto boundary nodes. "
+            "Supported values: 'bilinear' (default), 'linear', 'nearest'. "
+            "pyTMD 3 Dataset.tmd.interp on a regular grid only accepts the "
+            "xarray methods 'linear' and 'nearest'; those names are passed "
+            "through and do not fill masked cells. 'bilinear' is the "
+            "historical name for xarray 'linear' after Dataset.tmd.inpaint "
+            "(see tide_inpaint_iterations), which keeps wet coastal nodes "
+            "next to masked cells finite. 'spline' is deprecated, warns, "
+            "and is stored as 'bilinear'. pyTMD 3 has no spline interpolator."
+        ),
+    )
+
+    tide_inpaint_iterations: int = Field(
+        default=0,
+        ge=0,
+        description=(
+            "Iteration count N passed to pyTMD Dataset.tmd.inpaint "
+            "(pyTMD.interpolate.inpaint) when tide_interpolation_method is "
+            "'bilinear'. 0 (default, and pyTMD's default) fills masked "
+            "model cells with the nearest finite node. N>0 runs that many "
+            "DCT penalized least-squares iterations after the "
+            "nearest-neighbor seed. Ignored for 'linear' and 'nearest'."
+        ),
     )
 
     extrapolate_tides: bool = Field(
         default=False,
-        description="Extrapolate tidal constituents outside the domain. If False, will raise an error if any constituent is outside the domain.",
+        description=(
+            "After interpolation, fill harmonics that are still outside the "
+            "tide model using pyTMD nearest neighbors within "
+            "extrapolation_distance kilometres. If False, nodes outside "
+            "the model raise instead of being written to bctides.in. "
+            "'bilinear' fills every masked cell inside the crop from the "
+            "nearest wet cell; this flag does not limit that fill."
+        ),
     )
 
     extrapolation_distance: float = Field(
         default=50.0,
-        description="Distance in kilometre to extrapolate tidal constituents outside the tidal model. Only used if extrapolate_tides is True.",
+        description=(
+            "Distance in kilometres. Pads the tide-model crop around "
+            "boundary nodes (at least 0.5 degrees) and, when "
+            "extrapolate_tides is True, limits pyTMD extrapolation."
+        ),
     )
 
-    extra_databases: Optional[List[Path]] = Field(
-        default=[],
+    extra_databases: List[Path] = Field(
+        default_factory=list,
         description="Extra tidal databases loaded from database.json if present",
     )
 
     def get(self, grid) -> Dict[str, Any]:
-        """Get the tidal dataset as a dictionary."""
+        """Get the tidal dataset as a dictionary.
 
-        # Ensure extra_databases is a list of paths to JSON files
-        extra_databases = self.extra_databases
-        if self.tidal_database:
-            db_json = Path(self.tidal_database) / "database.json"
-            if db_json.exists():
-                if extra_databases is None:
-                    extra_databases = [db_json]
-                elif isinstance(extra_databases, list):
-                    if db_json not in extra_databases:
-                        extra_databases.append(db_json)
+        ``extra_databases`` on the model stays as authored. The returned
+        list also includes ``database.json`` beside ``tidal_database``
+        when that file exists. ``create_bctides`` resolves the same way,
+        so this return value does not have to be stored back on the model.
+        """
+        extra_databases = databases_for_pytmd(self.tidal_database, self.extra_databases)
 
         # Setup MDT by extracting from the DataBoundary if provided or using a float value
         if isinstance(self.mean_dynamic_topography, DataBoundary):
@@ -196,10 +249,6 @@ class TidalDataset(BaseModel):
             # No mean dynamic topography: no z0 constituent in bctides.in
             self._mdt = None
 
-        if len(extra_databases) > 0:
-            # Loading extra tidal databases
-            pass
-
         return {
             "constituents": self.constituents,
             "tidal_database": self.tidal_database,
@@ -208,6 +257,9 @@ class TidalDataset(BaseModel):
             "cutoff_depth": self.cutoff_depth,
             "nodal_corrections": self.nodal_corrections,
             "tide_interpolation_method": self.tide_interpolation_method,
+            "tide_inpaint_iterations": self.tide_inpaint_iterations,
+            "extrapolate_tides": self.extrapolate_tides,
+            "extrapolation_distance": self.extrapolation_distance,
             "extra_databases": extra_databases,
             "mean_dynamic_topography": self._mdt,
         }
@@ -243,6 +295,18 @@ class TidalDataset(BaseModel):
         elif isinstance(v, list):
             return [c.lower() if isinstance(c, str) else c for c in v]
         return v
+
+    @field_validator("tide_interpolation_method", mode="before")
+    @classmethod
+    def normalize_tide_interpolation_method(cls, v):
+        """Lower-case method names. Deprecated ``spline`` becomes ``bilinear``."""
+        return _normalize_tide_method(v, stacklevel=4)
+
+    @field_validator("tide_inpaint_iterations", mode="before")
+    @classmethod
+    def whole_inpaint_iterations(cls, v):
+        """Reject bools and fractional counts before pydantic coerces them."""
+        return _require_inpaint_iterations(v)
 
     @field_validator(
         "tidal_potential", "nodal_corrections", "extrapolate_tides", mode="before"
@@ -714,9 +778,13 @@ class BoundaryHandler(BoundaryData):
                 "cutoff_depth": self.tidal_data.cutoff_depth,
                 "nodal_corrections": self.tidal_data.nodal_corrections,
                 "tide_interpolation_method": self.tidal_data.tide_interpolation_method,
+                "tide_inpaint_iterations": self.tidal_data.tide_inpaint_iterations,
                 "extrapolate_tides": self.tidal_data.extrapolate_tides,
                 "extrapolation_distance": self.tidal_data.extrapolation_distance,
-                "extra_databases": self.tidal_data.extra_databases,
+                "extra_databases": databases_for_pytmd(
+                    self.tidal_data.tidal_database,
+                    self.tidal_data.extra_databases,
+                ),
                 "mdt": getattr(
                     self.tidal_data, "_mdt", self.tidal_data.mean_dynamic_topography
                 ),
