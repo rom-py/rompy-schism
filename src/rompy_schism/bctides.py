@@ -489,7 +489,7 @@ class Bctides:
         (e.g. FES, which stores currents) are returned unchanged.
 
         This works around pyTMD 3 behaviour and can be removed if pyTMD
-        changes. An upstream pyTMD issue is being drafted; no number yet.
+        changes. See https://github.com/pyTMD/pyTMD/issues/632.
         """
         if "bathymetry" not in ds.data_vars:
             return ds, False
