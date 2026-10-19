@@ -481,15 +481,15 @@ class Bctides:
         """Undo pyTMD 3's on-grid transport/depth division for OTIS/ATLAS.
 
         pyTMD 3 opens OTIS/ATLAS ``u``/``v`` groups as transport divided by
-        the u/v-node ``bathymetry`` on the model grid. pyTMD 2, OTPS and
-        TMD interpolate transport and depth separately and divide at the
-        output point. Multiplying back by ``bathymetry`` recovers the
+        the u/v-node ``bathymetry`` on the model grid. pyTMD 2, OTPS extract_HC
+        and TMD 2.5 interpolate transport and depth separately and divide at
+        the output point. Multiplying back by ``bathymetry`` recovers the
         transport so :meth:`_transport_to_currents` can divide
         after interpolation. Models without a ``bathymetry`` variable
         (e.g. FES, which stores currents) are returned unchanged.
 
         This works around pyTMD 3 behaviour and can be removed if pyTMD
-        changes. An upstream pyTMD issue is being drafted; no number yet.
+        changes. See https://github.com/pyTMD/pyTMD/issues/632.
         """
         if "bathymetry" not in ds.data_vars:
             return ds, False
