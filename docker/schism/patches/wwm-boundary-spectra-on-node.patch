@@ -1,0 +1,28 @@
+--- a/src/WWMIII/wwm_bdcons.F90
++++ b/src/WWMIII/wwm_bdcons.F90
+@@ -2201,7 +2201,11 @@
+               INDBWW3(IBWW3)=IBWW3
+             ENDDO
+             CALL SSORT2 (DIST, INDBWW3, TMP, NP_WW3, 2)
+-            CALL SHEPARDINT2D(2, 1./DIST(1:2),MSC,MDC,SPEC_WWM(:,:,INT(INDBWW3(1:2))), WBACOUT(:,:,IB), 1)
++            IF (DIST(1) .LE. 0.) THEN ! the node is on a WW3 point: 1./DIST is infinite
++              WBACOUT(:,:,IB) = SPEC_WWM(:,:,INT(INDBWW3(1)))
++            ELSE
++              CALL SHEPARDINT2D(2, 1./DIST(1:2),MSC,MDC,SPEC_WWM(:,:,INT(INDBWW3(1:2))), WBACOUT(:,:,IB), 1)
++            ENDIF
+             IF (WRITESTATFLAG == 1) THEN
+               WRITE(STAT%FHNDL,'(A20, 2F20.5,3F30.10)') ' AFTER INTERPOLATION ', INDBWW3(1), INDBWW3(2), &
+                              & sum(SPEC_WWM(:,:,INT(INDBWW3(1)))), sum(SPEC_WWM(:,:,INT(INDBWW3(2)))), SUM(WBACOUT(:,:,IB))
+@@ -2487,7 +2491,11 @@
+               INDBWW3(IBWW3)=IBWW3
+             ENDDO
+             CALL SSORT2 (DIST, INDBWW3, TMP, NP_WW3, 2)
+-            CALL SHEPARDINT2D(2, 1./DIST(1:2),MSC,MDC,SPEC_WWM(:,:,INT(INDBWW3(1:2))), WBACOUT(:,:,IB), 1)
++            IF (DIST(1) .LE. 0.) THEN ! the node is on a WW3 point: 1./DIST is infinite
++              WBACOUT(:,:,IB) = SPEC_WWM(:,:,INT(INDBWW3(1)))
++            ELSE
++              CALL SHEPARDINT2D(2, 1./DIST(1:2),MSC,MDC,SPEC_WWM(:,:,INT(INDBWW3(1:2))), WBACOUT(:,:,IB), 1)
++            ENDIF
+             IF (WRITESTATFLAG == 1) WRITE(STAT%FHNDL,'(A20, 2F20.5,3F30.10)') ' AFTER INTERPOLATION ', INDBWW3(1), INDBWW3(2), & 
+                                  & sum(SPEC_WWM(:,:,INT(INDBWW3(1)))), sum(SPEC_WWM(:,:,INT(INDBWW3(2)))), SUM(WBACOUT(:,:,IB))
+           ELSE

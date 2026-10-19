@@ -199,7 +199,7 @@ variables:
 
 ```yaml
 boundaries:
-  0:  # Boundary index (0 applies to all open boundaries)
+  0:  # Index of the open boundary in hgrid.gr3 (0 is the first); see also default_boundary
     elev_type: 5    # HARMONICEXTERNAL
     vel_type: 3     # HARMONIC
     temp_type: 4    # EXTERNAL
