@@ -47,12 +47,16 @@ from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional, Union
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
-
 from rompy.core.boundary import DataBoundary
 from rompy.logging import get_logger
 
 from .bctides import Bctides
-from .bctides import normalize_tide_interpolation_method as _normalize_tide_method
+from .bctides import (
+    normalize_tide_interpolation_method as _normalize_tide_method,
+)
+from .bctides import (
+    require_inpaint_iterations as _require_inpaint_iterations,
+)
 
 # Import from local modules
 from .boundary import BoundaryData
@@ -183,10 +187,10 @@ class TidalDataset(BaseModel):
         description=(
             "After interpolation, fill harmonics that are still outside the "
             "tide model using pyTMD nearest neighbors within "
-            "extrapolation_distance kilometres. If False, non-finite "
-            "harmonics raise instead of being written to bctides.in. "
-            "Masked cells next to wet nodes are handled by 'bilinear', "
-            "not by this flag."
+            "extrapolation_distance kilometres. If False, nodes outside "
+            "the model raise instead of being written to bctides.in. "
+            "'bilinear' fills every masked cell inside the crop from the "
+            "nearest wet cell; this flag does not limit that fill."
         ),
     )
 
@@ -208,15 +212,11 @@ class TidalDataset(BaseModel):
         """Get the tidal dataset as a dictionary."""
 
         # Ensure extra_databases is a list of paths to JSON files
-        extra_databases = self.extra_databases
+        extra_databases = list(self.extra_databases or [])
         if self.tidal_database:
             db_json = Path(self.tidal_database) / "database.json"
-            if db_json.exists():
-                if extra_databases is None:
-                    extra_databases = [db_json]
-                elif isinstance(extra_databases, list):
-                    if db_json not in extra_databases:
-                        extra_databases.append(db_json)
+            if db_json.exists() and db_json not in extra_databases:
+                extra_databases.append(db_json)
 
         # Setup MDT by extracting from the DataBoundary if provided or using a float value
         if isinstance(self.mean_dynamic_topography, DataBoundary):
@@ -247,6 +247,8 @@ class TidalDataset(BaseModel):
             "nodal_corrections": self.nodal_corrections,
             "tide_interpolation_method": self.tide_interpolation_method,
             "tide_inpaint_iterations": self.tide_inpaint_iterations,
+            "extrapolate_tides": self.extrapolate_tides,
+            "extrapolation_distance": self.extrapolation_distance,
             "extra_databases": extra_databases,
             "mean_dynamic_topography": self._mdt,
         }
@@ -288,6 +290,12 @@ class TidalDataset(BaseModel):
     def normalize_tide_interpolation_method(cls, v):
         """Lower-case method names. Deprecated ``spline`` becomes ``bilinear``."""
         return _normalize_tide_method(v, stacklevel=4)
+
+    @field_validator("tide_inpaint_iterations", mode="before")
+    @classmethod
+    def whole_inpaint_iterations(cls, v):
+        """Reject bools and fractional counts before pydantic coerces them."""
+        return _require_inpaint_iterations(v)
 
     @field_validator(
         "tidal_potential", "nodal_corrections", "extrapolate_tides", mode="before"

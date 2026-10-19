@@ -7,15 +7,14 @@ from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pytest
-import pyTMD.constituents
-from pyTMD.io.model import load_database
 
 pytest.importorskip("pyTMD")
 pytest.importorskip("rompy_schism")
 
-_OVERLAY = (
-    Path(__file__).resolve().parents[1] / "test_data" / "tides" / "database.json"
-)
+import pyTMD.constituents
+from pyTMD.io.model import load_database
+
+_OVERLAY = Path(__file__).resolve().parents[1] / "test_data" / "tides" / "database.json"
 
 
 class _LocalAmpPhase:
@@ -92,21 +91,23 @@ def test_interp_group_opens_chunked_then_crops():
     cons = ["M2"]
     lons = np.array([150.0, 151.0])
     lats = np.array([-23.0, -24.0])
-    bounds = [149.0, 152.0, -25.0, -22.0]
     npts = lons.size
 
     local = _LocalAmpPhase(cons, npts)
     cropped = MagicMock()
+    cropped.tmd.constituents = cons
     cropped.tmd.coords_as.return_value = (lons, lats)
     cropped.tmd.interp.return_value = local
+    cropped.__getitem__.side_effect = lambda _names: cropped
 
     opened = MagicMock()
+    opened.tmd.crs.is_geographic = True
     opened.tmd.crop.return_value = cropped
 
     model = MagicMock()
     model.open_dataset.return_value = opened
 
-    amp, pha = bc._interp_group(model, "z", lons, lats, cons, bounds)
+    amp, pha = bc._interp_group(model, "z", lons, lats, cons)
 
     model.reduce_constituents.assert_called_once_with(cons, group="z")
     model.open_dataset.assert_called_once_with(
@@ -114,7 +115,7 @@ def test_interp_group_opens_chunked_then_crops():
         constituents=cons,
         chunks=bctides._OPEN_CHUNKS,
     )
-    opened.tmd.crop.assert_called_once_with(bounds, buffer=0)
+    opened.tmd.crop.assert_called_once_with(bc._bounds_for_points(lons, lats), buffer=0)
     cropped.tmd.to_units.assert_not_called()
     np.testing.assert_array_equal(amp, np.ones((2, 1)))
     np.testing.assert_array_equal(pha, np.zeros((2, 1)))
@@ -132,24 +133,27 @@ def test_interp_group_converts_currents_with_pytmd_units():
     cons = ["m2"]
     lons = np.array([150.0, 151.0])
     lats = np.array([-23.0, -24.0])
-    bounds = [149.0, 152.0, -25.0, -22.0]
     # Amplitudes stand in for values already converted to m/s.
     local = _LocalAmpPhase(cons, lons.size)
 
     converted = MagicMock()
+    converted.data_vars = {}
+    converted.tmd.constituents = cons
     converted.tmd.coords_as.return_value = (lons, lats)
     converted.tmd.interp.return_value = local
+    converted.__getitem__.side_effect = lambda _names: converted
 
     cropped = MagicMock()
     cropped.tmd.to_units.return_value = converted
 
     opened = MagicMock()
+    opened.tmd.crs.is_geographic = True
     opened.tmd.crop.return_value = cropped
 
     model = MagicMock()
     model.open_dataset.return_value = opened
 
-    amp, pha = bc._interp_group(model, "u", lons, lats, cons, bounds)
+    amp, pha = bc._interp_group(model, "u", lons, lats, cons)
 
     cropped.tmd.to_units.assert_called_once_with("m/s")
     converted.tmd.interp.assert_called_once()
@@ -172,8 +176,6 @@ def test_bilinear_fills_masked_cells_before_linear(n_iter):
     cons = ["m2"]
     lons = np.array([152.2])
     lats = np.array([-24.5])
-    bounds = [151.0, 153.0, -25.0, -24.0]
-
     local = _LocalAmpPhase(cons, lons.size)
     filled = MagicMock()
     filled.tmd.coords_as.return_value = (lons, lats)
@@ -181,15 +183,19 @@ def test_bilinear_fills_masked_cells_before_linear(n_iter):
 
     cropped = MagicMock()
     cropped.chunks = {}
+    cropped.tmd.constituents = cons
+    cropped.tmd.crs.is_geographic = True
     cropped.tmd.inpaint.return_value = filled
+    cropped.__getitem__.side_effect = lambda _names: cropped
 
     opened = MagicMock()
+    opened.tmd.crs.is_geographic = True
     opened.tmd.crop.return_value = cropped
 
     model = MagicMock()
     model.open_dataset.return_value = opened
 
-    amp, pha = bc._interp_group(model, "z", lons, lats, cons, bounds)
+    amp, pha = bc._interp_group(model, "z", lons, lats, cons)
 
     cropped.tmd.inpaint.assert_called_once_with(
         N=bc.tide_inpaint_iterations, is_geographic=True
@@ -277,8 +283,7 @@ def test_oceanum_coastal_interpolation_is_finite(tidal_data_files, data_type):
     )
 
     assert np.isfinite(result).all(), (
-        f"{data_type} interpolation returned non-finite tidal coefficients: "
-        f"{result!r}"
+        f"{data_type} interpolation returned non-finite tidal coefficients: {result!r}"
     )
 
 
@@ -340,9 +345,7 @@ def test_uv_from_database_zuv():
             "uv",
         )
 
-    tmd_model.from_database.assert_called_once_with(
-        "FES2014", group=("z", "u", "v")
-    )
+    tmd_model.from_database.assert_called_once_with("FES2014", group=("z", "u", "v"))
     assert out.shape == (2, 1, 4)
     # Conversion lives in _interp_group; the caller must not scale again.
     np.testing.assert_array_equal(out[:, :, 0], amp)
@@ -394,3 +397,151 @@ def test_oceanum_currents_divide_transport_after_interpolation(tidal_data_files)
         ref_phase = np.degrees(np.arctan2(-ref.imag, ref.real)) % 360.0
         dphase = (result[:, 0, col + 1] - ref_phase + 180.0) % 360.0 - 180.0
         np.testing.assert_allclose(dphase, 0.0, atol=1e-4)
+
+
+def _bounds(lons, lats, distance=0.0):
+    from rompy_schism.bctides import Bctides
+
+    bc = Bctides.__new__(Bctides)
+    bc.extrapolation_distance = distance
+    return bc._bounds_for_points(np.asarray(lons, dtype=float), np.asarray(lats))
+
+
+def test_crop_bounds_keep_a_compact_western_box():
+    """Negative longitudes stay a short box; pyTMD main shifts them onto 0–360."""
+    # 0.5° latitude pad; longitude pad is wider by 1/cos(20°).
+    bounds = _bounds([-75.0, -70.0], [10.0, 20.0])
+    lon_pad = 0.5 / np.cos(np.deg2rad(20.0))
+    assert bounds[0] < bounds[1]
+    assert bounds == pytest.approx([-75.0 - lon_pad, -70.0 + lon_pad, 9.5, 20.5])
+
+
+def test_crop_bounds_cross_the_dateline_on_the_short_arc():
+    """xmin > xmax is the pyTMD#613 wrap window, not min/max of ±180."""
+    bounds = _bounds([179.0, -179.0], [-20.0, -19.0])
+    lon_pad = 0.5 / np.cos(np.deg2rad(20.0))
+    assert bounds[0] > bounds[1]
+    assert bounds == pytest.approx([179.0 - lon_pad, -179.0 + lon_pad, -20.5, -18.5])
+
+
+def test_unset_tide_method_uses_bilinear_fill():
+    from rompy_schism.bctides import Bctides
+
+    bc = Bctides.__new__(Bctides)
+    bc.tide_interpolation_method = None
+    assert bc._xarray_interp_method() == ("linear", True)
+
+
+def test_unknown_tide_method_warns_and_skips_fill(caplog):
+    from rompy_schism.bctides import Bctides
+
+    bc = Bctides.__new__(Bctides)
+    bc.tide_interpolation_method = "cubic"
+    with caplog.at_level("WARNING"):
+        assert bc._xarray_interp_method() == ("linear", False)
+    assert "cubic" in caplog.text
+
+
+def test_inpaint_iterations_reject_fractions_and_bools():
+    from rompy_schism.bctides import Bctides
+    from rompy_schism.boundary_core import TidalDataset
+
+    for value in (1.5, True):
+        with pytest.raises(ValueError, match="integer"):
+            Bctides(hgrid=None, constituents=["m2"], tide_inpaint_iterations=value)
+        with pytest.raises(ValueError, match="integer"):
+            TidalDataset(tide_inpaint_iterations=value)
+
+
+def test_currents_without_bathymetry_are_left_alone():
+    """FES stores currents, so the transport workaround does not apply."""
+    import xarray as xr
+
+    from rompy_schism.bctides import Bctides
+
+    ds = xr.Dataset({"m2": (("y", "x"), np.ones((2, 2)))})
+    out, transport = Bctides._currents_to_transport(ds)
+    assert transport is False
+    assert out is ds
+
+
+def test_nonpositive_bathymetry_becomes_missing():
+    """OTIS-binary and TMD3 store land depth as 0. That must not stay finite."""
+    import xarray as xr
+
+    from rompy_schism.bctides import Bctides
+
+    ds = xr.Dataset(
+        {
+            "m2": (("y", "x"), np.array([[1.0 + 0.0j, np.nan], [2.0 + 0.0j, 3.0]])),
+            "bathymetry": (("y", "x"), np.array([[10.0, 0.0], [-1.0, 20.0]])),
+            "mask": (("y", "x"), np.ones((2, 2), dtype=np.int8)),
+        }
+    )
+    out, transport = Bctides._currents_to_transport(ds)
+    assert transport is True
+    assert np.isnan(out["bathymetry"].values[0, 1])
+    assert np.isnan(out["bathymetry"].values[1, 0])
+    fields = Bctides._fields_for_interpolation(out, transport=True)
+    assert list(fields.data_vars) == ["m2", "bathymetry"]
+
+
+def test_inpaint_keeps_wet_cells_for_nearest_and_dct():
+    """N=0 and N>0 both put the original finite samples back."""
+    from pyTMD.interpolate import inpaint
+
+    xs = np.linspace(150.0, 151.0, 3)
+    ys = np.linspace(-25.0, -24.0, 3)
+    values = np.array(
+        [[1.0, np.nan, 1.5], [np.nan, 2.0, 2.5], [3.0, 3.5, np.nan]],
+        dtype=float,
+    )
+    wet = np.isfinite(values)
+    for iterations in (0, 4):
+        filled = inpaint(xs, ys, values, N=iterations, is_geographic=True)
+        assert np.isfinite(filled).all()
+        np.testing.assert_allclose(filled[wet], values[wet])
+
+
+def test_tidal_dataset_get_copies_databases_and_extrapolation():
+    from rompy_schism.boundary_core import TidalDataset
+
+    dataset = TidalDataset(
+        constituents=["m2"],
+        extra_databases=[],
+        extrapolate_tides=True,
+        extrapolation_distance=80.0,
+    )
+    got = dataset.get(None)
+    got["extra_databases"].append("mutated")
+    assert dataset.extra_databases == []
+    assert got["extrapolate_tides"] is True
+    assert got["extrapolation_distance"] == 80.0
+
+
+def test_finite_check_names_the_method_for_strict_linear():
+    from rompy_schism.bctides import Bctides
+
+    bc = Bctides.__new__(Bctides)
+    bc.tide_interpolation_method = "linear"
+    bc.extrapolate_tides = False
+    with pytest.raises(ValueError, match="bilinear") as exc:
+        bc._require_finite_harmonics(np.array([[[np.nan, 0.0]]]), "h")
+    assert "method='linear'" in str(exc.value)
+
+
+def test_projected_crop_bounds_are_metres():
+    import xarray as xr
+
+    from rompy_schism.bctides import Bctides
+
+    bc = Bctides.__new__(Bctides)
+    bc.extrapolation_distance = 50.0
+    ds = xr.Dataset(
+        {"m2": (("y", "x"), np.ones((2, 2)))},
+        coords={"x": [400000.0, 401000.0], "y": [7200000.0, 7201000.0]},
+        attrs={"crs": "EPSG:32756"},
+    )
+    bounds = bc._crop_bounds(ds, [151.0], [-24.0])
+    assert bounds[1] - bounds[0] < 500_000
+    assert min(bounds[0], bounds[1]) > 10_000

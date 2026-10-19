@@ -8,19 +8,19 @@ This module provides reusable pytest fixtures for testing SCHISM functionality.
 import logging
 import os
 import shutil
+import subprocess
 import sys
 import tempfile
 import zipfile
 from pathlib import Path
-import subprocess
 
 import pytest
 import requests
-
 from rompy.core.data import DataBlob, DataGrid
 from rompy.core.filters import Filter
 from rompy.core.source import SourceFile
 from rompy.core.types import DatasetCoords
+
 from rompy_schism.boundary_core import TidalDataset
 
 # Import directly from the new implementation
@@ -157,15 +157,6 @@ def download_and_extract_data():
     print("Test data downloaded and extracted.")
 
 
-def _stamp_pytmd3_tide_overlay():
-    """Replace rompy-test-data's pyTMD 2 JSON with the tracked pyTMD 3 overlay."""
-    if not _PYTMD3_TIDE_OVERLAY.exists():
-        return
-    dest_dir = Path(DATA_DIR) / "schism" / "tides"
-    dest_dir.mkdir(parents=True, exist_ok=True)
-    shutil.copy(_PYTMD3_TIDE_OVERLAY, dest_dir / "database.json")
-
-
 # Only download if data dir is missing or empty
 if not os.path.exists(DATA_DIR) or not os.listdir(DATA_DIR):
     try:
@@ -173,8 +164,6 @@ if not os.path.exists(DATA_DIR) or not os.listdir(DATA_DIR):
     except Exception as e:
         print(f"Failed to download test data: {e}", file=sys.stderr)
         sys.exit(1)
-
-_stamp_pytmd3_tide_overlay()
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -251,7 +240,11 @@ def grid3d(test_files_dir):
     else:
         # Create a basic vertical grid with default values
         vgrid = SchismVGrid(
-            ivcor=2, nvrt=20, h_s=20.0, theta_b=0.5, theta_f=5.0  # LSC2
+            ivcor=2,
+            nvrt=20,
+            h_s=20.0,
+            theta_b=0.5,
+            theta_f=5.0,  # LSC2
         )
 
     # Create the grid with both hgrid and vgrid
