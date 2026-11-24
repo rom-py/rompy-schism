@@ -23,7 +23,20 @@ classifiers = [
 ]
 license = { text = "Apache Software License 2.0" }
 requires-python = ">=3.10"
-dependencies = ["rompy>=0.6", "pydantic>2", "pylibs-ocean", "pytmd==2.2.9.1"]
+dependencies = [
+    "rompy>=0.6",
+    "pydantic>2",
+    "pylibs-ocean",
+    # pyTMD 3 only (constituents, not arguments; extra_databases JSON is
+    # model-name keyed with z/u/v groups). pyTMD 2 overlays will not load.
+    # Pin main after the 3.0.9 release: that tag still reports version
+    # 3.0.9, and PyPI 3.0.9 crops a 0–360 grid with a −180..180 box to
+    # nothing and reads the whole dataset. This commit has the lazy
+    # dateline-aware crop (pyTMD#613) and ATLAS nodata masking
+    # (pyTMD#624, pyTMD#625). Transport is still divided on the model
+    # grid (pyTMD#632); bctides undoes that.
+    "pytmd @ git+https://github.com/pyTMD/pyTMD.git@60931a4b3a57e65c1444650c973be5e998404d3c",
+]
 
 dynamic = ["version"]
 

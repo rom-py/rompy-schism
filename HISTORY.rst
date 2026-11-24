@@ -68,6 +68,7 @@ Bug Fixes
 * ``TidalDataset.tide_interpolation_method`` is used; it was always bilinear.
 * Boundary conditions without tidal data, and a ``TidalDataset`` without mean dynamic topography, no longer fail.
 * Boundary files (``elev2D.th.nc``, ``uv3D.th.nc``, ``TEM_3D.th.nc``, ``SAL_3D.th.nc``) hold the nodes of the open boundaries that use them, as SCHISM reads them. They held all open boundary nodes, which SCHISM cannot read when only some boundaries use the file, for example an ocean boundary with a river. Each file is written once, from one source, set with ``SCHISMDataBoundary.open_boundaries``.
+* Tidal boundaries depend on pyTMD main after the 3.0.9 release (commit ``60931a4``), not the PyPI 3.0.9 package. That release crops a 0–360 tide grid with a −180..180 box to nothing and reads the whole dataset. The pinned commit has the lazy dateline-aware crop and ATLAS nodata masking. A boundary that crosses the dateline is cropped along the short arc, and the longitude pad widens with latitude. Projected tide models are cropped in their own metres. Land depth stored as 0 (OTIS-binary, TMD3) is treated as missing before the transport divide. Inpaint runs only on constituents and bathymetry. All open boundaries of one file are interpolated in one crop per group, and ``bctides.in`` is replaced only after that succeeds. Elevation amplitudes outside 1 mm–20 m, and currents above 10 m/s, log a warning.
 
 Deprecations
 ------------
